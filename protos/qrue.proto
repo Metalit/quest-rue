@@ -5,9 +5,8 @@ syntax = "proto3";
 
 import "il2cpp.proto";
 import "unity.proto";
-import "paper.proto";
 
-// COMMAND/QUERY PACKETS
+// all command/query packets
 
 message SetField {
     uint64 fieldId = 1;
@@ -62,7 +61,6 @@ message GetAllGameObjects {
 }
 
 message GetAllGameObjectsResult {
-    // TODO: GameObject data such as hierarchy
     repeated ProtoGameObject objects = 1;
 }
 
@@ -155,20 +153,11 @@ message AddSafePtrAddress {
     bool remove = 2; // if true, removes the address
 }
 
-message GetSafePtrAddresses  {}
+message GetSafePtrAddresses  {
+}
+
 message GetSafePtrAddressesResult {
     map<uint64, ProtoClassInfo> address = 1;
-}
-
-message RequestLogger {
-    // if true, enables the logger updates
-    // false disables
-    bool listen = 1;
-}
-
-// the backend will continually send this as long as we're listening
-message ResponseLoggerUpdate {
-    repeated PaperLogData paperLogs = 1;
 }
 
 message GetCameraHovered {
@@ -212,8 +201,6 @@ message PacketWrapper {
         AddSafePtrAddress addSafePtrAddress = 29;
         GetSafePtrAddresses getSafePtrAddresses = 30;
         GetSafePtrAddressesResult getSafePtrAddressesResult = 31;
-        RequestLogger requestLogger = 32;
-        ResponseLoggerUpdate responseLoggerUpdate = 33;
         GetCameraHovered getCameraHovered = 36;
         GetCameraHoveredResult getCameraHoveredResult = 37;
     }

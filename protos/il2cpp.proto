@@ -3,7 +3,8 @@ syntax = "proto3";
 // optional = nullable
 // may change in future!
 
-// Type Identification
+// --- Type Identification ---
+
 message ProtoClassInfo {
     string namespaze = 1;
     string clazz = 2;
@@ -52,7 +53,8 @@ message ProtoTypeInfo {
     bool isByref = 7;
 }
 
-// Type Details
+// --- Class Details ---
+
 // id = pointer address of info
 message ProtoFieldInfo {
     string name = 1;
@@ -83,8 +85,7 @@ message ProtoMethodInfo {
     ProtoTypeInfo returnType = 4;
 }
 
-/// Contains the class data in its entirety
-// NOT APPLICABLE TO PRIMITIVES
+// contains the class data in its entirety for non-primitives
 message ProtoClassDetails {
     ProtoClassInfo clazz = 1;
 
@@ -100,6 +101,8 @@ message ProtoClassDetails {
 
     optional ProtoClassDetails parent = 9; /* nullable */
 }
+
+// --- Data Sending ---
 
 // separate from payload because the typeInfo never needs to be nested
 message ProtoDataSegment {
@@ -120,9 +123,7 @@ message ProtoDataSegment {
     }
 }
 
-// Data Sending
 message ProtoDataPayload {
     optional ProtoTypeInfo typeInfo = 1; /* nullable */
-
     ProtoDataSegment data = 2;
 }

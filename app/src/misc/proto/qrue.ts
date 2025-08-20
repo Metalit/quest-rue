@@ -2,7 +2,6 @@
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { ProtoClassDetails, ProtoClassInfo, ProtoDataPayload, ProtoDataSegment, ProtoTypeInfo } from "./il2cpp";
-import { PaperLogData } from "./paper";
 import { ProtoComponent, ProtoGameObject, ProtoObject } from "./unity";
 
 export const protobufPackage = "";
@@ -100,7 +99,6 @@ export interface GetAllGameObjects {
 }
 
 export interface GetAllGameObjectsResult {
-  /** TODO: GameObject data such as hierarchy */
   objects: ProtoGameObject[];
 }
 
@@ -274,19 +272,6 @@ export interface GetSafePtrAddressesResult_AddressEntry {
   value: ProtoClassInfo | undefined;
 }
 
-export interface RequestLogger {
-  /**
-   * if true, enables the logger updates
-   * false disables
-   */
-  listen: boolean;
-}
-
-/** the backend will continually send this as long as we're listening */
-export interface ResponseLoggerUpdate {
-  paperLogs: PaperLogData[];
-}
-
 export interface GetCameraHovered {
 }
 
@@ -329,8 +314,6 @@ export interface PacketWrapper {
     | { $case: "addSafePtrAddress"; addSafePtrAddress: AddSafePtrAddress }
     | { $case: "getSafePtrAddresses"; getSafePtrAddresses: GetSafePtrAddresses }
     | { $case: "getSafePtrAddressesResult"; getSafePtrAddressesResult: GetSafePtrAddressesResult }
-    | { $case: "requestLogger"; requestLogger: RequestLogger }
-    | { $case: "responseLoggerUpdate"; responseLoggerUpdate: ResponseLoggerUpdate }
     | { $case: "getCameraHovered"; getCameraHovered: GetCameraHovered }
     | { $case: "getCameraHoveredResult"; getCameraHoveredResult: GetCameraHoveredResult }
     | undefined;
@@ -2816,124 +2799,6 @@ export const GetSafePtrAddressesResult_AddressEntry = {
   },
 };
 
-function createBaseRequestLogger(): RequestLogger {
-  return { listen: false };
-}
-
-export const RequestLogger = {
-  encode(message: RequestLogger, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.listen === true) {
-      writer.uint32(8).bool(message.listen);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): RequestLogger {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRequestLogger();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.listen = reader.bool();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): RequestLogger {
-    return { listen: isSet(object.listen) ? globalThis.Boolean(object.listen) : false };
-  },
-
-  toJSON(message: RequestLogger): unknown {
-    const obj: any = {};
-    if (message.listen === true) {
-      obj.listen = message.listen;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<RequestLogger>, I>>(base?: I): RequestLogger {
-    return RequestLogger.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<RequestLogger>, I>>(object: I): RequestLogger {
-    const message = createBaseRequestLogger();
-    message.listen = object.listen ?? false;
-    return message;
-  },
-};
-
-function createBaseResponseLoggerUpdate(): ResponseLoggerUpdate {
-  return { paperLogs: [] };
-}
-
-export const ResponseLoggerUpdate = {
-  encode(message: ResponseLoggerUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.paperLogs) {
-      PaperLogData.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ResponseLoggerUpdate {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResponseLoggerUpdate();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.paperLogs.push(PaperLogData.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ResponseLoggerUpdate {
-    return {
-      paperLogs: globalThis.Array.isArray(object?.paperLogs)
-        ? object.paperLogs.map((e: any) => PaperLogData.fromJSON(e))
-        : [],
-    };
-  },
-
-  toJSON(message: ResponseLoggerUpdate): unknown {
-    const obj: any = {};
-    if (message.paperLogs?.length) {
-      obj.paperLogs = message.paperLogs.map((e) => PaperLogData.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ResponseLoggerUpdate>, I>>(base?: I): ResponseLoggerUpdate {
-    return ResponseLoggerUpdate.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ResponseLoggerUpdate>, I>>(object: I): ResponseLoggerUpdate {
-    const message = createBaseResponseLoggerUpdate();
-    message.paperLogs = object.paperLogs?.map((e) => PaperLogData.fromPartial(e)) || [];
-    return message;
-  },
-};
-
 function createBaseGetCameraHovered(): GetCameraHovered {
   return {};
 }
@@ -3139,12 +3004,6 @@ export const PacketWrapper = {
         break;
       case "getSafePtrAddressesResult":
         GetSafePtrAddressesResult.encode(message.Packet.getSafePtrAddressesResult, writer.uint32(250).fork()).ldelim();
-        break;
-      case "requestLogger":
-        RequestLogger.encode(message.Packet.requestLogger, writer.uint32(258).fork()).ldelim();
-        break;
-      case "responseLoggerUpdate":
-        ResponseLoggerUpdate.encode(message.Packet.responseLoggerUpdate, writer.uint32(266).fork()).ldelim();
         break;
       case "getCameraHovered":
         GetCameraHovered.encode(message.Packet.getCameraHovered, writer.uint32(290).fork()).ldelim();
@@ -3443,23 +3302,6 @@ export const PacketWrapper = {
             getSafePtrAddressesResult: GetSafePtrAddressesResult.decode(reader, reader.uint32()),
           };
           continue;
-        case 32:
-          if (tag !== 258) {
-            break;
-          }
-
-          message.Packet = { $case: "requestLogger", requestLogger: RequestLogger.decode(reader, reader.uint32()) };
-          continue;
-        case 33:
-          if (tag !== 266) {
-            break;
-          }
-
-          message.Packet = {
-            $case: "responseLoggerUpdate",
-            responseLoggerUpdate: ResponseLoggerUpdate.decode(reader, reader.uint32()),
-          };
-          continue;
         case 36:
           if (tag !== 290) {
             break;
@@ -3585,13 +3427,6 @@ export const PacketWrapper = {
           $case: "getSafePtrAddressesResult",
           getSafePtrAddressesResult: GetSafePtrAddressesResult.fromJSON(object.getSafePtrAddressesResult),
         }
-        : isSet(object.requestLogger)
-        ? { $case: "requestLogger", requestLogger: RequestLogger.fromJSON(object.requestLogger) }
-        : isSet(object.responseLoggerUpdate)
-        ? {
-          $case: "responseLoggerUpdate",
-          responseLoggerUpdate: ResponseLoggerUpdate.fromJSON(object.responseLoggerUpdate),
-        }
         : isSet(object.getCameraHovered)
         ? { $case: "getCameraHovered", getCameraHovered: GetCameraHovered.fromJSON(object.getCameraHovered) }
         : isSet(object.getCameraHoveredResult)
@@ -3699,12 +3534,6 @@ export const PacketWrapper = {
     }
     if (message.Packet?.$case === "getSafePtrAddressesResult") {
       obj.getSafePtrAddressesResult = GetSafePtrAddressesResult.toJSON(message.Packet.getSafePtrAddressesResult);
-    }
-    if (message.Packet?.$case === "requestLogger") {
-      obj.requestLogger = RequestLogger.toJSON(message.Packet.requestLogger);
-    }
-    if (message.Packet?.$case === "responseLoggerUpdate") {
-      obj.responseLoggerUpdate = ResponseLoggerUpdate.toJSON(message.Packet.responseLoggerUpdate);
     }
     if (message.Packet?.$case === "getCameraHovered") {
       obj.getCameraHovered = GetCameraHovered.toJSON(message.Packet.getCameraHovered);
@@ -3999,26 +3828,6 @@ export const PacketWrapper = {
       message.Packet = {
         $case: "getSafePtrAddressesResult",
         getSafePtrAddressesResult: GetSafePtrAddressesResult.fromPartial(object.Packet.getSafePtrAddressesResult),
-      };
-    }
-    if (
-      object.Packet?.$case === "requestLogger" &&
-      object.Packet?.requestLogger !== undefined &&
-      object.Packet?.requestLogger !== null
-    ) {
-      message.Packet = {
-        $case: "requestLogger",
-        requestLogger: RequestLogger.fromPartial(object.Packet.requestLogger),
-      };
-    }
-    if (
-      object.Packet?.$case === "responseLoggerUpdate" &&
-      object.Packet?.responseLoggerUpdate !== undefined &&
-      object.Packet?.responseLoggerUpdate !== null
-    ) {
-      message.Packet = {
-        $case: "responseLoggerUpdate",
-        responseLoggerUpdate: ResponseLoggerUpdate.fromPartial(object.Packet.responseLoggerUpdate),
       };
     }
     if (

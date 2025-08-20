@@ -2,64 +2,56 @@
 
 #include "main.hpp"
 
-#ifdef BEAT_SABER
-#include "CameraController.hpp"
-#include "UnityEngine/Input.hpp"
-#include "UnityEngine/KeyCode.hpp"
-#endif
-
 #include <thread>
 
 DEFINE_TYPE(QRUE, MainThreadRunner);
 
 using namespace QRUE;
 
-std::thread::id mainThreadId;
-
-static std::vector<std::function<void()>> scheduledFunctions{};
+static std::thread::id mainThreadId;
+static std::vector<std::function<void()>> scheduledFunctions;
 static std::mutex scheduleLock;
-static MainThreadRunner* mainThreadRunnerInstance;
-
-void scheduleFunction(std::function<void()> const& func) {
-    if (mainThreadId == std::this_thread::get_id()) {
-        func();
-        return;
-    }
-
-    std::unique_lock<std::mutex> lock(scheduleLock);
-    scheduledFunctions.emplace_back(func);
-}
+static MainThreadRunner* instance;
 
 void MainThreadRunner::Awake() {
+    mainThreadId = std::this_thread::get_id();
+    instance = this;
     this->keepAliveObjects = System::Collections::Generic::List_1<Il2CppObject*>::New_ctor();
-    mainThreadRunnerInstance = this;
 }
 
-MainThreadRunner* getUnityHandle() {
-    return mainThreadRunnerInstance;
+void MainThreadRunner::Schedule(std::function<void()> const& func) {
+    if (mainThreadId == std::this_thread::get_id())
+        func();
+    else {
+        std::unique_lock<std::mutex> lock(scheduleLock);
+        scheduledFunctions.emplace_back(func);
+    }
+}
+
+MainThreadRunner* MainThreadRunner::GetInstance() {
+    return instance;
 }
 
 void MainThreadRunner::Update() {
     if (scheduledFunctions.empty())
         return;
 
-    LOG_INFO("Running scheduled functions on main thread");
     std::unique_lock<std::mutex> lock(scheduleLock);
-    std::vector<std::function<void()>> functions(std::move(scheduledFunctions));
-    scheduledFunctions.clear();
+    std::vector<std::function<void()>> copiedFunctions;
+    scheduledFunctions.swap(copiedFunctions);
     lock.unlock();
 
-    for (auto const& function : functions)
+    for (auto const& function : copiedFunctions)
         function();
 }
 
-void MainThreadRunner::addKeepAlive(Il2CppObject* obj) {
-    if (this->keepAliveObjects->Contains(obj))
+void MainThreadRunner::AddKeepAlive(Il2CppObject* obj) {
+    auto objects = GetInstance()->keepAliveObjects;
+    if (objects->Contains(obj))
         return;
-
-    this->keepAliveObjects->Add(obj);
+    objects->Add(obj);
 }
 
-void MainThreadRunner::removeKeepAlive(Il2CppObject* obj) {
-    this->keepAliveObjects->Remove(obj);
+void MainThreadRunner::RemoveKeepAlive(Il2CppObject* obj) {
+    GetInstance()->keepAliveObjects->Remove(obj);
 }

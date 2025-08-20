@@ -83,7 +83,7 @@ void onSceneLoad(SceneManagement::Scene scene, SceneManagement::LoadSceneMode) {
     streamSocketHandler->init_asio();
     streamSocketHandler->set_reuse_addr(true);
     streamSocketHandler->set_open_handler([](websocketpp::connection_hdl hdl) {
-        scheduleFunction([hdl]() {
+        QRUE::MainThreadRunner::Schedule([hdl]() {
             connections.clear();
             streamer->Stop();
             connections.insert(hdl);
@@ -91,7 +91,7 @@ void onSceneLoad(SceneManagement::Scene scene, SceneManagement::LoadSceneMode) {
         });
     });
     streamSocketHandler->set_close_handler([](websocketpp::connection_hdl hdl) {
-        scheduleFunction([hdl]() {
+        QRUE::MainThreadRunner::Schedule([hdl]() {
             streamer->Stop();
             connections.erase(hdl);
             LOG_INFO("Connected {} status: disconnected", hdl.lock().get());
@@ -103,7 +103,7 @@ void onSceneLoad(SceneManagement::Scene scene, SceneManagement::LoadSceneMode) {
         });
     });
     streamSocketHandler->set_message_handler([](websocketpp::connection_hdl hdl, WebSocketServer::message_ptr msg) {
-        scheduleFunction([packet = std::string(msg->get_payload().data(), msg->get_payload().size())]() {
+        QRUE::MainThreadRunner::Schedule([packet = std::string(msg->get_payload().data(), msg->get_payload().size())]() {
             if (packet.starts_with("key") && packet.size() >= 5) {
                 std::string key = packet.substr(4);
                 if (packet[3] == 'd')
@@ -171,10 +171,8 @@ extern "C" void load() {
     LOG_INFO("Installed hooks!");
 #endif
 
-    mainThreadId = std::this_thread::get_id();
-
     LOG_INFO("Initializing connection manager");
-    Manager::GetInstance()->Init();
+    Manager::Init();
 
     std::function<void(SceneManagement::Scene scene, SceneManagement::LoadSceneMode)> onSceneChanged = onSceneLoad;
 

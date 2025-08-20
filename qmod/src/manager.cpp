@@ -1,7 +1,5 @@
 #include "manager.hpp"
 
-#include <fmt/ranges.h>
-
 #include "CameraController.hpp"
 #include "MainThreadRunner.hpp"
 #include "UnityEngine/Transform.hpp"
@@ -9,7 +7,7 @@
 #include "main.hpp"
 #include "mem.hpp"
 #include "methods.hpp"
-#include "packethandlers/websocket_handler.hpp"
+#include "socket.hpp"
 #include "sombrero/shared/linq.hpp"
 #include "sombrero/shared/linq_functional.hpp"
 #include "unity.hpp"
@@ -20,113 +18,21 @@ using namespace ClassUtils;
 using namespace UnityEngine;
 using namespace UnityEngine::SceneManagement;
 
-Manager* Manager::GetInstance() {
-    static Manager Instance = Manager();
-    return &Instance;
-}
+static bool initialized = false;
 
 void Manager::Init() {
-    initialized = true;
+    Socket::Init();
     LOG_INFO("Starting server at port 3306");
-    handler = std::make_unique<WebSocketHandler>((ReceivePacketFunc) std::bind(&Manager::processMessage, this, std::placeholders::_1));
-    handler->listen(3306);
-    LOG_INFO("Server fully initialized");
-
-    // Paper::Logger::AddLogSink([this](Paper::LogData const& data, std::string_view fmtMessage, std::string_view originalString) {
-    //     if (!sendLoggerUpdates)
-    //         return;
-
-    //     PacketWrapper wrapper;
-    //     wrapper.set_queryresultid(-1);
-
-    //     auto& loggerUpdate = *wrapper.mutable_responseloggerupdate();
-
-    //     auto* log = loggerUpdate.add_paperlogs();
-    //     log->set_str(fmtMessage.data(), fmtMessage.length());
-    //     log->set_threadid(((uint64_t*) (&data.threadId))[0]);
-    //     log->set_tag(data.tag);
-    //     auto filename = data.loc.file_name();
-    //     log->set_filename(filename.data(), filename.length());
-    //     auto fname = data.loc.function_name();
-    //     log->set_functionname(fname.data(), fname.length());
-    //     log->set_fileline(data.loc.line());
-    //     log->mutable_logtime()->set_nanos(std::chrono::duration_cast<std::chrono::nanoseconds>(data.logTime.time_since_epoch()).count());
-
-    //     handler->sendPacket(wrapper);
-    // });
+    Socket::Start(3306);
+    initialized = true;
 }
 
-bool Manager::tryValidatePtr(void const* ptr) {
+bool TryValidatePtr(void const* ptr) {
     if (asInt(ptr) <= 0 || asInt(ptr) > UINTPTR_MAX) {
         LOG_INFO("invalid ptr was {}", fmt::ptr(ptr));
         return false;
     }
     return true;
-}
-
-#pragma region parsing
-void Manager::processMessage(PacketWrapper const& packet) {
-    scheduleFunction([this, packet] {
-        auto id = packet.queryresultid();
-        LOG_INFO("Processing packet type {}", (int) packet.Packet_case());
-        LOG_DEBUG("Packet is {}", packet.DebugString());
-
-        switch (packet.Packet_case()) {
-            case PacketWrapper::kInvokeMethod:
-                invokeMethod(packet.invokemethod(), id);
-                break;
-            case PacketWrapper::kSetField:
-                setField(packet.setfield(), id);
-                break;
-            case PacketWrapper::kGetField:
-                getField(packet.getfield(), id);
-                break;
-            case PacketWrapper::kSearchObjects:
-                searchObjects(packet.searchobjects(), id);
-                break;
-            case PacketWrapper::kGetAllGameObjects:
-                getAllGameObjects(packet.getallgameobjects(), id);
-                break;
-            case PacketWrapper::kGetGameObjectComponents:
-                getGameObjectComponents(packet.getgameobjectcomponents(), id);
-                break;
-            case PacketWrapper::kReadMemory:
-                readMemory(packet.readmemory(), id);
-                break;
-            case PacketWrapper::kWriteMemory:
-                writeMemory(packet.writememory(), id);
-                break;
-            case PacketWrapper::kGetClassDetails:
-                getClassDetails(packet.getclassdetails(), id);
-                break;
-            case PacketWrapper::kGetInstanceClass:
-                getInstanceClass(packet.getinstanceclass(), id);
-                break;
-            case PacketWrapper::kGetInstanceValues:
-                getInstanceValues(packet.getinstancevalues(), id);
-                break;
-            case PacketWrapper::kGetInstanceDetails:
-                getInstanceDetails(packet.getinstancedetails(), id);
-                break;
-            case PacketWrapper::kCreateGameObject:
-                createGameObject(packet.creategameobject(), id);
-                break;
-            case PacketWrapper::kAddSafePtrAddress:
-                addSafePtrAddress(packet.addsafeptraddress(), id);
-                break;
-            case PacketWrapper::kGetSafePtrAddresses:
-                sendSafePtrList(id);
-                break;
-            case PacketWrapper::kRequestLogger:
-                setLoggerListener(packet.requestlogger(), id);
-                break;
-            case PacketWrapper::kGetCameraHovered:
-                getHoveredObject(packet.getcamerahovered(), id);
-                break;
-            default:
-                LOG_INFO("Invalid packet type!");
-        }
-    });
 }
 
 #define INPUT_ERROR(...)                              \
@@ -135,13 +41,13 @@ void Manager::processMessage(PacketWrapper const& packet) {
     wrapper.set_inputerror(fmt::format(__VA_ARGS__)); \
 }
 
-void Manager::setField(SetField const& packet, uint64_t queryId) {
+static void SetField(SetField const& packet, uint64_t queryId) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(queryId);
 
     auto field = asPtr(FieldInfo, packet.fieldid());
 
-    if (!tryValidatePtr(field))
+    if (!TryValidatePtr(field))
         INPUT_ERROR("field info pointer was invalid")
     else if (GetIsLiteral(field))
         INPUT_ERROR("literal fields cannot be set")
@@ -151,16 +57,16 @@ void Manager::setField(SetField const& packet, uint64_t queryId) {
         SetFieldResult& result = *wrapper.mutable_setfieldresult();
         result.set_fieldid(asInt(field));
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::getField(GetField const& packet, uint64_t queryId) {
+static void GetField(GetField const& packet, uint64_t queryId) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(queryId);
 
     auto field = asPtr(FieldInfo, packet.fieldid());
 
-    if (!tryValidatePtr(field))
+    if (!TryValidatePtr(field))
         INPUT_ERROR("field info pointer was invalid")
     else {
         LOG_DEBUG("Getting field {}", packet.fieldid());
@@ -172,16 +78,16 @@ void Manager::getField(GetField const& packet, uint64_t queryId) {
 
         *result.mutable_value() = res;
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::invokeMethod(InvokeMethod const& packet, uint64_t queryId) {
+static void InvokeMethod(InvokeMethod const& packet, uint64_t queryId) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(queryId);
 
     auto method = asPtr(MethodInfo const, packet.methodid());
 
-    if (!tryValidatePtr(method))
+    if (!TryValidatePtr(method))
         INPUT_ERROR("method info pointer was invalid")
     else {
         bool validGenerics = true;
@@ -213,7 +119,7 @@ void Manager::invokeMethod(InvokeMethod const& packet, uint64_t queryId) {
             if (!err.empty()) {
                 result.set_status(InvokeMethodResult::ERR);
                 result.set_error(err);
-                handler->sendPacket(wrapper);
+                Socket::Send(wrapper);
                 return;
             }
 
@@ -221,10 +127,10 @@ void Manager::invokeMethod(InvokeMethod const& packet, uint64_t queryId) {
             *result.mutable_result() = res;
         }
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::searchObjects(SearchObjects const& packet, uint64_t id) {
+static void SearchObjects(SearchObjects const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
@@ -233,62 +139,62 @@ void Manager::searchObjects(SearchObjects const& packet, uint64_t id) {
     Il2CppClass* klass = GetClass(packet.componentclass());
     if (!klass) {
         INPUT_ERROR("Could not find class {}", packet.componentclass().DebugString())
-        handler->sendPacket(wrapper);
+        Socket::Send(wrapper);
         return;
     }
 
     *wrapper.mutable_searchobjectsresult() = FindObjects(klass, name);
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::getAllGameObjects(GetAllGameObjects const& packet, uint64_t id) {
+static void GetAllGameObjects(GetAllGameObjects const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     *wrapper.mutable_getallgameobjectsresult() = FindAllGameObjects();
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::getGameObjectComponents(GetGameObjectComponents const& packet, uint64_t id) {
+static void GetGameObjectComponents(GetGameObjectComponents const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto gameObject = asPtr(UnityEngine::GameObject, packet.address());
 
-    if (!tryValidatePtr(gameObject))
+    if (!TryValidatePtr(gameObject))
         INPUT_ERROR("gameObject pointer was invalid")
     else
         *wrapper.mutable_getgameobjectcomponentsresult() = GetComponents(gameObject);
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::createGameObject(CreateGameObject const& packet, uint64_t id) {
+static void CreateGameObject(CreateGameObject const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto go = GameObject::New_ctor(packet.name());
     auto parent = packet.has_parent() ? asPtr(UnityEngine::GameObject, packet.parent()) : nullptr;
 
-    if (packet.has_parent() && !tryValidatePtr(parent))
+    if (packet.has_parent() && !TryValidatePtr(parent))
         INPUT_ERROR("parent pointer was invalid")
     else {
         if (packet.has_parent())
             go->get_transform()->SetParent(parent->get_transform());
         *wrapper.mutable_creategameobjectresult() = CreateGameObjectResult{};
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::readMemory(ReadMemory const& packet, uint64_t id) {
+static void ReadMemory(ReadMemory const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto src = asPtr(void, packet.address());
 
-    if (!tryValidatePtr(src))
+    if (!TryValidatePtr(src))
         INPUT_ERROR("src pointer was invalid")
     else {
         ReadMemoryResult& result = *wrapper.mutable_readmemoryresult();
@@ -301,18 +207,18 @@ void Manager::readMemory(ReadMemory const& packet, uint64_t id) {
             result.set_status(ReadMemoryResult_Status::ReadMemoryResult_Status_OK);
             result.set_data(src, size);
         }
-        LOG_INFO("Result is {}", wrapper.DebugString());
+        LOG_DEBUG("Result is {}", wrapper.DebugString());
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::writeMemory(WriteMemory const& packet, uint64_t id) {
+static void WriteMemory(WriteMemory const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto dst = asPtr(void, packet.address());
 
-    if (!tryValidatePtr(dst))
+    if (!TryValidatePtr(dst))
         INPUT_ERROR("dst pointer was invalid")
     else {
         WriteMemoryResult& result = *wrapper.mutable_writememoryresult();
@@ -327,9 +233,9 @@ void Manager::writeMemory(WriteMemory const& packet, uint64_t id) {
             result.set_size(size);
             memcpy(dst, src, size);
         }
-        LOG_INFO("Result is {}", wrapper.DebugString());
+        LOG_DEBUG("Result is {}", wrapper.DebugString());
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
 std::unordered_map<Il2CppClass const*, ProtoClassDetails> cachedClasses;
@@ -340,7 +246,7 @@ ProtoClassDetails getClassDetails_internal(Il2CppClass* clazz) {
 
     auto cached = cachedClasses.find(clazz);
     if (cached != cachedClasses.end()) {
-        LOG_INFO("Returning cached details for {}::{}", il2cpp_functions::class_get_namespace(clazz), il2cpp_functions::class_get_name(clazz));
+        LOG_DEBUG("Returning cached details for {}::{}", il2cpp_functions::class_get_namespace(clazz), il2cpp_functions::class_get_name(clazz));
         return cached->second;
     }
 
@@ -352,7 +258,7 @@ ProtoClassDetails getClassDetails_internal(Il2CppClass* clazz) {
     // Use a while loop instead of recursive
     // method to improve stack allocations
     while (currentClass != nullptr) {
-        LOG_INFO(
+        LOG_DEBUG(
             "Finding class details for {}::{}", il2cpp_functions::class_get_namespace(currentClass), il2cpp_functions::class_get_name(currentClass)
         );
         *currentClassProto->mutable_clazz() = GetClassInfo(typeofclass(currentClass));
@@ -406,7 +312,7 @@ ProtoClassDetails getClassDetails_internal(Il2CppClass* clazz) {
     return ret;
 }
 
-void Manager::getClassDetails(GetClassDetails const& packet, uint64_t id) {
+static void GetClassDetails(GetClassDetails const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
@@ -415,29 +321,29 @@ void Manager::getClassDetails(GetClassDetails const& packet, uint64_t id) {
     Il2CppClass* klass = GetClass(packet.classinfo());
     if (!klass) {
         INPUT_ERROR("Could not find class {}", packet.classinfo().DebugString())
-        handler->sendPacket(wrapper);
+        Socket::Send(wrapper);
         return;
     }
 
     *result->mutable_classdetails() = getClassDetails_internal(klass);
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::getInstanceClass(GetInstanceClass const& packet, uint64_t id) {
+static void GetInstanceClass(GetInstanceClass const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto instance = asPtr(Il2CppObject, packet.address());
 
-    if (!tryValidatePtr(instance))
+    if (!TryValidatePtr(instance))
         INPUT_ERROR("instance pointer was invalid")
     else {
         auto result = wrapper.mutable_getinstanceclassresult();
         *result->mutable_classinfo() = GetClassInfo(typeofinst(instance));
     }
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
 GetInstanceValuesResult getInstanceValues_internal(Il2CppObject* instance, ProtoClassDetails const* classDetails) {
@@ -457,7 +363,7 @@ GetInstanceValuesResult getInstanceValues_internal(Il2CppObject* instance, Proto
             std::string err = "";
             auto res = MethodUtils::Run(getter, instance, {}, err);
             if (!err.empty())
-                LOG_INFO("getting property failed with error: {}", err);
+                LOG_ERROR("getting property failed with error: {}", err);
             else
                 (*ret.mutable_propertyvalues())[prop.getterid()] = res.data();
         }
@@ -469,30 +375,30 @@ GetInstanceValuesResult getInstanceValues_internal(Il2CppObject* instance, Proto
     return ret;
 }
 
-void Manager::getInstanceValues(GetInstanceValues const& packet, uint64_t id) {
+static void GetInstanceValues(GetInstanceValues const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto instance = asPtr(Il2CppObject, packet.address());
 
     LOG_DEBUG("Requesting values of {}", packet.address());
-    if (!tryValidatePtr(instance))
+    if (!TryValidatePtr(instance))
         INPUT_ERROR("instance pointer was invalid")
     else {
         auto details = getClassDetails_internal(instance->klass);
         *wrapper.mutable_getinstancevaluesresult() = getInstanceValues_internal(instance, &details);
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::getInstanceDetails(GetInstanceDetails const& packet, uint64_t id) {
+static void GetInstanceDetails(GetInstanceDetails const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     LOG_DEBUG("Requesting details of {}", packet.address());
     auto instance = asPtr(Il2CppObject, packet.address());
 
-    if (!tryValidatePtr(instance))
+    if (!TryValidatePtr(instance))
         INPUT_ERROR("instance pointer was invalid")
     else {
         auto result = wrapper.mutable_getinstancedetailsresult();
@@ -500,48 +406,101 @@ void Manager::getInstanceDetails(GetInstanceDetails const& packet, uint64_t id) 
         *classDetails = getClassDetails_internal(instance->klass);
         *result->mutable_values() = getInstanceValues_internal(instance, classDetails);
     }
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::addSafePtrAddress(AddSafePtrAddress const& addPacket, uint64_t id) {
+static void SendSafePtrList(uint64_t id);
+
+static void AddSafePtrAddress(AddSafePtrAddress const& addPacket, uint64_t id) {
     auto addr = asPtr(Il2CppObject, addPacket.address());
-    if (addPacket.remove()) {
-        getUnityHandle()->removeKeepAlive(addr);
-    } else {
-        getUnityHandle()->addKeepAlive(addr);
-    }
-    sendSafePtrList(id);
+    if (addPacket.remove())
+        QRUE::MainThreadRunner::RemoveKeepAlive(addr);
+    else
+        QRUE::MainThreadRunner::AddKeepAlive(addr);
+    SendSafePtrList(id);
 }
 
-void Manager::sendSafePtrList(uint64_t id) {
+static void SendSafePtrList(uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto res = wrapper.mutable_getsafeptraddressesresult();
-    auto objs = getUnityHandle()->keepAliveObjects;
-
     auto& resMap = *res->mutable_address();
 
-    for (auto const& addr : objs) {
+    auto objs = QRUE::MainThreadRunner::GetInstance()->keepAliveObjects;
+    for (auto const& addr : objs)
         resMap[asInt(addr)] = ClassUtils::GetClassInfo(typeofclass(addr->klass));
-    }
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-void Manager::setLoggerListener(RequestLogger const& packet, uint64_t id) {
-    this->sendLoggerUpdates = packet.listen();
-}
-
-void Manager::getHoveredObject(GetCameraHovered const& packet, uint64_t id) {
+static void GetHoveredObject(GetCameraHovered const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
     auto res = wrapper.mutable_getcamerahoveredresult()->mutable_hoveredobject();
-    if (auto obj = GetHovered())
+    if (auto obj = QRUE::CameraController::GetHovered())
         *res = ReadGameObject(obj);
 
-    handler->sendPacket(wrapper);
+    Socket::Send(wrapper);
 }
 
-#pragma endregion
+void Manager::ProcessMessage(PacketWrapper const& packet) {
+    QRUE::MainThreadRunner::Schedule([packet] {
+        LOG_DEBUG("processing packet: {}", packet.DebugString());
+        auto id = packet.queryresultid();
+
+        switch (packet.Packet_case()) {
+            case PacketWrapper::kInvokeMethod:
+                InvokeMethod(packet.invokemethod(), id);
+                break;
+            case PacketWrapper::kSetField:
+                SetField(packet.setfield(), id);
+                break;
+            case PacketWrapper::kGetField:
+                GetField(packet.getfield(), id);
+                break;
+            case PacketWrapper::kSearchObjects:
+                SearchObjects(packet.searchobjects(), id);
+                break;
+            case PacketWrapper::kGetAllGameObjects:
+                GetAllGameObjects(packet.getallgameobjects(), id);
+                break;
+            case PacketWrapper::kGetGameObjectComponents:
+                GetGameObjectComponents(packet.getgameobjectcomponents(), id);
+                break;
+            case PacketWrapper::kReadMemory:
+                ReadMemory(packet.readmemory(), id);
+                break;
+            case PacketWrapper::kWriteMemory:
+                WriteMemory(packet.writememory(), id);
+                break;
+            case PacketWrapper::kGetClassDetails:
+                GetClassDetails(packet.getclassdetails(), id);
+                break;
+            case PacketWrapper::kGetInstanceClass:
+                GetInstanceClass(packet.getinstanceclass(), id);
+                break;
+            case PacketWrapper::kGetInstanceValues:
+                GetInstanceValues(packet.getinstancevalues(), id);
+                break;
+            case PacketWrapper::kGetInstanceDetails:
+                GetInstanceDetails(packet.getinstancedetails(), id);
+                break;
+            case PacketWrapper::kCreateGameObject:
+                CreateGameObject(packet.creategameobject(), id);
+                break;
+            case PacketWrapper::kAddSafePtrAddress:
+                AddSafePtrAddress(packet.addsafeptraddress(), id);
+                break;
+            case PacketWrapper::kGetSafePtrAddresses:
+                SendSafePtrList(id);
+                break;
+            case PacketWrapper::kGetCameraHovered:
+                GetHoveredObject(packet.getcamerahovered(), id);
+                break;
+            default:
+                LOG_ERROR("Invalid packet type {}!", (int) packet.Packet_case());
+        }
+    });
+}

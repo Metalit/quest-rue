@@ -2,25 +2,8 @@ syntax = "proto3";
 
 import "il2cpp.proto";
 
-message ProtoVector2 {
-    float x = 1;
-    float y = 2;
-}
+// --- Unity Hierarchy, Components, Etc ---
 
-message ProtoVector3 {
-    float x = 1;
-    float y = 2;
-    float z = 3;
-}
-
-message ProtoVector4 {
-    float x = 1;
-    float y = 2;
-    float z = 3;
-    float w = 4;
-}
-
-//Unity Stuff
 message ProtoObject {
     uint64 address = 1;
     string name = 2;
@@ -32,8 +15,8 @@ message ProtoComponent {
     uint64 address = 1;
     string name = 2;
 
+    // pointer address
     uint64 gameObject = 3;
-    // TODO: TRANSFORM
     ProtoClassInfo classInfo = 4;
 }
 
@@ -42,6 +25,7 @@ message ProtoTransform {
     string name = 2;
 
     int32 childCount = 3;
+    // transform address
     uint64 parent = 4;
 }
 
@@ -51,13 +35,7 @@ message ProtoGameObject {
 
     bool active = 3;
     int32 layer = 4;
-    ProtoScene scene = 5;
-    optional string tag = 6;     /* optional */
+    int32 scene = 5;
+    string tag = 6;
     ProtoTransform transform = 7;
-}
-
-message ProtoScene {
-    int32 handle = 1;
-    string name = 2;
-    bool isLoaded = 3;
 }

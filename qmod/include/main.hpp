@@ -13,16 +13,14 @@
 #define asInt(p) reinterpret_cast<std::uintptr_t>(p)
 #define asPtr(type, p) reinterpret_cast<type*>(p)
 
-static inline auto logger = Paper::ConstLoggerContext(MOD_ID);
+static constexpr auto logger = Paper::ConstLoggerContext(MOD_ID);
 
 #define LOG_INFO(...) logger.info(__VA_ARGS__)
-#define LOG_DEBUG(...) logger.debug(__VA_ARGS__)
 #define LOG_ERROR(...) logger.error(__VA_ARGS__)
+#define LOG_DEBUG(...) logger.debug(__VA_ARGS__)
 // #define LOG_DEBUG(...)
 
 std::string_view GetDataPath();
-
-extern std::thread::id mainThreadId;
 
 #ifdef BEAT_SABER
 void EnableFPFC();

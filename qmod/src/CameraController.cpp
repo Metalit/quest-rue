@@ -21,7 +21,7 @@ float moveSensitivity = 1;
 
 SafePtrUnity<VRUIControls::VRInputModule> latestInputModule;
 
-GameObject* GetHovered() {
+GameObject* CameraController::GetHovered() {
     if (!latestInputModule)
         return nullptr;
     auto eventData = latestInputModule->GetLastPointerEventData(-1);

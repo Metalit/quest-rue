@@ -4,7 +4,6 @@ import _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "";
 
-/** Type Identification */
 export interface ProtoClassInfo {
   namespaze: string;
   clazz: string;
@@ -143,10 +142,7 @@ export function protoTypeInfo_PrimitiveToJSON(object: ProtoTypeInfo_Primitive): 
   }
 }
 
-/**
- * Type Details
- * id = pointer address of info
- */
+/** id = pointer address of info */
 export interface ProtoFieldInfo {
   name: string;
   id: bigint;
@@ -184,10 +180,7 @@ export interface ProtoMethodInfo_Argument {
   type: ProtoTypeInfo | undefined;
 }
 
-/**
- * / Contains the class data in its entirety
- * NOT APPLICABLE TO PRIMITIVES
- */
+/** contains the class data in its entirety for non-primitives */
 export interface ProtoClassDetails {
   clazz: ProtoClassInfo | undefined;
   fields: ProtoFieldInfo[];
@@ -227,7 +220,6 @@ export interface ProtoDataSegment_StructData_DataEntry {
   value: ProtoDataSegment | undefined;
 }
 
-/** Data Sending */
 export interface ProtoDataPayload {
   /** nullable */
   typeInfo?: ProtoTypeInfo | undefined;

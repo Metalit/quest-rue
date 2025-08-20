@@ -14,6 +14,10 @@
 DECLARE_CLASS_CODEGEN(QRUE, CameraController, UnityEngine::MonoBehaviour) {
     DECLARE_DEFAULT_CTOR();
 
+#ifdef BEAT_SABER
+    DECLARE_STATIC_METHOD(UnityEngine::GameObject*, GetHovered);
+#endif
+
     DECLARE_INSTANCE_METHOD(void, OnEnable);
     DECLARE_INSTANCE_METHOD(void, OnDisable);
     DECLARE_INSTANCE_METHOD(void, Update);
@@ -28,7 +32,3 @@ DECLARE_CLASS_CODEGEN(QRUE, CameraController, UnityEngine::MonoBehaviour) {
 
 extern float rotateSensitivity;
 extern float moveSensitivity;
-
-#ifdef BEAT_SABER
-UnityEngine::GameObject* GetHovered();
-#endif
