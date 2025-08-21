@@ -18,15 +18,15 @@ inline void** pointerOffset(void* ptr, int offset) {
     return (void**) (((char*) ptr) + offset);
 }
 
-void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment arg);
+void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment const& arg);
 
-void* HandleClass(ProtoClassInfo const& info, ProtoDataSegment arg) {
+void* HandleClass(ProtoClassInfo const& info, ProtoDataSegment const& arg) {
     if (arg.Data_case() != ProtoDataSegment::DataCase::kClassData)
         return nullptr;
     return (void*) arg.classdata();
 }
 
-void* HandleArray(ProtoArrayInfo const& info, ProtoDataSegment arg) {
+void* HandleArray(ProtoArrayInfo const& info, ProtoDataSegment const& arg) {
     if (arg.Data_case() != ProtoDataSegment::DataCase::kArrayData)
         return nullptr;
     auto& elements = arg.arraydata();
@@ -52,7 +52,7 @@ void* HandleArray(ProtoArrayInfo const& info, ProtoDataSegment arg) {
     return ret;
 }
 
-void* HandleStruct(ProtoStructInfo const& info, ProtoDataSegment arg) {
+void* HandleStruct(ProtoStructInfo const& info, ProtoDataSegment const& arg) {
     if (arg.Data_case() != ProtoDataSegment::DataCase::kStructData)
         return nullptr;
     // get the size of the struct in a slightly janky way, just like how I allocate it too
@@ -82,7 +82,7 @@ void* HandleStruct(ProtoStructInfo const& info, ProtoDataSegment arg) {
     return ret;
 }
 
-void* HandleGeneric(ProtoGenericInfo const& info, ProtoDataSegment arg) {
+void* HandleGeneric(ProtoGenericInfo const& info, ProtoDataSegment const& arg) {
     if (arg.Data_case() != ProtoDataSegment::DataCase::kGenericData)
         return nullptr;
     // This shouldn't be called as it represents an unspecified generic
@@ -90,7 +90,7 @@ void* HandleGeneric(ProtoGenericInfo const& info, ProtoDataSegment arg) {
     return (void*) arg.genericdata().data();
 }
 
-void* HandlePrimitive(ProtoTypeInfo::Primitive info, ProtoDataSegment arg) {
+void* HandlePrimitive(ProtoTypeInfo::Primitive info, ProtoDataSegment const& arg) {
     if (arg.Data_case() != ProtoDataSegment::DataCase::kPrimitiveData)
         return nullptr;
     std::string const& bytes = arg.primitivedata();
@@ -114,7 +114,7 @@ void* HandlePrimitive(ProtoTypeInfo::Primitive info, ProtoDataSegment arg) {
 }
 
 // converts the data in a ProtoDataPayload into an object of the correct type
-void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment arg) {
+void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment const& arg) {
     if (typeInfo.has_classinfo())
         return HandleClass(typeInfo.classinfo(), arg);
     else if (typeInfo.has_arrayinfo())
@@ -128,7 +128,7 @@ void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment arg) {
     return nullptr;
 }
 
-void FillList(std::vector<ProtoDataPayload> args, void** dest) {
+void FillList(std::vector<ProtoDataPayload> const& args, void** dest) {
     for (int i = 0; i < args.size(); i++)
         dest[i] = HandleType(args[i].typeinfo(), args[i].data());
 }
