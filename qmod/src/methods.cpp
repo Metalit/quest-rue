@@ -257,7 +257,7 @@ ProtoDataPayload HandleReturn(MethodInfo const* method, Il2CppObject* ret) {
     size_t size = fieldTypeSize(method->return_type);
     char ownedValue[size];
 
-    if (ret && typeIsValuetype(method->return_type)) {
+    if (ret && method->return_type->valuetype) {
         memcpy(ownedValue, il2cpp_functions::object_unbox(ret), size);
         il2cpp_functions::GC_free(ret);
     } else

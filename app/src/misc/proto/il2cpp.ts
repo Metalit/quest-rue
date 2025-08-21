@@ -29,6 +29,17 @@ export interface ProtoGenericInfo {
   name: string;
 }
 
+export interface ProtoEnumInfo {
+  clazz: ProtoClassInfo | undefined;
+  valueType: ProtoTypeInfo_Primitive;
+  values: { [key: string]: bigint };
+}
+
+export interface ProtoEnumInfo_ValuesEntry {
+  key: string;
+  value: bigint;
+}
+
 export interface ProtoTypeInfo {
   Info?:
     | { $case: "primitiveInfo"; primitiveInfo: ProtoTypeInfo_Primitive }
@@ -36,6 +47,7 @@ export interface ProtoTypeInfo {
     | { $case: "structInfo"; structInfo: ProtoStructInfo }
     | { $case: "classInfo"; classInfo: ProtoClassInfo }
     | { $case: "genericInfo"; genericInfo: ProtoGenericInfo }
+    | { $case: "enumInfo"; enumInfo: ProtoEnumInfo }
     | undefined;
   size: number;
   isByref: boolean;
@@ -631,6 +643,193 @@ export const ProtoGenericInfo = {
   },
 };
 
+function createBaseProtoEnumInfo(): ProtoEnumInfo {
+  return { clazz: undefined, valueType: 0, values: {} };
+}
+
+export const ProtoEnumInfo = {
+  encode(message: ProtoEnumInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.clazz !== undefined) {
+      ProtoClassInfo.encode(message.clazz, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.valueType !== 0) {
+      writer.uint32(16).int32(message.valueType);
+    }
+    Object.entries(message.values).forEach(([key, value]) => {
+      ProtoEnumInfo_ValuesEntry.encode({ key: key as any, value }, writer.uint32(26).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProtoEnumInfo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoEnumInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.clazz = ProtoClassInfo.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.valueType = reader.int32() as any;
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          const entry3 = ProtoEnumInfo_ValuesEntry.decode(reader, reader.uint32());
+          if (entry3.value !== undefined) {
+            message.values[entry3.key] = entry3.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoEnumInfo {
+    return {
+      clazz: isSet(object.clazz) ? ProtoClassInfo.fromJSON(object.clazz) : undefined,
+      valueType: isSet(object.valueType) ? protoTypeInfo_PrimitiveFromJSON(object.valueType) : 0,
+      values: isObject(object.values)
+        ? Object.entries(object.values).reduce<{ [key: string]: bigint }>((acc, [key, value]) => {
+          acc[key] = BigInt(value as string | number | bigint | boolean);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: ProtoEnumInfo): unknown {
+    const obj: any = {};
+    if (message.clazz !== undefined) {
+      obj.clazz = ProtoClassInfo.toJSON(message.clazz);
+    }
+    if (message.valueType !== 0) {
+      obj.valueType = protoTypeInfo_PrimitiveToJSON(message.valueType);
+    }
+    if (message.values) {
+      const entries = Object.entries(message.values);
+      if (entries.length > 0) {
+        obj.values = {};
+        entries.forEach(([k, v]) => {
+          obj.values[k] = v.toString();
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoEnumInfo>, I>>(base?: I): ProtoEnumInfo {
+    return ProtoEnumInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoEnumInfo>, I>>(object: I): ProtoEnumInfo {
+    const message = createBaseProtoEnumInfo();
+    message.clazz = (object.clazz !== undefined && object.clazz !== null)
+      ? ProtoClassInfo.fromPartial(object.clazz)
+      : undefined;
+    message.valueType = object.valueType ?? 0;
+    message.values = Object.entries(object.values ?? {}).reduce<{ [key: string]: bigint }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = BigInt(value as string | number | bigint | boolean);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseProtoEnumInfo_ValuesEntry(): ProtoEnumInfo_ValuesEntry {
+  return { key: "", value: BigInt("0") };
+}
+
+export const ProtoEnumInfo_ValuesEntry = {
+  encode(message: ProtoEnumInfo_ValuesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== BigInt("0")) {
+      if (BigInt.asIntN(64, message.value) !== message.value) {
+        throw new globalThis.Error("value provided for field message.value of type int64 too large");
+      }
+      writer.uint32(16).int64(message.value.toString());
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ProtoEnumInfo_ValuesEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoEnumInfo_ValuesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.value = longToBigint(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoEnumInfo_ValuesEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? BigInt(object.value) : BigInt("0"),
+    };
+  },
+
+  toJSON(message: ProtoEnumInfo_ValuesEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== BigInt("0")) {
+      obj.value = message.value.toString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoEnumInfo_ValuesEntry>, I>>(base?: I): ProtoEnumInfo_ValuesEntry {
+    return ProtoEnumInfo_ValuesEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoEnumInfo_ValuesEntry>, I>>(object: I): ProtoEnumInfo_ValuesEntry {
+    const message = createBaseProtoEnumInfo_ValuesEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? BigInt("0");
+    return message;
+  },
+};
+
 function createBaseProtoTypeInfo(): ProtoTypeInfo {
   return { Info: undefined, size: 0, isByref: false };
 }
@@ -653,12 +852,15 @@ export const ProtoTypeInfo = {
       case "genericInfo":
         ProtoGenericInfo.encode(message.Info.genericInfo, writer.uint32(42).fork()).ldelim();
         break;
+      case "enumInfo":
+        ProtoEnumInfo.encode(message.Info.enumInfo, writer.uint32(50).fork()).ldelim();
+        break;
     }
     if (message.size !== 0) {
-      writer.uint32(48).int32(message.size);
+      writer.uint32(56).int32(message.size);
     }
     if (message.isByref === true) {
-      writer.uint32(56).bool(message.isByref);
+      writer.uint32(64).bool(message.isByref);
     }
     return writer;
   },
@@ -706,14 +908,21 @@ export const ProtoTypeInfo = {
           message.Info = { $case: "genericInfo", genericInfo: ProtoGenericInfo.decode(reader, reader.uint32()) };
           continue;
         case 6:
-          if (tag !== 48) {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.Info = { $case: "enumInfo", enumInfo: ProtoEnumInfo.decode(reader, reader.uint32()) };
+          continue;
+        case 7:
+          if (tag !== 56) {
             break;
           }
 
           message.size = reader.int32();
           continue;
-        case 7:
-          if (tag !== 56) {
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
@@ -740,6 +949,8 @@ export const ProtoTypeInfo = {
         ? { $case: "classInfo", classInfo: ProtoClassInfo.fromJSON(object.classInfo) }
         : isSet(object.genericInfo)
         ? { $case: "genericInfo", genericInfo: ProtoGenericInfo.fromJSON(object.genericInfo) }
+        : isSet(object.enumInfo)
+        ? { $case: "enumInfo", enumInfo: ProtoEnumInfo.fromJSON(object.enumInfo) }
         : undefined,
       size: isSet(object.size) ? globalThis.Number(object.size) : 0,
       isByref: isSet(object.isByref) ? globalThis.Boolean(object.isByref) : false,
@@ -762,6 +973,9 @@ export const ProtoTypeInfo = {
     }
     if (message.Info?.$case === "genericInfo") {
       obj.genericInfo = ProtoGenericInfo.toJSON(message.Info.genericInfo);
+    }
+    if (message.Info?.$case === "enumInfo") {
+      obj.enumInfo = ProtoEnumInfo.toJSON(message.Info.enumInfo);
     }
     if (message.size !== 0) {
       obj.size = Math.round(message.size);
@@ -801,6 +1015,9 @@ export const ProtoTypeInfo = {
       object.Info?.genericInfo !== null
     ) {
       message.Info = { $case: "genericInfo", genericInfo: ProtoGenericInfo.fromPartial(object.Info.genericInfo) };
+    }
+    if (object.Info?.$case === "enumInfo" && object.Info?.enumInfo !== undefined && object.Info?.enumInfo !== null) {
+      message.Info = { $case: "enumInfo", enumInfo: ProtoEnumInfo.fromPartial(object.Info.enumInfo) };
     }
     message.size = object.size ?? 0;
     message.isByref = object.isByref ?? false;

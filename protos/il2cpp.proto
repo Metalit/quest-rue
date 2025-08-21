@@ -26,6 +26,13 @@ message ProtoGenericInfo {
     string name = 2;
 }
 
+message ProtoEnumInfo {
+    ProtoClassInfo clazz = 1;
+    ProtoTypeInfo.Primitive valueType = 2;
+
+    map<string, int64> values = 3;
+}
+
 message ProtoTypeInfo {
     enum Primitive { // TODO: maybe add more primitives
         BOOLEAN = 0;
@@ -48,9 +55,10 @@ message ProtoTypeInfo {
         ProtoStructInfo structInfo = 3;
         ProtoClassInfo classInfo = 4;
         ProtoGenericInfo genericInfo = 5;
+        ProtoEnumInfo enumInfo = 6;
     }
-    int32 size = 6;
-    bool isByref = 7;
+    int32 size = 7;
+    bool isByref = 8;
 }
 
 // --- Class Details ---
@@ -120,6 +128,7 @@ message ProtoDataSegment {
         StructData structData = 3;
         uint64 classData = 4; /* object pointer */
         bytes genericData = 5; /* shouldn't come up */
+        // enums use primitiveData
     }
 }
 

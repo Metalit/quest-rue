@@ -38,10 +38,12 @@ namespace ClassUtils {
     inline ProtoTypeInfo GetTypeInfo(Il2CppClass const* klass) {
         return GetTypeInfo(typeofclass(klass));
     }
+    ProtoTypeInfo::Primitive GetPrimitive(Il2CppType const* primitiveType);
     ProtoClassInfo GetClassInfo(Il2CppType const* classType);
     ProtoArrayInfo GetArrayInfo(Il2CppType const* arrayType);
     ProtoStructInfo GetStructInfo(Il2CppType const* structType);
     ProtoGenericInfo GetGenericInfo(Il2CppType const* genericType);
+    ProtoEnumInfo GetEnumInfo(Il2CppType const* enumType);
 
     Il2CppClass* GetClass(ProtoClassInfo const& classInfo);
     Il2CppClass* GetClass(ProtoTypeInfo const& typeInfo);
