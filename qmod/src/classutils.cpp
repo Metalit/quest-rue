@@ -269,15 +269,15 @@ ProtoClassInfo ClassUtils::GetClassInfo(Il2CppType const* type) {
     LOG_DEBUG("Getting class info");
     auto clazz = classoftype(type);
 
-    auto declaring = il2cpp_functions::class_get_declaring_type(clazz);
+    auto declaring = clazz->declaringType;
 
-    auto namespaze = il2cpp_functions::class_get_namespace(clazz);
-    std::string name = il2cpp_functions::class_get_name(clazz);
+    auto namespaze = clazz->namespaze;
+    std::string name = clazz->name;
 
     while (declaring) {
-        namespaze = il2cpp_functions::class_get_namespace(declaring);
-        name = il2cpp_functions::class_get_name(declaring) + ("/" + name);
-        declaring = il2cpp_functions::class_get_declaring_type(declaring);
+        namespaze = declaring->namespaze;
+        name = declaring->name + ("/" + name);
+        declaring = declaring->declaringType;
     }
 
     classInfo.set_namespaze(namespaze);
@@ -470,4 +470,49 @@ Il2CppType* ClassUtils::GetType(ProtoTypeInfo const& typeInfo) {
     if (typeInfo.isbyref())
         return &klass->this_arg;
     return &klass->byval_arg;
+}
+
+static void CheckAddClass(GetTypeComplete const& search, Il2CppClass* clazz, std::set<std::string>& matches, std::string_view declaring = "") {
+    std::string value = clazz->namespaze;
+    std::string_view searchString = search.namespaze();
+
+    if (search.has_clazz()) {
+        // I believe nested types have no namespace, but either way we've already checked it
+        if (declaring.empty() && search.has_namespaze() && search.namespaze() != clazz->namespaze)
+            return;
+        value = clazz->name;
+        searchString = search.clazz();
+        if (!declaring.empty())
+            value = fmt::format("{}/{}", declaring, value);
+        // only search nested types if we are looking for classes and not namespaces
+        void* iter = nullptr;
+        while (auto nested = il2cpp_functions::class_get_nested_types(clazz, &iter))
+            CheckAddClass(search, nested, matches, value);
+    }
+
+    if (value.find(searchString) != std::string::npos)
+        matches.emplace(value);
+}
+
+std::set<std::string> ClassUtils::SearchClasses(GetTypeComplete const& search) {
+    if (!search.has_clazz() && !search.has_namespaze())
+        return {};
+
+    std::set<std::string> matches;
+
+    auto domain = il2cpp_functions::domain_get();
+    size_t assemblyCount;
+    auto assemblies = il2cpp_functions::domain_get_assemblies(domain, &assemblyCount);
+    for (size_t i = 0; i < assemblyCount; i++) {
+        auto image = assemblies[i]->image;
+        if (!image)
+            continue;
+        for (size_t j = 0; j < image->typeCount; j++) {
+            auto clazz = il2cpp_functions::image_get_class(image, j);
+            if (clazz)
+                CheckAddClass(search, const_cast<Il2CppClass*>(clazz), matches);
+        }
+    }
+
+    return matches;
 }

@@ -48,4 +48,6 @@ namespace ClassUtils {
     Il2CppClass* GetClass(ProtoClassInfo const& classInfo);
     Il2CppClass* GetClass(ProtoTypeInfo const& typeInfo);
     Il2CppType* GetType(ProtoTypeInfo const& typeInfo);
+
+    std::set<std::string> SearchClasses(GetTypeComplete const& search);
 }

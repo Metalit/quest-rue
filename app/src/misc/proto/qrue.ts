@@ -272,6 +272,15 @@ export interface GetSafePtrAddressesResult_AddressEntry {
   value: ProtoClassInfo | undefined;
 }
 
+export interface GetTypeComplete {
+  namespaze?: string | undefined;
+  clazz?: string | undefined;
+}
+
+export interface GetTypeCompleteResult {
+  options: string[];
+}
+
 export interface GetCameraHovered {
 }
 
@@ -314,6 +323,8 @@ export interface PacketWrapper {
     | { $case: "addSafePtrAddress"; addSafePtrAddress: AddSafePtrAddress }
     | { $case: "getSafePtrAddresses"; getSafePtrAddresses: GetSafePtrAddresses }
     | { $case: "getSafePtrAddressesResult"; getSafePtrAddressesResult: GetSafePtrAddressesResult }
+    | { $case: "getTypeComplete"; getTypeComplete: GetTypeComplete }
+    | { $case: "getTypeCompleteResult"; getTypeCompleteResult: GetTypeCompleteResult }
     | { $case: "getCameraHovered"; getCameraHovered: GetCameraHovered }
     | { $case: "getCameraHoveredResult"; getCameraHoveredResult: GetCameraHoveredResult }
     | undefined;
@@ -2799,6 +2810,139 @@ export const GetSafePtrAddressesResult_AddressEntry = {
   },
 };
 
+function createBaseGetTypeComplete(): GetTypeComplete {
+  return { namespaze: undefined, clazz: undefined };
+}
+
+export const GetTypeComplete = {
+  encode(message: GetTypeComplete, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.namespaze !== undefined) {
+      writer.uint32(10).string(message.namespaze);
+    }
+    if (message.clazz !== undefined) {
+      writer.uint32(18).string(message.clazz);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetTypeComplete {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetTypeComplete();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.namespaze = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.clazz = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetTypeComplete {
+    return {
+      namespaze: isSet(object.namespaze) ? globalThis.String(object.namespaze) : undefined,
+      clazz: isSet(object.clazz) ? globalThis.String(object.clazz) : undefined,
+    };
+  },
+
+  toJSON(message: GetTypeComplete): unknown {
+    const obj: any = {};
+    if (message.namespaze !== undefined) {
+      obj.namespaze = message.namespaze;
+    }
+    if (message.clazz !== undefined) {
+      obj.clazz = message.clazz;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetTypeComplete>, I>>(base?: I): GetTypeComplete {
+    return GetTypeComplete.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetTypeComplete>, I>>(object: I): GetTypeComplete {
+    const message = createBaseGetTypeComplete();
+    message.namespaze = object.namespaze ?? undefined;
+    message.clazz = object.clazz ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGetTypeCompleteResult(): GetTypeCompleteResult {
+  return { options: [] };
+}
+
+export const GetTypeCompleteResult = {
+  encode(message: GetTypeCompleteResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.options) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetTypeCompleteResult {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetTypeCompleteResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.options.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetTypeCompleteResult {
+    return {
+      options: globalThis.Array.isArray(object?.options) ? object.options.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: GetTypeCompleteResult): unknown {
+    const obj: any = {};
+    if (message.options?.length) {
+      obj.options = message.options;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetTypeCompleteResult>, I>>(base?: I): GetTypeCompleteResult {
+    return GetTypeCompleteResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetTypeCompleteResult>, I>>(object: I): GetTypeCompleteResult {
+    const message = createBaseGetTypeCompleteResult();
+    message.options = object.options?.map((e) => e) || [];
+    return message;
+  },
+};
+
 function createBaseGetCameraHovered(): GetCameraHovered {
   return {};
 }
@@ -3004,6 +3148,12 @@ export const PacketWrapper = {
         break;
       case "getSafePtrAddressesResult":
         GetSafePtrAddressesResult.encode(message.Packet.getSafePtrAddressesResult, writer.uint32(250).fork()).ldelim();
+        break;
+      case "getTypeComplete":
+        GetTypeComplete.encode(message.Packet.getTypeComplete, writer.uint32(258).fork()).ldelim();
+        break;
+      case "getTypeCompleteResult":
+        GetTypeCompleteResult.encode(message.Packet.getTypeCompleteResult, writer.uint32(266).fork()).ldelim();
         break;
       case "getCameraHovered":
         GetCameraHovered.encode(message.Packet.getCameraHovered, writer.uint32(290).fork()).ldelim();
@@ -3302,6 +3452,26 @@ export const PacketWrapper = {
             getSafePtrAddressesResult: GetSafePtrAddressesResult.decode(reader, reader.uint32()),
           };
           continue;
+        case 32:
+          if (tag !== 258) {
+            break;
+          }
+
+          message.Packet = {
+            $case: "getTypeComplete",
+            getTypeComplete: GetTypeComplete.decode(reader, reader.uint32()),
+          };
+          continue;
+        case 33:
+          if (tag !== 266) {
+            break;
+          }
+
+          message.Packet = {
+            $case: "getTypeCompleteResult",
+            getTypeCompleteResult: GetTypeCompleteResult.decode(reader, reader.uint32()),
+          };
+          continue;
         case 36:
           if (tag !== 290) {
             break;
@@ -3427,6 +3597,13 @@ export const PacketWrapper = {
           $case: "getSafePtrAddressesResult",
           getSafePtrAddressesResult: GetSafePtrAddressesResult.fromJSON(object.getSafePtrAddressesResult),
         }
+        : isSet(object.getTypeComplete)
+        ? { $case: "getTypeComplete", getTypeComplete: GetTypeComplete.fromJSON(object.getTypeComplete) }
+        : isSet(object.getTypeCompleteResult)
+        ? {
+          $case: "getTypeCompleteResult",
+          getTypeCompleteResult: GetTypeCompleteResult.fromJSON(object.getTypeCompleteResult),
+        }
         : isSet(object.getCameraHovered)
         ? { $case: "getCameraHovered", getCameraHovered: GetCameraHovered.fromJSON(object.getCameraHovered) }
         : isSet(object.getCameraHoveredResult)
@@ -3534,6 +3711,12 @@ export const PacketWrapper = {
     }
     if (message.Packet?.$case === "getSafePtrAddressesResult") {
       obj.getSafePtrAddressesResult = GetSafePtrAddressesResult.toJSON(message.Packet.getSafePtrAddressesResult);
+    }
+    if (message.Packet?.$case === "getTypeComplete") {
+      obj.getTypeComplete = GetTypeComplete.toJSON(message.Packet.getTypeComplete);
+    }
+    if (message.Packet?.$case === "getTypeCompleteResult") {
+      obj.getTypeCompleteResult = GetTypeCompleteResult.toJSON(message.Packet.getTypeCompleteResult);
     }
     if (message.Packet?.$case === "getCameraHovered") {
       obj.getCameraHovered = GetCameraHovered.toJSON(message.Packet.getCameraHovered);
@@ -3828,6 +4011,26 @@ export const PacketWrapper = {
       message.Packet = {
         $case: "getSafePtrAddressesResult",
         getSafePtrAddressesResult: GetSafePtrAddressesResult.fromPartial(object.Packet.getSafePtrAddressesResult),
+      };
+    }
+    if (
+      object.Packet?.$case === "getTypeComplete" &&
+      object.Packet?.getTypeComplete !== undefined &&
+      object.Packet?.getTypeComplete !== null
+    ) {
+      message.Packet = {
+        $case: "getTypeComplete",
+        getTypeComplete: GetTypeComplete.fromPartial(object.Packet.getTypeComplete),
+      };
+    }
+    if (
+      object.Packet?.$case === "getTypeCompleteResult" &&
+      object.Packet?.getTypeCompleteResult !== undefined &&
+      object.Packet?.getTypeCompleteResult !== null
+    ) {
+      message.Packet = {
+        $case: "getTypeCompleteResult",
+        getTypeCompleteResult: GetTypeCompleteResult.fromPartial(object.Packet.getTypeCompleteResult),
       };
     }
     if (

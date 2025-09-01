@@ -160,6 +160,15 @@ message GetSafePtrAddressesResult {
     map<uint64, ProtoClassInfo> address = 1;
 }
 
+message GetTypeComplete {
+    optional string namespaze = 1;
+    optional string clazz = 2;
+}
+
+message GetTypeCompleteResult {
+    repeated string options = 1;
+}
+
 message GetCameraHovered {
 }
 
@@ -201,6 +210,8 @@ message PacketWrapper {
         AddSafePtrAddress addSafePtrAddress = 29;
         GetSafePtrAddresses getSafePtrAddresses = 30;
         GetSafePtrAddressesResult getSafePtrAddressesResult = 31;
+        GetTypeComplete getTypeComplete = 32;
+        GetTypeCompleteResult getTypeCompleteResult = 33;
         GetCameraHovered getCameraHovered = 36;
         GetCameraHoveredResult getCameraHoveredResult = 37;
     }

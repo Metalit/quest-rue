@@ -435,6 +435,19 @@ static void SendSafePtrList(uint64_t id) {
     Socket::Send(wrapper);
 }
 
+static void GetTypeComplete(GetTypeComplete const& packet, uint64_t id) {
+    PacketWrapper wrapper;
+    wrapper.set_queryresultid(id);
+
+    auto& res = *wrapper.mutable_gettypecompleteresult();
+    auto& list = *res.mutable_options();
+
+    auto found = ClassUtils::SearchClasses(packet);
+    list.Add(found.begin(), found.end());
+
+    Socket::Send(wrapper);
+}
+
 static void GetHoveredObject(GetCameraHovered const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
@@ -496,6 +509,9 @@ void Manager::ProcessMessage(PacketWrapper const& packet) {
                 break;
             case PacketWrapper::kGetSafePtrAddresses:
                 SendSafePtrList(id);
+                break;
+            case PacketWrapper::kGetTypeComplete:
+                GetTypeComplete(packet.gettypecomplete(), id);
                 break;
             case PacketWrapper::kGetCameraHovered:
                 GetHoveredObject(packet.getcamerahovered(), id);
