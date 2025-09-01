@@ -4,8 +4,10 @@
 #include "qrue.pb.h"
 
 namespace MethodUtils {
-    ProtoDataPayload Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args, std::string& error);
-    ProtoDataPayload Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args, std::string& error);
+    using MethodResult = std::pair<ProtoDataPayload, std::map<int, ProtoDataPayload>>;  // return type, then byrefs by parameter index
+
+    MethodResult Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args, std::string& error);
+    MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args, std::string& error);
 
     ProtoPropertyInfo GetPropertyInfo(PropertyInfo const* property);
     ProtoMethodInfo GetMethodInfo(MethodInfo const* method);

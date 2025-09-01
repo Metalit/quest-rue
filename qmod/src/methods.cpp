@@ -1,17 +1,11 @@
 #include "methods.hpp"
 
-#include <iomanip>
-#include <sstream>
-
 #include "classutils.hpp"
 #include "main.hpp"
 #include "paper2_scotland2/shared/string_convert.hpp"
 
 // array of arguments:
-// pointers to whatever data is stored, whether it be value or reference
-// so int*, Vector3*, Il2CppObject**
-// alternatively can send single pointers to everything with derefReferences set to false
-// in which case the handling of value / reference types needs to be done before the call
+// pointers to value types, but no extra pointers to reference types
 // so int*, Vector3*, Il2CppObject*
 
 inline void** pointerOffset(void* ptr, int offset) {
@@ -113,19 +107,31 @@ void* HandlePrimitive(ProtoTypeInfo::Primitive info, ProtoDataSegment const& arg
     }
 }
 
+void* HandleEnum(ProtoEnumInfo const& info, ProtoDataSegment const& arg) {
+    if (arg.Data_case() != ProtoDataSegment::DataCase::kPrimitiveData)
+        return nullptr;
+    std::string const& bytes = arg.primitivedata();
+    return (void*) bytes.data();
+}
+
 // converts the data in a ProtoDataPayload into an object of the correct type
 void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment const& arg) {
-    if (typeInfo.has_classinfo())
-        return HandleClass(typeInfo.classinfo(), arg);
-    else if (typeInfo.has_arrayinfo())
-        return HandleArray(typeInfo.arrayinfo(), arg);
-    else if (typeInfo.has_structinfo())
-        return HandleStruct(typeInfo.structinfo(), arg);
-    else if (typeInfo.has_genericinfo())
-        return HandleGeneric(typeInfo.genericinfo(), arg);
-    else if (typeInfo.has_primitiveinfo())
-        return HandlePrimitive(typeInfo.primitiveinfo(), arg);
-    return nullptr;
+    switch (typeInfo.Info_case()) {
+        case ProtoTypeInfo::kClassInfo:
+            return HandleClass(typeInfo.classinfo(), arg);
+        case ProtoTypeInfo::kArrayInfo:
+            return HandleArray(typeInfo.arrayinfo(), arg);
+        case ProtoTypeInfo::kStructInfo:
+            return HandleStruct(typeInfo.structinfo(), arg);
+        case ProtoTypeInfo::kGenericInfo:
+            return HandleGeneric(typeInfo.genericinfo(), arg);
+        case ProtoTypeInfo::kPrimitiveInfo:
+            return HandlePrimitive(typeInfo.primitiveinfo(), arg);
+        case ProtoTypeInfo::kEnumInfo:
+            return HandleEnum(typeInfo.enuminfo(), arg);
+        default:
+            return nullptr;
+    }
 }
 
 void FillList(std::vector<ProtoDataPayload> const& args, void** dest) {
@@ -225,20 +231,31 @@ ProtoDataSegment OutputPrimitive(ProtoTypeInfo::Primitive info, void* value, int
     return ret;
 }
 
+ProtoDataSegment OutputEnum(ProtoEnumInfo const& info, void* value, int size) {
+    ProtoDataSegment ret;
+    ret.set_primitivedata(std::string((char*) value, size));
+    return ret;
+}
+
 ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value) {
     if (!value)
         return {};
-    if (typeInfo.has_classinfo())
-        return OutputClass(typeInfo.classinfo(), value, typeInfo.size());
-    else if (typeInfo.has_arrayinfo())
-        return OutputArray(typeInfo.arrayinfo(), value, typeInfo.size());
-    else if (typeInfo.has_structinfo())
-        return OutputStruct(typeInfo.structinfo(), value, typeInfo.size());
-    else if (typeInfo.has_genericinfo())
-        return OutputGeneric(typeInfo.genericinfo(), value, typeInfo.size());
-    else if (typeInfo.has_primitiveinfo())
-        return OutputPrimitive(typeInfo.primitiveinfo(), value, typeInfo.size());
-    return {};
+    switch (typeInfo.Info_case()) {
+        case ProtoTypeInfo::kClassInfo:
+            return OutputClass(typeInfo.classinfo(), value, typeInfo.size());
+        case ProtoTypeInfo::kArrayInfo:
+            return OutputArray(typeInfo.arrayinfo(), value, typeInfo.size());
+        case ProtoTypeInfo::kStructInfo:
+            return OutputStruct(typeInfo.structinfo(), value, typeInfo.size());
+        case ProtoTypeInfo::kGenericInfo:
+            return OutputGeneric(typeInfo.genericinfo(), value, typeInfo.size());
+        case ProtoTypeInfo::kPrimitiveInfo:
+            return OutputPrimitive(typeInfo.primitiveinfo(), value, typeInfo.size());
+        case ProtoTypeInfo::kEnumInfo:
+            return OutputEnum(typeInfo.enuminfo(), value, typeInfo.size());
+        default:
+            return {};
+    }
 }
 
 ProtoDataPayload OutputData(ProtoTypeInfo const& typeInfo, void* value) {
@@ -246,6 +263,19 @@ ProtoDataPayload OutputData(ProtoTypeInfo const& typeInfo, void* value) {
     ProtoDataPayload ret;
     *ret.mutable_data() = OutputType(typeInfo, value);
     *ret.mutable_typeinfo() = typeInfo;
+    return ret;
+}
+
+std::map<int, ProtoDataPayload> GetByrefOutputs(std::vector<ProtoDataPayload> const& args, void** filledList) {
+    std::map<int, ProtoDataPayload> ret;
+    for (int i = 0; i < args.size(); i++) {
+        auto& typeInfo = args[i].typeinfo();
+        if (!typeInfo.isbyref())
+            continue;
+        auto& data = ret[i];
+        *data.mutable_data() = OutputType(typeInfo, filledList[i]);
+        *data.mutable_typeinfo() = typeInfo;
+    }
     return ret;
 }
 
@@ -278,20 +308,20 @@ bool shouldGetParamName(MethodInfo const* method) {
 #endif
 
 namespace MethodUtils {
-    ProtoDataPayload Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args, std::string& error) {
+    MethodResult Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args, std::string& error) {
         void* inst = nullptr;
         if (!ClassUtils::GetIsStatic(method))
             inst = HandleType(object.typeinfo(), object.data());
 
         return Run(method, inst, args, error);
     }
-    ProtoDataPayload Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args, std::string& error) {
+    MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args, std::string& error) {
         LOG_DEBUG("Running method {} {}", fmt::ptr(method), method->name);
         LOG_DEBUG("{} parameters", method->parameters_count);
 
         if (method->name == std::string("get_renderingDisplaySize")) {
             LOG_INFO("Skipping get_renderingDisplaySize due to crash");
-            return VoidDataPayload(method->return_type);
+            return {VoidDataPayload(method->return_type), {}};
         }
 
         void* il2cppArgs[args.size()];
@@ -304,16 +334,15 @@ namespace MethodUtils {
         if (ex) {
             error = il2cpp_utils::ExceptionToString(ex);
             LOG_INFO("{}: Failed with exception: {}", method->name, error);
-            LOG_DEBUG("{}", StringW(ex->stack_trace));
-            return VoidDataPayload(method->return_type);
+            LOG_INFO("{}", StringW(ex->stack_trace));
+            return {VoidDataPayload(method->return_type), {}};
         }
 
         LOG_DEBUG("Returning");
-        if (!ret) {
-            LOG_DEBUG("null pointer");
-            return VoidDataPayload(method->return_type);
-        }
-        return HandleReturn(method, ret);
+        auto byrefs = GetByrefOutputs(args, il2cppArgs);
+        if (!ret)
+            return {VoidDataPayload(method->return_type), byrefs};
+        return {HandleReturn(method, ret), byrefs};
     }
 
     ProtoPropertyInfo GetPropertyInfo(PropertyInfo const* property) {
@@ -376,7 +405,7 @@ namespace FieldUtils {
 
         // since fields only use pointer math to find the offsets, we don't need to box things properly
         if (!isObject)
-            object = (void*) ((char*) object - sizeof(Il2CppObject));
+            object = pointerOffset(object, -(int) sizeof(Il2CppObject));
 
         size_t size = fieldTypeSize(field->type);
         char ret[size];

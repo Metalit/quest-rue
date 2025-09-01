@@ -111,7 +111,7 @@ static void InvokeMethod(InvokeMethod const& packet, uint64_t queryId) {
                 args.emplace_back(packet.args(i));
 
             std::string err = "";
-            auto res = MethodUtils::Run(method, packet.inst(), args, err);
+            auto [ret, byrefs] = MethodUtils::Run(method, packet.inst(), args, err);
 
             InvokeMethodResult& result = *wrapper.mutable_invokemethodresult();
             result.set_methodid(asInt(method));
@@ -124,7 +124,8 @@ static void InvokeMethod(InvokeMethod const& packet, uint64_t queryId) {
             }
 
             result.set_status(InvokeMethodResult::OK);
-            *result.mutable_result() = res;
+            *result.mutable_result() = ret;
+            result.mutable_byrefchanges()->insert(byrefs.begin(), byrefs.end());
         }
     }
     Socket::Send(wrapper);
@@ -361,7 +362,7 @@ GetInstanceValuesResult getInstanceValues_internal(Il2CppObject* instance, Proto
                 continue;
             auto getter = asPtr(MethodInfo, prop.getterid());
             std::string err = "";
-            auto res = MethodUtils::Run(getter, instance, {}, err);
+            auto [res, _] = MethodUtils::Run(getter, instance, {}, err);
             if (!err.empty())
                 LOG_ERROR("getting property failed with error: {}", err);
             else

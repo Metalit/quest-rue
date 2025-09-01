@@ -14,10 +14,8 @@ static std::unordered_map<Il2CppType const*, ProtoTypeInfo> typeInfoCache;
 // (so blame them for the gotos)
 size_t fieldTypeSize(Il2CppType const* type) {
     int t;
-    if (type->byref) {
-        // never does gc allocation, notably ig
+    if (type->byref)
         return sizeof(void*);
-    }
     t = type->type;
 handle_enum:
     switch (t) {
@@ -47,16 +45,9 @@ handle_enum:
         case IL2CPP_TYPE_CLASS:
         case IL2CPP_TYPE_OBJECT:
         case IL2CPP_TYPE_ARRAY:
-            return 8;
-            // aaaaaaahhhhh what do I do with this deref_pointer thing
-            // gc::WriteBarrier::GenericStore(dest, (deref_pointer ? *(void**)value : value));
-            // return;
         case IL2CPP_TYPE_FNPTR:
         case IL2CPP_TYPE_PTR:
             return 8;
-            // void* *p = (void**)dest;
-            // *p = deref_pointer ? *(void**)value : value;
-            // return;
         case IL2CPP_TYPE_VALUETYPE:
             // their comment: /* note that 't' and 'type->type' can be different */
             if (type->type == IL2CPP_TYPE_VALUETYPE && il2cpp_functions::class_from_il2cpp_type(type)->enumtype) {
