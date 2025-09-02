@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .list {
   @apply font-sans overflow-ellipsis text-lg text-left whitespace-nowrap
         mx-auto;

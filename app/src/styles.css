@@ -1,8 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@plugin "@tailwindcss/typography";
+@plugin "daisyui";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 #app {
   @apply bg-zinc-100 dark:bg-zinc-900
@@ -52,8 +53,9 @@ div {
 
 .header {
   @apply bg-zinc-300 dark:bg-zinc-800
-           text-lg mono px-2;
+           text-lg px-2;
 
+  font-family: var(--mono-font);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -192,6 +194,7 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .small-input {

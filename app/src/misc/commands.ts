@@ -1,23 +1,12 @@
-import { devPacketResponse } from "./dev";
 import { PacketTypes, getEvents, ListenerCallbackFunction } from "./events";
 import { handleGameObjects } from "./handlers/gameobject";
 import { handleSafePtrAddresses } from "./handlers/variable_list";
 import { PacketWrapper } from "./proto/qrue";
 import { uniqueBigNumber } from "./utils";
-import { MockWebSocket, NodeWebSocket, QuestRUESocket } from "./websocket";
+import { NodeWebSocket, QuestRUESocket } from "./websocket";
 
 // late init!
-export let socket: QuestRUESocket = undefined!;
-
-export function initSocket() {
-  if (import.meta.env.VITE_USE_QUEST_MOCK == "true") {
-    socket = new MockWebSocket();
-    console.log("Using mock web socket");
-  } else {
-    socket = new NodeWebSocket();
-    console.log("Using node web socket");
-  }
-}
+export const socket: QuestRUESocket = new NodeWebSocket();
 
 export function handleGlobalPacketWrapper(packet: PacketWrapper) {
   switch (packet.Packet?.$case) {
@@ -39,17 +28,12 @@ export function handleGlobalPacketWrapper(packet: PacketWrapper) {
 export async function writePacket<P extends PacketWrapper = PacketWrapper>(
   p: P,
 ): Promise<void> {
-  if (import.meta.env.VITE_USE_QUEST_MOCK == "true") {
-    devPacketResponse(p as PacketWrapper, handleGlobalPacketWrapper);
-    return;
-  }
-
   if (socket && socket.connected()) {
     socket.send(PacketWrapper.encode(p).finish());
   } else {
     // queue send for when connection starts
     getEvents().CONNECTED_EVENT.addListener(
-      () => PacketWrapper.encode(p).finish(),
+      () => socket.send(PacketWrapper.encode(p).finish()),
       true,
     );
   }

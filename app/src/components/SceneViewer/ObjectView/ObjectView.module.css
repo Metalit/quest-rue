@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .expanded {
   margin-left: -0.5rem;
   width: calc(100% + 1rem);
@@ -76,10 +78,8 @@
   margin-left: -6px; /* undo .gridElement padding */
   margin-right: 1px; /* add to gap to equal padding */
 
-  @apply from-green-500 to-sky-600;
-  border-image: linear-gradient(to bottom, var(--tw-gradient-stops)) 1;
+  border-image: linear-gradient(to bottom, var(--color-green-500), var(--color-sky-600)) 1;
   border-left: 4px solid;
-  opacity: var(--tw-border-opacity);
 }
 
 .highlighted {

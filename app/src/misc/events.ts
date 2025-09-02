@@ -9,30 +9,8 @@ export type GameObjectJSON = PacketJSON<ProtoGameObject>;
 
 export type PacketWrapperCustomJSON = PacketJSON<PacketWrapper>;
 
-// Singleton for all events
-// Lazily initialized
-let Events: ReturnType<typeof buildEvents> | undefined = undefined;
-
-export function initializeEvents() {
-  Events ??= buildEvents();
-}
-
-export function getEvents() {
-  return Events!;
-}
-
-function buildEvents() {
-  return {
-    // PACKET EVENTS
-    ALL_PACKETS: new EventListener<PacketWrapperCustomJSON>(),
-    CONNECTED_EVENT: new EventListener<void>(),
-    DISCONNECTED_EVENT: new EventListener<[boolean, boolean]>(),
-    ERROR_EVENT: new EventListener<Event>(),
-  } as const;
-}
-
 export type PacketTypes = PacketWrapper["Packet"];
-export type PacketJSON<T> = T; // ReturnType<T["toObject"]>;
+export type PacketJSON<T> = T;
 
 /**
  * A hook that returns the value of a packet with a response
@@ -111,63 +89,6 @@ export function useRequestAndResponsePacket<
 
   return [val, loading, refetch];
 }
-
-// TODO: An experiment, didn't work out. Maybe retry at a later date.
-// export function createResourcePacket<
-//     TTResponse extends Message,
-//     TRequest extends PacketTypes[0] = PacketTypes[0],
-//     TResponse extends PacketJSON<TTResponse> = PacketJSON<TTResponse>
-// >(
-//     input: Accessor<TRequest | undefined> | TRequest | undefined,
-//     { once = false, allowConcurrent = false }
-// ) {
-//     // We use reference here since it's not necessary to call it "state", that is handled by `val`
-//     const expectedQueryID: { value: number | undefined } = {
-//         value: undefined,
-//     };
-
-//     const fetch = (p: TRequest) => {
-//         const randomId = uniqueNumber();
-//         expectedQueryID.value = randomId;
-
-//         return new Promise((resolve, reject) => {
-
-//         })
-//     };
-
-//     const [data, rest] = createResource<TResponse, TRequest, TRequest>(
-//         input,
-//         fetch
-//     );
-
-//     // Create the listener
-//     // onMount is likely not necessary
-//     const listener = getEvents().ALL_PACKETS;
-//     const callback = listener.addListener((union) => {
-//         if (
-//             expectedQueryID.value &&
-//             union.queryResultId === expectedQueryID.value
-//         ) {
-//             const packet = (union as Record<string, unknown>)[union.packetType];
-
-//             if (!packet) throw "Packet is undefined why!";
-
-//             expectedQueryID.value = undefined;
-//         }
-//     }, once);
-
-//     onCleanup(() => {
-//         listener.removeListener(callback);
-//     });
-
-//     return [
-//         data,
-//         {
-//             ...rest,
-//             // refetch: newRefetch,
-//         },
-//     ];
-// }
 
 /**
  * Hook that listens to a packet and updates the state based on it
@@ -258,4 +179,17 @@ export class EventListener<T> {
       callback[0](value);
     });
   }
+}
+
+// Singleton for all events
+const Events = {
+  // PACKET EVENTS
+  ALL_PACKETS: new EventListener<PacketWrapperCustomJSON>(),
+  CONNECTED_EVENT: new EventListener<void>(),
+  DISCONNECTED_EVENT: new EventListener<[boolean, boolean]>(),
+  ERROR_EVENT: new EventListener<Event>(),
+} as const;
+
+export function getEvents() {
+  return Events!;
 }

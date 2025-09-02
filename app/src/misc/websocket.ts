@@ -146,16 +146,3 @@ export class NodeWebSocket extends QuestRUESocket {
     this.socket?.send(data);
   }
 }
-
-export class MockWebSocket extends QuestRUESocket {
-  connectImpl(): Promise<boolean> {
-    this.onConnect();
-    return Promise.resolve(true);
-  }
-
-  disconnectImpl(): void {
-    this.onDisconnect();
-  }
-
-  send() {}
-}

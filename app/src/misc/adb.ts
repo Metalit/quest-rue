@@ -1,7 +1,14 @@
-import { isTauri } from "./dev";
 import { Command } from "@tauri-apps/plugin-shell";
 
 let forwarded: [string, string] | undefined = undefined;
+
+function isTauri(): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unsafeWindow = window as any;
+  return (
+    (unsafeWindow.isTauri || unsafeWindow.__TAURI_INTERNALs__) != undefined
+  );
+}
 
 export async function has_adb(): Promise<string | undefined> {
   // todo: replace with webadb in this case? idk
