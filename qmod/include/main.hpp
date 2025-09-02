@@ -13,7 +13,3 @@ static constexpr auto logger = Paper::ConstLoggerContext(MOD_ID);
 // #define LOG_DEBUG(...)
 
 std::string_view GetDataPath();
-
-#ifdef BEAT_SABER
-void EnableFPFC();
-#endif

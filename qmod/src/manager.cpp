@@ -1,6 +1,5 @@
 #include "manager.hpp"
 
-#include "CameraController.hpp"
 #include "MainThreadRunner.hpp"
 #include "UnityEngine/Transform.hpp"
 #include "classutils.hpp"
@@ -8,8 +7,6 @@
 #include "mem.hpp"
 #include "methods.hpp"
 #include "socket.hpp"
-#include "sombrero/shared/linq.hpp"
-#include "sombrero/shared/linq_functional.hpp"
 #include "unity.hpp"
 
 #define MESSAGE_LOGGING
@@ -448,17 +445,6 @@ static void GetTypeComplete(GetTypeComplete const& packet, uint64_t id) {
     Socket::Send(wrapper);
 }
 
-static void GetHoveredObject(GetCameraHovered const& packet, uint64_t id) {
-    PacketWrapper wrapper;
-    wrapper.set_queryresultid(id);
-
-    auto res = wrapper.mutable_getcamerahoveredresult()->mutable_hoveredobject();
-    if (auto obj = QRUE::CameraController::GetHovered())
-        *res = ReadGameObject(obj);
-
-    Socket::Send(wrapper);
-}
-
 void Manager::ProcessMessage(PacketWrapper const& packet) {
     QRUE::MainThreadRunner::Schedule([packet] {
         LOG_DEBUG("processing packet: {}", packet.DebugString());
@@ -512,9 +498,6 @@ void Manager::ProcessMessage(PacketWrapper const& packet) {
                 break;
             case PacketWrapper::kGetTypeComplete:
                 GetTypeComplete(packet.gettypecomplete(), id);
-                break;
-            case PacketWrapper::kGetCameraHovered:
-                GetHoveredObject(packet.getcamerahovered(), id);
                 break;
             default:
                 LOG_ERROR("Invalid packet type {}!", (int) packet.Packet_case());

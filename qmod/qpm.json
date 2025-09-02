@@ -68,16 +68,6 @@
       "id": "custom-types",
       "versionRange": "^0.18.2",
       "additionalData": {}
-    },
-    {
-      "id": "sombrero",
-      "versionRange": "^0.1.40",
-      "additionalData": {}
-    },
-    {
-      "id": "hollywood",
-      "versionRange": "^1.2.0",
-      "additionalData": {}
     }
   ]
 }

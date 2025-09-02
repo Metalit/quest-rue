@@ -281,14 +281,6 @@ export interface GetTypeCompleteResult {
   options: string[];
 }
 
-export interface GetCameraHovered {
-}
-
-export interface GetCameraHoveredResult {
-  /** nullable */
-  hoveredObject: ProtoGameObject | undefined;
-}
-
 /** TODO: Rename? */
 export interface PacketWrapper {
   queryResultId: bigint;
@@ -325,8 +317,6 @@ export interface PacketWrapper {
     | { $case: "getSafePtrAddressesResult"; getSafePtrAddressesResult: GetSafePtrAddressesResult }
     | { $case: "getTypeComplete"; getTypeComplete: GetTypeComplete }
     | { $case: "getTypeCompleteResult"; getTypeCompleteResult: GetTypeCompleteResult }
-    | { $case: "getCameraHovered"; getCameraHovered: GetCameraHovered }
-    | { $case: "getCameraHoveredResult"; getCameraHoveredResult: GetCameraHoveredResult }
     | undefined;
 }
 
@@ -2943,108 +2933,6 @@ export const GetTypeCompleteResult = {
   },
 };
 
-function createBaseGetCameraHovered(): GetCameraHovered {
-  return {};
-}
-
-export const GetCameraHovered = {
-  encode(_: GetCameraHovered, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetCameraHovered {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetCameraHovered();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): GetCameraHovered {
-    return {};
-  },
-
-  toJSON(_: GetCameraHovered): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetCameraHovered>, I>>(base?: I): GetCameraHovered {
-    return GetCameraHovered.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetCameraHovered>, I>>(_: I): GetCameraHovered {
-    const message = createBaseGetCameraHovered();
-    return message;
-  },
-};
-
-function createBaseGetCameraHoveredResult(): GetCameraHoveredResult {
-  return { hoveredObject: undefined };
-}
-
-export const GetCameraHoveredResult = {
-  encode(message: GetCameraHoveredResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.hoveredObject !== undefined) {
-      ProtoGameObject.encode(message.hoveredObject, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetCameraHoveredResult {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetCameraHoveredResult();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.hoveredObject = ProtoGameObject.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetCameraHoveredResult {
-    return { hoveredObject: isSet(object.hoveredObject) ? ProtoGameObject.fromJSON(object.hoveredObject) : undefined };
-  },
-
-  toJSON(message: GetCameraHoveredResult): unknown {
-    const obj: any = {};
-    if (message.hoveredObject !== undefined) {
-      obj.hoveredObject = ProtoGameObject.toJSON(message.hoveredObject);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetCameraHoveredResult>, I>>(base?: I): GetCameraHoveredResult {
-    return GetCameraHoveredResult.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetCameraHoveredResult>, I>>(object: I): GetCameraHoveredResult {
-    const message = createBaseGetCameraHoveredResult();
-    message.hoveredObject = (object.hoveredObject !== undefined && object.hoveredObject !== null)
-      ? ProtoGameObject.fromPartial(object.hoveredObject)
-      : undefined;
-    return message;
-  },
-};
-
 function createBasePacketWrapper(): PacketWrapper {
   return { queryResultId: BigInt("0"), Packet: undefined };
 }
@@ -3154,12 +3042,6 @@ export const PacketWrapper = {
         break;
       case "getTypeCompleteResult":
         GetTypeCompleteResult.encode(message.Packet.getTypeCompleteResult, writer.uint32(266).fork()).ldelim();
-        break;
-      case "getCameraHovered":
-        GetCameraHovered.encode(message.Packet.getCameraHovered, writer.uint32(290).fork()).ldelim();
-        break;
-      case "getCameraHoveredResult":
-        GetCameraHoveredResult.encode(message.Packet.getCameraHoveredResult, writer.uint32(298).fork()).ldelim();
         break;
     }
     return writer;
@@ -3472,26 +3354,6 @@ export const PacketWrapper = {
             getTypeCompleteResult: GetTypeCompleteResult.decode(reader, reader.uint32()),
           };
           continue;
-        case 36:
-          if (tag !== 290) {
-            break;
-          }
-
-          message.Packet = {
-            $case: "getCameraHovered",
-            getCameraHovered: GetCameraHovered.decode(reader, reader.uint32()),
-          };
-          continue;
-        case 37:
-          if (tag !== 298) {
-            break;
-          }
-
-          message.Packet = {
-            $case: "getCameraHoveredResult",
-            getCameraHoveredResult: GetCameraHoveredResult.decode(reader, reader.uint32()),
-          };
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3604,13 +3466,6 @@ export const PacketWrapper = {
           $case: "getTypeCompleteResult",
           getTypeCompleteResult: GetTypeCompleteResult.fromJSON(object.getTypeCompleteResult),
         }
-        : isSet(object.getCameraHovered)
-        ? { $case: "getCameraHovered", getCameraHovered: GetCameraHovered.fromJSON(object.getCameraHovered) }
-        : isSet(object.getCameraHoveredResult)
-        ? {
-          $case: "getCameraHoveredResult",
-          getCameraHoveredResult: GetCameraHoveredResult.fromJSON(object.getCameraHoveredResult),
-        }
         : undefined,
     };
   },
@@ -3717,12 +3572,6 @@ export const PacketWrapper = {
     }
     if (message.Packet?.$case === "getTypeCompleteResult") {
       obj.getTypeCompleteResult = GetTypeCompleteResult.toJSON(message.Packet.getTypeCompleteResult);
-    }
-    if (message.Packet?.$case === "getCameraHovered") {
-      obj.getCameraHovered = GetCameraHovered.toJSON(message.Packet.getCameraHovered);
-    }
-    if (message.Packet?.$case === "getCameraHoveredResult") {
-      obj.getCameraHoveredResult = GetCameraHoveredResult.toJSON(message.Packet.getCameraHoveredResult);
     }
     return obj;
   },
@@ -4031,26 +3880,6 @@ export const PacketWrapper = {
       message.Packet = {
         $case: "getTypeCompleteResult",
         getTypeCompleteResult: GetTypeCompleteResult.fromPartial(object.Packet.getTypeCompleteResult),
-      };
-    }
-    if (
-      object.Packet?.$case === "getCameraHovered" &&
-      object.Packet?.getCameraHovered !== undefined &&
-      object.Packet?.getCameraHovered !== null
-    ) {
-      message.Packet = {
-        $case: "getCameraHovered",
-        getCameraHovered: GetCameraHovered.fromPartial(object.Packet.getCameraHovered),
-      };
-    }
-    if (
-      object.Packet?.$case === "getCameraHoveredResult" &&
-      object.Packet?.getCameraHoveredResult !== undefined &&
-      object.Packet?.getCameraHoveredResult !== null
-    ) {
-      message.Packet = {
-        $case: "getCameraHoveredResult",
-        getCameraHoveredResult: GetCameraHoveredResult.fromPartial(object.Packet.getCameraHoveredResult),
       };
     }
     return message;

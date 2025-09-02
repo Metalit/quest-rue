@@ -169,13 +169,6 @@ message GetTypeCompleteResult {
     repeated string options = 1;
 }
 
-message GetCameraHovered {
-}
-
-message GetCameraHoveredResult {
-    ProtoGameObject hoveredObject = 1; /* nullable */
-}
-
 // TODO: Rename?
 message PacketWrapper {
     uint64 queryResultId = 1;
@@ -212,7 +205,5 @@ message PacketWrapper {
         GetSafePtrAddressesResult getSafePtrAddressesResult = 31;
         GetTypeComplete getTypeComplete = 32;
         GetTypeCompleteResult getTypeCompleteResult = 33;
-        GetCameraHovered getCameraHovered = 36;
-        GetCameraHoveredResult getCameraHoveredResult = 37;
     }
 }
