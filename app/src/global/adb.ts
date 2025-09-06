@@ -10,7 +10,7 @@ function isTauri(): boolean {
   );
 }
 
-export async function has_adb(): Promise<string | undefined> {
+export async function hasAdb(): Promise<string | undefined> {
   // todo: replace with webadb in this case? idk
   if (!isTauri()) return Promise.resolve(undefined);
 
@@ -19,7 +19,7 @@ export async function has_adb(): Promise<string | undefined> {
   return output.stdout;
 }
 
-export async function adb_devices(): Promise<[string, string][]> {
+export async function adbDevices(): Promise<[string, string][]> {
   if (!isTauri()) return Promise.resolve([]);
 
   const output = await Command.create("adb", "devices").execute();
@@ -45,10 +45,10 @@ export async function adb_devices(): Promise<[string, string][]> {
   return ret;
 }
 
-export async function adb_forward(device: string, port: string): Promise<void> {
+export async function adbForward(device: string, port: string): Promise<void> {
   if (!isTauri()) return Promise.resolve();
 
-  cleanup_forward();
+  cleanupForward();
   forwarded = [device, port];
 
   const tcp = `tcp:${port}`;
@@ -56,7 +56,7 @@ export async function adb_forward(device: string, port: string): Promise<void> {
   await cmd.execute();
 }
 
-export async function adb_unforward(
+export async function adbUnforward(
   device: string,
   port: string,
 ): Promise<void> {
@@ -69,6 +69,6 @@ export async function adb_unforward(
   await cmd.execute();
 }
 
-export async function cleanup_forward() {
-  if (forwarded) await adb_unforward(...forwarded);
+export async function cleanupForward() {
+  if (forwarded) await adbUnforward(...forwarded);
 }

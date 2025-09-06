@@ -1,24 +1,16 @@
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import "solid-devtools";
 import { render } from "solid-js/web";
+
+import App from "./App";
+import { cleanupForward } from "./global/adb";
 
 import "@thisbeyond/solid-select/style.css";
 // higher priority
 import "./styles.css";
 
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import "solid-devtools";
-import App from "./App";
-import { SettingsProvider } from "./components/Settings";
-import { cleanup_forward } from "./misc/adb";
-
 getCurrentWebviewWindow().onCloseRequested(async () => {
-  await cleanup_forward();
+  await cleanupForward();
 });
 
-render(
-  () => (
-    <SettingsProvider>
-      <App />
-    </SettingsProvider>
-  ),
-  document.getElementById("root") as HTMLElement,
-);
+render(App, document.getElementById("root") as HTMLElement);

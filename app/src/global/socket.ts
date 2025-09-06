@@ -1,8 +1,9 @@
-import { handleGlobalPacketWrapper } from "./commands";
-import { getEvents } from "./events";
-import { PacketWrapper } from "./proto/qrue";
+import { Accessor, batch, createSignal, untrack } from "solid-js";
 import toast from "solid-toast";
-import { Accessor, createSignal } from "solid-js";
+
+import { PacketWrapper } from "../proto/qrue";
+
+export type Callback<T> = (value: T) => void;
 
 export abstract class QuestRUESocket {
   abstract connectImpl(
@@ -11,12 +12,14 @@ export abstract class QuestRUESocket {
     id: number,
   ): Promise<boolean>;
   abstract disconnectImpl(): void;
-  abstract send(data: Uint8Array): void;
+  abstract sendData(data: Uint8Array): void;
 
   connect(address: string, port: number, toastDisplay: string | undefined) {
     if (this.connected()) console.warn("called connect on connected socket");
-    this.setConnecting(true);
-    this.setConnected(false);
+    batch(() => {
+      this.setConnecting(true);
+      this.setConnected(false);
+    });
     this.manualDisconnect = false;
 
     if (this.loadingToast) toast.dismiss(this.loadingToast);
@@ -52,9 +55,10 @@ export abstract class QuestRUESocket {
       toast.success("Connected successfully", { id: this.loadingToast });
       this.loadingToast = undefined;
     }
-    this.setConnecting(false);
-    this.setConnected(true);
-    getEvents().CONNECTED_EVENT.invoke();
+    batch(() => {
+      this.setConnecting(false);
+      this.setConnected(true);
+    });
   }
 
   onError() {
@@ -63,8 +67,10 @@ export abstract class QuestRUESocket {
       toast.error("Failed to connect", { id: this.loadingToast });
       this.loadingToast = undefined;
     }
-    this.setConnecting(false);
-    this.setConnected(false);
+    batch(() => {
+      this.setConnecting(false);
+      this.setConnected(false);
+    });
   }
 
   onDisconnect() {
@@ -72,19 +78,15 @@ export abstract class QuestRUESocket {
       toast.success("Disconnected", { id: this.loadingToast });
       this.loadingToast = undefined;
     }
-    const wasConnected = this.connected();
-    this.setConnecting(false);
-    this.setConnected(false);
-    getEvents().DISCONNECTED_EVENT.invoke([
-      wasConnected,
-      this.manualDisconnect,
-    ]);
+    batch(() => {
+      this.setConnecting(false);
+      this.setConnected(false);
+    });
   }
 
   onMessage(bytes: Uint8Array) {
-    const packetWrapper = PacketWrapper.decode(bytes);
-    // console.log(JSON.stringify(packetWrapper));
-    handleGlobalPacketWrapper(packetWrapper);
+    const packet = PacketWrapper.decode(bytes);
+    this.onPacketCallbacks.forEach((callback) => callback(packet));
   }
 
   connecting: Accessor<boolean>;
@@ -100,6 +102,23 @@ export abstract class QuestRUESocket {
     [this.connecting, this.setConnecting] = createSignal(false);
     // eslint-disable-next-line solid/reactivity
     [this.connected, this.setConnected] = createSignal(false);
+  }
+
+  sendPacket(wrapper: PacketWrapper) {
+    if (untrack(this.connected))
+      this.sendData(PacketWrapper.encode(wrapper).finish());
+  }
+
+  onPacketCallbacks: Callback<PacketWrapper>[] = [];
+
+  addOnPacket(callback: Callback<PacketWrapper>) {
+    this.onPacketCallbacks.push(callback);
+  }
+
+  removeOnPacket(callback: Callback<PacketWrapper>) {
+    this.onPacketCallbacks = this.onPacketCallbacks.filter(
+      (value) => value !== callback,
+    );
   }
 }
 
@@ -142,7 +161,9 @@ export class NodeWebSocket extends QuestRUESocket {
     this.socket?.close();
   }
 
-  send(data: Uint8Array) {
+  sendData(data: Uint8Array) {
     this.socket?.send(data);
   }
 }
+
+export const socket: QuestRUESocket = new NodeWebSocket();

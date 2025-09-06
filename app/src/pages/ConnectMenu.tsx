@@ -1,11 +1,6 @@
 import { useNavigate } from "@solidjs/router";
-
-import styles from "./ConnectMenu.module.css";
-import { createEventEffect, getEvents } from "../misc/events";
-
-import { createAsyncMemo, createPersistentSignal } from "../misc/utils";
-import { socket } from "../misc/commands";
-import { adb_devices, adb_forward, has_adb } from "../misc/adb";
+import { star } from "solid-heroicons/outline";
+import { star as starFilled } from "solid-heroicons/solid";
 import {
   createEffect,
   createRenderEffect,
@@ -13,16 +8,20 @@ import {
   For,
   Show,
 } from "solid-js";
-import { star } from "solid-heroicons/outline";
-import { star as starFilled } from "solid-heroicons/solid";
-import { ActionButton } from "../components/SceneViewer/InputCell";
+
+import { ActionButton } from "../components/form/ActionButton";
+import { adbDevices, adbForward, hasAdb } from "../global/adb";
+import { socket } from "../global/socket";
+import { createAsyncMemo, createPersistentSignal } from "../global/utils";
+
+import styles from "./ConnectMenu.module.css";
 
 export default function ConnectMenu() {
   const navigate = useNavigate();
 
   // redirect on login
-  createEventEffect(getEvents().CONNECTED_EVENT, () => {
-    navigate("/scene/");
+  createEffect(() => {
+    if (socket.connected()) navigate("/app/");
   });
 
   const [ip, setIp] = createPersistentSignal(
@@ -40,11 +39,11 @@ export default function ConnectMenu() {
 
   const [devices, devicesLoading, updateDevices] = createAsyncMemo(async () => {
     if (!adb()) return undefined;
-    return await adb_devices();
+    return await adbDevices();
   });
 
   // run immediately
-  createRenderEffect(() => has_adb().then(setAdb));
+  createRenderEffect(() => hasAdb().then(setAdb));
 
   // remember if adb should reconnect on forced disconnect
   const [adbConnection, setAdbConnection] = createSignal(false);
@@ -64,7 +63,7 @@ export default function ConnectMenu() {
 
   const selectDevice = (id: string, name: string) => {
     setAdbConnection(true);
-    adb_forward(id, port()).then(() => connect("localhost", port(), name));
+    adbForward(id, port()).then(() => connect("localhost", port(), name));
   };
 
   const cancel = () => {

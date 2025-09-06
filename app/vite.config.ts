@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 import devtools from "solid-devtools/vite";
 import tailwindcss from "@tailwindcss/vite";
+import cssnano from "cssnano";
+import autoprefixer from "autoprefixer";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -24,6 +26,12 @@ export default defineConfig({
   css: {
     modules: {
       localsConvention: "camelCaseOnly",
+    },
+    postcss: {
+      plugins: [
+        autoprefixer(),
+        ...(process.env.NODE_ENV === "production" ? [cssnano()] : []),
+      ],
     },
   },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

@@ -9,6 +9,7 @@ interface SegmentedControlProps extends JSX.HTMLAttributes<HTMLSpanElement> {
   title?: string;
   id?: string;
 }
+
 export default function SegmentedControl(props: SegmentedControlProps) {
   const radioSelect = (
     e: Event & {

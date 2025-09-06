@@ -1,22 +1,26 @@
-import { JSX } from "solid-js";
+import { JSX, splitProps } from "solid-js";
 
-interface ToggleProps extends JSX.HTMLAttributes<HTMLSpanElement> {
+interface ToggleProps
+  extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, "onToggle"> {
   value: boolean;
   onToggle: (b: boolean) => void;
   disabled?: boolean;
   title?: string;
   id?: string;
 }
+
 export default function Toggle(props: ToggleProps) {
+  const [overridden, kept] = splitProps(props, ["value", "onToggle", "class"]);
+
   return (
-    <span {...props} class={`flex items-center ${props.class ?? ""}`}>
-      <label class="flex-1">{props.title}</label>
+    <span {...kept} class={`flex items-center ${overridden.class ?? ""}`}>
+      <label class="flex-1">{kept.title}</label>
       <input
         type="checkbox"
         class="toggle flex-none"
-        id={props.id}
-        checked={props.value}
-        onInput={(e) => props.onToggle(e.currentTarget.checked)}
+        id={kept.id}
+        checked={overridden.value}
+        onInput={(e) => overridden.onToggle(e.currentTarget.checked)}
       />
     </span>
   );

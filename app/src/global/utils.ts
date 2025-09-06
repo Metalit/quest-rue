@@ -8,15 +8,23 @@ import {
   createRenderEffect,
 } from "solid-js";
 
+export type WithCase<T, C> = Extract<T, { $case: C }>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UnionOmit<T, K extends keyof any> = T extends any
+  ? Omit<T, K>
+  : never;
+
+export function setCase<TResult>(object: UnionOmit<TResult, "$case">): TResult {
+  return {
+    ...object,
+    $case: Object.keys(object)[0],
+  } as TResult; // could probably be done without the cast with some typescript magic but idc
+}
+
 /**
- * A signal that resets its value
- * when its dependencies change
+ * A signal that resets its value when its dependencies change
  *
- * Fern: I'm not even sure how this works
- *
- * @param val
- * @param options
- * @returns
  */
 export function createUpdatingSignal<T>(
   val: () => T,
@@ -30,14 +38,8 @@ export function createUpdatingSignal<T>(
 
 /**
  * Stores the signal value in browser local storage
- * USes the default value if none exists prior to use
+ * Uses the default value if none exists prior to use
  *
- * @param key
- * @param defaultVal
- * @param fromString
- * @param toString
- * @param options
- * @returns
  */
 export function createPersistentSignal<T>(
   key: string,
@@ -48,7 +50,7 @@ export function createPersistentSignal<T>(
 ): Signal<T> {
   const stored = localStorage.getItem(key);
   const [val, setVal] = createSignal(
-    stored ? fromString?.(stored) ?? (stored as T) : defaultVal(),
+    stored ? (fromString?.(stored) ?? (stored as T)) : defaultVal(),
     options,
   );
   createEffect(() => {
@@ -60,10 +62,8 @@ export function createPersistentSignal<T>(
 /**
  * Create a memo that resolves a promise or undefined if no value
  *
- * important: anything reactive used after an await will not be tracked
+ * Important: anything reactive used after an await will not be tracked
  *
- * @param valPromise
- * @returns
  */
 export function createAsyncMemo<T>(
   valPromise: () => Promise<T>,
@@ -86,16 +86,19 @@ export function createAsyncMemo<T>(
 }
 
 export function uniqueNumber(min = 0, max = Number.MAX_SAFE_INTEGER) {
-  return Math.floor(Math.random() * max + min);
+  return Math.floor(Math.random() * (max - min) + min);
 }
+
 export function uniqueBigNumber(min = 0, max = Number.MAX_SAFE_INTEGER) {
   return BigInt(uniqueNumber(min, max));
 }
 
-function stringifyQuotesless(obj: unknown) {
-  return JSON.stringify(obj, (_, value) =>
-    typeof value == "bigint" ? value.toString() : value,
-  ).replace(/^"|"$/g, "");
+export function bigToString(num: bigint) {
+  return `0x${num.toString(16)}`;
+}
+
+export function stringToBig(num: string) {
+  return BigInt(num);
 }
 
 export function errorHandle<R, T extends () => R>(func: T) {
@@ -105,15 +108,4 @@ export function errorHandle<R, T extends () => R>(func: T) {
     toast.error(`Suffered from error: ${e}`);
     throw e;
   }
-}
-
-export function parseShallow(jsonStr: string) {
-  const parsed = JSON.parse(jsonStr);
-  if (typeof parsed == "string") return parsed;
-  if (Array.isArray(parsed))
-    return parsed.map((elem) => stringifyQuotesless(elem));
-  Object.keys(parsed).forEach(
-    (key) => (parsed[key] = stringifyQuotesless(parsed[key])),
-  );
-  return parsed;
 }

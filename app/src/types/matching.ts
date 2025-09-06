@@ -3,7 +3,7 @@ import {
   ProtoClassInfo,
   ProtoTypeInfo,
 } from "../proto/il2cpp";
-import { protoTypeToString } from "./type_format";
+import { protoTypeToString } from "./format";
 
 /**
  * Does NOT check for inheritance
