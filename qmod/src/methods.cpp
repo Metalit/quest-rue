@@ -76,14 +76,6 @@ void* HandleStruct(ProtoStructInfo const& info, ProtoDataSegment const& arg) {
     return ret;
 }
 
-void* HandleGeneric(ProtoGenericInfo const& info, ProtoDataSegment const& arg) {
-    if (arg.Data_case() != ProtoDataSegment::DataCase::kGenericData)
-        return nullptr;
-    // This shouldn't be called as it represents an unspecified generic
-    LOG_INFO("Unspecified generic passed as a parameter!");
-    return (void*) arg.genericdata().data();
-}
-
 void* HandlePrimitive(ProtoTypeInfo::Primitive info, ProtoDataSegment const& arg) {
     if (arg.Data_case() != ProtoDataSegment::DataCase::kPrimitiveData)
         return nullptr;
@@ -123,12 +115,12 @@ void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment const& arg) {
             return HandleArray(typeInfo.arrayinfo(), arg);
         case ProtoTypeInfo::kStructInfo:
             return HandleStruct(typeInfo.structinfo(), arg);
-        case ProtoTypeInfo::kGenericInfo:
-            return HandleGeneric(typeInfo.genericinfo(), arg);
         case ProtoTypeInfo::kPrimitiveInfo:
             return HandlePrimitive(typeInfo.primitiveinfo(), arg);
         case ProtoTypeInfo::kEnumInfo:
             return HandleEnum(typeInfo.enuminfo(), arg);
+        case ProtoTypeInfo::kGenericInfo:
+            LOG_ERROR("Unspecified generic passed as method parameter");
         default:
             return nullptr;
     }
@@ -192,14 +184,6 @@ ProtoDataSegment OutputStruct(ProtoStructInfo const& info, void* value, int size
     return ret;
 }
 
-ProtoDataSegment OutputGeneric(ProtoGenericInfo const& info, void* value, int size) {
-    ProtoDataSegment ret;
-    // This also shouldn't be called
-    LOG_INFO("Unspecified generic sent to be output!");
-    ret.set_genericdata(std::string((char*) value, size));
-    return ret;
-}
-
 ProtoDataSegment OutputPrimitive(ProtoTypeInfo::Primitive info, void* value, int size) {
     ProtoDataSegment ret;
     LOG_DEBUG("Outputting primitive {}", (int) info);
@@ -247,12 +231,12 @@ ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value) {
             return OutputArray(typeInfo.arrayinfo(), value, typeInfo.size());
         case ProtoTypeInfo::kStructInfo:
             return OutputStruct(typeInfo.structinfo(), value, typeInfo.size());
-        case ProtoTypeInfo::kGenericInfo:
-            return OutputGeneric(typeInfo.genericinfo(), value, typeInfo.size());
         case ProtoTypeInfo::kPrimitiveInfo:
             return OutputPrimitive(typeInfo.primitiveinfo(), value, typeInfo.size());
         case ProtoTypeInfo::kEnumInfo:
             return OutputEnum(typeInfo.enuminfo(), value, typeInfo.size());
+        case ProtoTypeInfo::kGenericInfo:
+            LOG_ERROR("Unspecified generic given as method return type");
         default:
             return {};
     }

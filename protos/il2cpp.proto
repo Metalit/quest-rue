@@ -74,9 +74,9 @@ message ProtoFieldInfo {
 
 message ProtoPropertyInfo {
     string name = 1;
-    optional uint64 getterId = 2; /* nullable */
-    optional uint64 setterId = 3; /* nullable */
-    optional uint64 backingFieldId = 4; /* nullable */
+    optional uint64 getterId = 2;
+    optional uint64 setterId = 3;
+    optional uint64 backingFieldId = 4;
     ProtoTypeInfo type = 5;
 }
 
@@ -105,9 +105,9 @@ message ProtoClassDetails {
     repeated ProtoPropertyInfo staticProperties = 6;
     repeated ProtoMethodInfo staticMethods = 7;
 
-    repeated ProtoClassInfo interfaces = 8; /* nullable */
+    repeated ProtoClassInfo interfaces = 8;
 
-    optional ProtoClassDetails parent = 9; /* nullable */
+    optional ProtoClassDetails parent = 9;
 }
 
 // --- Data Sending ---
@@ -121,18 +121,16 @@ message ProtoDataSegment {
     message StructData {
         map<int32, ProtoDataSegment> data = 1;
     }
-
     oneof Data {
         bytes primitiveData = 1; /* simpler than having another oneof for each primitive case */
         ArrayData arrayData = 2;
         StructData structData = 3;
         uint64 classData = 4; /* object pointer */
-        bytes genericData = 5; /* shouldn't come up */
         // enums use primitiveData
     }
 }
 
 message ProtoDataPayload {
-    optional ProtoTypeInfo typeInfo = 1; /* nullable */
+    ProtoTypeInfo typeInfo = 1;
     ProtoDataSegment data = 2;
 }

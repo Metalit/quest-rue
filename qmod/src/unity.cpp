@@ -13,9 +13,9 @@ using namespace UnityEngine;
 ProtoTransform ReadTransform(Transform* obj) {
     ProtoTransform packet;
     packet.set_address(asInt(obj));
-    packet.set_name(obj->get_name());
 
     packet.set_childcount(obj->get_childCount());
+    packet.set_siblingidx(obj->GetSiblingIndex());
     packet.set_parent(asInt(obj->GetParent().unsafePtr()));
     return packet;
 }
@@ -24,12 +24,13 @@ ProtoGameObject ReadGameObject(GameObject* obj) {
     ProtoGameObject packet;
     packet.set_address(asInt(obj));
     packet.set_name(obj->get_name());
+    *packet.mutable_transform() = ReadTransform(obj->get_transform());
 
     packet.set_active(obj->get_active());
     packet.set_layer(obj->get_layer());
     packet.set_scene(obj->get_scene().get_handle());
+    packet.set_instanceid(obj->GetInstanceID());
     packet.set_tag(obj->get_tag());
-    *packet.mutable_transform() = ReadTransform(obj->get_transform());
     return packet;
 }
 

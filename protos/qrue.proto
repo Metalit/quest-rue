@@ -157,7 +157,11 @@ message GetSafePtrAddresses  {
 }
 
 message GetSafePtrAddressesResult {
-    map<uint64, ProtoClassInfo> address = 1;
+    message AddressInfo {
+        uint64 address = 1;
+        ProtoClassInfo clazz = 2;
+    }
+    repeated AddressInfo addresses = 1;
 }
 
 message GetTypeComplete {

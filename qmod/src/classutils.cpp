@@ -352,26 +352,6 @@ ProtoEnumInfo ClassUtils::GetEnumInfo(Il2CppType const* type) {
     return enumInfo;
 }
 
-Il2CppClass* ClassUtils::GetClass(ProtoClassInfo const& classInfo) {
-    LOG_DEBUG("Getting class from class info {}::{}", classInfo.namespaze(), classInfo.clazz());
-
-    auto klass = il2cpp_utils::GetClassFromName(classInfo.namespaze(), classInfo.clazz());
-    if (!klass || classInfo.generics_size() <= 0)
-        return klass;
-    // no MakeGenericMethod for classes in bshook
-    auto runtimeClass = il2cpp_utils::GetSystemType(klass);
-    ArrayW<System::Type*> genericArgs(classInfo.generics_size());
-    for (int i = 0; i < genericArgs.size(); i++) {
-        auto genericType = GetType(classInfo.generics(i));
-        if (!genericType)
-            return nullptr;
-        genericArgs[i] = reinterpret_cast<System::Type*>(il2cpp_utils::GetSystemType(genericType));
-    }
-
-    auto inflated = System::RuntimeType::MakeGenericType(reinterpret_cast<System::Type*>(runtimeClass), genericArgs);
-    return il2cpp_functions::class_from_system_type((Il2CppReflectionType*) inflated);
-}
-
 static Il2CppClass* GetClass(ProtoTypeInfo::Primitive primitiveInfo) {
     LOG_DEBUG("Getting class from primitive info");
 
@@ -440,6 +420,26 @@ static Il2CppClass* GetClass(ProtoGenericInfo const& genericInfo) {
 static Il2CppClass* GetClass(ProtoEnumInfo const& enumInfo) {
     LOG_DEBUG("Getting class from enum info");
     return GetClass(enumInfo.clazz());
+}
+
+Il2CppClass* ClassUtils::GetClass(ProtoClassInfo const& classInfo) {
+    LOG_DEBUG("Getting class from class info {}::{}", classInfo.namespaze(), classInfo.clazz());
+
+    auto klass = il2cpp_utils::GetClassFromName(classInfo.namespaze(), classInfo.clazz());
+    if (!klass || classInfo.generics_size() <= 0)
+        return klass;
+    // no MakeGenericMethod for classes in bshook
+    auto runtimeClass = il2cpp_utils::GetSystemType(klass);
+    ArrayW<System::Type*> genericArgs(classInfo.generics_size());
+    for (int i = 0; i < genericArgs.size(); i++) {
+        auto genericType = GetClass(classInfo.generics(i));
+        if (!genericType)
+            return nullptr;
+        genericArgs[i] = (System::Type*) il2cpp_utils::GetSystemType(genericType);
+    }
+
+    auto inflated = System::RuntimeType::MakeGenericType((System::Type*) runtimeClass, genericArgs);
+    return il2cpp_functions::class_from_system_type((Il2CppReflectionType*) inflated);
 }
 
 Il2CppClass* ClassUtils::GetClass(ProtoTypeInfo const& typeInfo) {

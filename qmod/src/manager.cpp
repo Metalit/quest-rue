@@ -423,11 +423,14 @@ static void SendSafePtrList(uint64_t id) {
     wrapper.set_queryresultid(id);
 
     auto res = wrapper.mutable_getsafeptraddressesresult();
-    auto& resMap = *res->mutable_address();
+    auto& addresses = *res->mutable_addresses();
 
     auto objs = QRUE::MainThreadRunner::GetInstance()->keepAliveObjects;
-    for (auto const& addr : objs)
-        resMap[asInt(addr)] = ClassUtils::GetClassInfo(typeofclass(addr->klass));
+    for (auto const& addr : objs) {
+        auto& info = *addresses.Add();
+        info.set_address(asInt(addr));
+        *info.mutable_clazz() = ClassUtils::GetClassInfo(typeofclass(addr->klass));
+    }
 
     Socket::Send(wrapper);
 }
