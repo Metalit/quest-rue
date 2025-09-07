@@ -29,7 +29,8 @@
         "resizable": true,
         "visible": false,
         "title": "Quest RUE",
-        "useHttpsScheme": true
+        "useHttpsScheme": true,
+        "dragDropEnabled": false
       }
     ],
     "security": {

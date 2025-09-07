@@ -1,0 +1,203 @@
+.dockview-custom {
+  --color-main: var(--color-zinc-100);
+  --color-1: color-mix(
+    in oklab,
+    var(--color-zinc-100) 50%,
+    var(--color-zinc-200)
+  );
+  --color-2: color-mix(
+    in oklab,
+    var(--color-zinc-200) 50%,
+    var(--color-zinc-300)
+  );
+  --color-3: var(--color-zinc-300);
+  --color-accent: var(--color-blue-300);
+  --color-shadow: rgba(0, 0, 0, 0.1);
+
+  --resize-size: 6px;
+  --border-radius: 5px;
+  --tab-spacing: 5px;
+
+  --dv-color-primary-text: black;
+  --dv-color-secondary-text: var(--color-gray-600);
+
+  --dv-overlay-z-index: 999;
+
+  /* tabs */
+  --dv-tabs-and-actions-container-font-size: 15px;
+  --dv-tabs-and-actions-container-height: 35px;
+  --dv-tab-margin: 0 var(--tab-spacing) 0 0;
+  --dv-tabs-and-actions-container-background-color: var(--color-1);
+  --dv-activegroup-visiblepanel-tab-color: var(--dv-color-primary-text);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-3);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-2);
+  --dv-activegroup-hiddenpanel-tab-color: var(--dv-color-secondary-text);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-3);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--dv-color-primary-text);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-2);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--dv-color-secondary-text);
+  --dv-icon-hover-background-color: var(--color-shadow);
+  --dv-tabs-container-scrollbar-color: var(--color-2);
+  --dv-tab-divider-color: transparent;
+
+  /* draggable divider */
+  --dv-sash-color: var(--color-2);
+  --dv-active-sash-color: var(--color-accent);
+  --dv-active-sash-transition-duration: 0.1s;
+  --dv-active-sash-transition-delay: 0.2s;
+
+  /* drag preview */
+  --dv-drag-over-border: transparent;
+  --dv-drag-over-background-color: color-mix(
+    in oklab,
+    var(--color-accent) 20%,
+    transparent
+  );
+
+  /* pane/group contents */
+  --dv-group-view-background-color: var(--color-main);
+  --dv-floating-box-shadow: 4px 4px 4px 0 var(--color-shadow);
+
+  .dv-dockview {
+    background: transparent;
+  }
+
+  /* tab radius and overflow container */
+  .dv-tab {
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+  .dv-groupview {
+    border-radius: var(--border-radius);
+  }
+  .dv-tabs-overflow-container {
+    padding: var(--tab-spacing) 0 0 var(--tab-spacing);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--color-shadow);
+    box-shadow: var(--dv-floating-box-shadow);
+    .dv-tab {
+      border-radius: var(--border-radius);
+      margin-bottom: var(--tab-spacing);
+    }
+  }
+
+  /* hide close icon on active tabs as well when not hovered */
+  .dv-active-tab .dv-default-tab .dv-default-tab-action {
+    visibility: hidden;
+  }
+  .dv-active-tab .dv-default-tab:hover .dv-default-tab-action {
+    visibility: visible;
+  }
+
+  /* seems like a bug in fullscreen mode? might be my fault though */
+  .dv-sash.dv-disabled {
+    display: none;
+  }
+
+  /* borders around floating containers and below tabs */
+  .dv-groupview-floating {
+    border-radius: var(--border-radius);
+    border: 2px solid var(--color-shadow);
+    box-shadow: var(--dv-floating-box-shadow);
+  }
+  .dv-groupview .dv-tabs-and-actions-container {
+    border-bottom: 2px solid var(--color-shadow);
+    box-sizing: content-box;
+  }
+
+  /* increasing size of resize areas */
+  .dv-resize-container {
+    border-radius: var(--border-radius);
+    border: calc(var(--resize-size) / 2) solid transparent;
+    box-shadow: none;
+  }
+
+  .dv-sash {
+    border-radius: calc(var(--resize-size) / 2);
+  }
+  .dv-split-view-container.dv-horizontal > .dv-sash-container > .dv-sash {
+    width: var(--resize-size);
+    translate: calc((var(--resize-size) - 4px) / -2);
+  }
+  .dv-split-view-container.dv-vertical > .dv-sash-container > .dv-sash {
+    height: var(--resize-size);
+    translate: 0 calc((var(--resize-size) - 4px) / -2);
+  }
+
+  .dv-resize-container {
+    .dv-resize-handle-top {
+      height: var(--resize-size);
+      width: calc(100% - var(--resize-size) * 2);
+      left: var(--resize-size);
+      top: calc(var(--resize-size) * -1);
+    }
+
+    .dv-resize-handle-bottom {
+      height: var(--resize-size);
+      width: calc(100% - var(--resize-size) * 2);
+      left: var(--resize-size);
+      bottom: calc(var(--resize-size) * -1);
+    }
+
+    .dv-resize-handle-left {
+      height: calc(100% - var(--resize-size) * 2);
+      width: var(--resize-size);
+      left: calc(var(--resize-size) * -1);
+      top: var(--resize-size);
+    }
+
+    .dv-resize-handle-right {
+      height: calc(100% - var(--resize-size) * 2);
+      width: var(--resize-size);
+      right: calc(var(--resize-size) * -1);
+      top: var(--resize-size);
+    }
+
+    .dv-resize-handle-topleft {
+      height: calc(var(--resize-size) * 2);
+      width: calc(var(--resize-size) * 2);
+      top: calc(var(--resize-size) * -1);
+      left: calc(var(--resize-size) * -1);
+    }
+
+    .dv-resize-handle-topright {
+      height: calc(var(--resize-size) * 2);
+      width: calc(var(--resize-size) * 2);
+      right: calc(var(--resize-size) * -1);
+      top: calc(var(--resize-size) * -1);
+    }
+
+    .dv-resize-handle-bottomleft {
+      height: calc(var(--resize-size) * 2);
+      width: calc(var(--resize-size) * 2);
+      left: calc(var(--resize-size) * -1);
+      bottom: calc(var(--resize-size) * -1);
+    }
+
+    .dv-resize-handle-bottomright {
+      height: calc(var(--resize-size) * 2);
+      width: calc(var(--resize-size) * 2);
+      right: calc(var(--resize-size) * -1);
+      bottom: calc(var(--resize-size) * -1);
+    }
+  }
+}
+
+.dockview-custom:where(.dark, .dark *) {
+  --color-main: var(--color-zinc-900);
+  --color-1: color-mix(
+    in oklab,
+    var(--color-zinc-900) 50%,
+    var(--color-zinc-800)
+  );
+  --color-2: color-mix(
+    in oklab,
+    var(--color-zinc-800) 50%,
+    var(--color-zinc-700)
+  );
+  --color-3: var(--color-zinc-700);
+  --color-accent: var(--color-blue-800);
+  --color-shadow: rgba(0, 0, 0, 0.3);
+
+  --dv-color-primary-text: white;
+  --dv-color-secondary-text: var(--color-gray-400);
+}

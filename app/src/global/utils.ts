@@ -109,3 +109,11 @@ export function errorHandle<R, T extends () => R>(func: T) {
     throw e;
   }
 }
+
+export function isTauri(): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const unsafeWindow = window as any;
+  return (
+    (unsafeWindow.isTauri || unsafeWindow.__TAURI_INTERNALS__) != undefined
+  );
+}

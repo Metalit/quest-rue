@@ -5,12 +5,18 @@ import { render } from "solid-js/web";
 import App from "./App";
 import { cleanupForward } from "./global/adb";
 
+// order matters
 import "@thisbeyond/solid-select/style.css";
-// higher priority
+import "dockview-core/dist/styles/dockview.css";
+import "./dockview.css";
 import "./styles.css";
 
-getCurrentWebviewWindow().onCloseRequested(async () => {
-  await cleanupForward();
-});
+try {
+  getCurrentWebviewWindow().onCloseRequested(async () => {
+    await cleanupForward();
+  });
+} catch (error) {
+  console.log("failed to get webview window:", error);
+}
 
 render(App, document.getElementById("root") as HTMLElement);
