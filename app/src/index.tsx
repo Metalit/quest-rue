@@ -6,7 +6,6 @@ import App from "./App";
 import { cleanupForward } from "./global/adb";
 
 // order matters
-import "@thisbeyond/solid-select/style.css";
 import "dockview-core/dist/styles/dockview.css";
 import "./dockview.css";
 import "./styles.css";

@@ -24,10 +24,10 @@ function RightHeader({ api }: IGroupHeaderProps) {
   };
 
   return (
-    <div class="flex items-center mr-1">
+    <div class="flex items-center mr-2 h-full">
       <Show when={inGrid()}>
         <span
-          class="w-6 p-1 hover:bg-zinc-300 hover:dark:bg-zinc-900 rounded-xs cursor-pointer"
+          class="w-6 p-1 hover:bg-shadow rounded-xs cursor-pointer"
           onClick={toggle}
           onKeyPress={toggle}
           role="button"
@@ -42,7 +42,7 @@ function RightHeader({ api }: IGroupHeaderProps) {
 
 export default function SceneViewer() {
   return (
-    <div class="w-full h-full p-1 bg-zinc-50 dark:bg-zinc-950">
+    <div class="w-full h-full p-1 bg">
       <Dockview
         panels={{
           console: Console,

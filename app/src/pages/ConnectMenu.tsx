@@ -14,8 +14,6 @@ import { adbDevices, adbForward, hasAdb } from "../global/adb";
 import { socket } from "../global/socket";
 import { createAsyncMemo, createPersistentSignal } from "../global/utils";
 
-import styles from "./ConnectMenu.module.css";
-
 export default function ConnectMenu() {
   const navigate = useNavigate();
 
@@ -77,15 +75,20 @@ export default function ConnectMenu() {
   });
 
   return (
-    <div class={`${styles.wrapper} absolute-centered`}>
+    <div class={"absolute-centered bg-base flex gap-5 p-2.5 rounded-lg"}>
       <Show
         when={!socket.connecting()}
         // when={false}
-        fallback={<button onClick={cancel}>Cancel connection</button>}
+        fallback={
+          <button class="btn" onClick={cancel}>
+            Cancel connection
+          </button>
+        }
       >
-        <form onSubmit={submit} class={`${styles.form}`}>
+        <form onSubmit={submit} class={"flex flex-col gap-2.5"}>
           <text class="text-center">Enter your Device IP Address</text>
           <input
+            class="input"
             placeholder="IP"
             value={ip()}
             onInput={(e) => {
@@ -93,6 +96,7 @@ export default function ConnectMenu() {
             }}
           />
           <input
+            class="input"
             type="number"
             min={0}
             max={65535}
@@ -102,18 +106,24 @@ export default function ConnectMenu() {
               setPort(e.currentTarget.value);
             }}
           />
-          <button type="submit">Connect</button>
+          <button class="btn" type="submit">
+            Connect
+          </button>
         </form>
         <Show when={adb()}>
-          <div class={`${styles.form}`}>
+          <div class={"flex flex-col gap-2.5"}>
             <text class="text-center">Select ADB Device</text>
-            <div class={`${styles.devlist}`}>
+            <div
+              class={
+                "bg-base-100 p-2.5 rounded-lg grow flex flex-col gap-2.5 overflow-auto"
+              }
+            >
               <For each={devices()}>
                 {([id, name]) => (
-                  <span class="flex">
+                  <span class="flex join-horizontal">
                     <button
                       title={id}
-                      class="grow rounded-tr-none rounded-br-none"
+                      class="btn join-item grow"
                       onClick={() => {
                         selectDevice(id, name);
                       }}
@@ -128,7 +138,7 @@ export default function ConnectMenu() {
                           socket.manualDisconnect = false;
                         setDefaultAdbDevice((old) => (id === old ? "" : id));
                       }}
-                      class="pl-2 pr-2 rounded-tl-none rounded-bl-none"
+                      class="btn pl-2 pr-2 join-item"
                       tooltip="Set as favorite"
                     />
                   </span>
@@ -137,7 +147,7 @@ export default function ConnectMenu() {
               <span class="grow -mb-3" />
               <ActionButton
                 img="refresh"
-                class="small-button self-start"
+                class="btn btn-sm p-0.5 h-[22px] self-start"
                 loading={devicesLoading()}
                 onClick={updateDevices}
               />
