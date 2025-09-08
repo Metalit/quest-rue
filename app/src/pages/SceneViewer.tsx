@@ -1,12 +1,13 @@
+import { IGroupHeaderProps } from "dockview-core";
 import { Icon } from "solid-heroicons";
+import { arrowsPointingIn, arrowsPointingOut } from "solid-heroicons/outline";
+import { createSignal, onCleanup, Show } from "solid-js";
+
 import { Console } from "../components/Console";
 import { Dockview, DockviewPanel } from "../components/Dockview";
 import { Hierarchy } from "../components/Hierarchy";
 import { Selection } from "../components/Selection";
 import { Variables } from "../components/Variables";
-import { arrowsPointingIn, arrowsPointingOut } from "solid-heroicons/outline";
-import { IGroupHeaderProps } from "dockview-core";
-import { createSignal, onCleanup, Show } from "solid-js";
 
 // eslint-disable-next-line solid/no-destructure
 function RightHeader({ api }: IGroupHeaderProps) {

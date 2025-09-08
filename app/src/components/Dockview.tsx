@@ -20,9 +20,12 @@ import {
   createContext,
   createEffect,
   createRenderEffect,
+  getOwner,
   JSX,
   onCleanup,
   onMount,
+  Owner,
+  runWithOwner,
   Show,
   splitProps,
   useContext,
@@ -35,17 +38,25 @@ const DockviewContext = createContext<DockviewApi>();
 export const useDockview = () => useContext(DockviewContext)!;
 
 class CustomRenderer<T, Params = Record<string, never>> {
-  readonly _create: (params: T & Params) => JSX.Element;
-  readonly _params: Params;
   _element: HTMLElement | undefined;
 
-  constructor(create: (params: T & Params) => JSX.Element, params: Params) {
-    this._create = create;
-    this._params = params;
+  private create(params: T) {
+    // for compiler reasons this needs to be created in JSX for hmr to work
+    this._element = (
+      <div class="overflow-auto w-full h-full">
+        {this._create({ ...params, ...this._params })}
+      </div>
+    ) as HTMLElement;
   }
 
+  constructor(
+    readonly _create: (params: T & Params) => JSX.Element,
+    readonly _params: Params,
+    readonly _owner: Owner,
+  ) {}
+
   init(params: T): void {
-    this._element = this._create({ ...params, ...this._params }) as HTMLElement;
+    runWithOwner(this._owner, this.create.bind(this, params));
   }
 
   get element(): HTMLElement {
@@ -110,7 +121,7 @@ export function DockviewGroup(
   return <>{children.children}</>;
 }
 
-interface DockviewProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface DockviewProps {
   panels: { [name: string]: CreateFn<CustomPanel> };
   leftHeader?: CreateFn<CustomHeader>;
   rightHeader?: CreateFn<CustomHeader>;
@@ -121,32 +132,26 @@ interface DockviewProps extends JSX.HTMLAttributes<HTMLDivElement> {
   onReady?: (value: DockviewApi) => void;
 }
 
-export function Dockview(props: DockviewProps) {
-  const [children, custom, normal] = splitProps(props, ["children"], ["class"]);
-  const main = (
-    <div {...normal} class={`w-full h-full ${custom.class ?? ""}`} />
-  );
+function DockviewInitializer(props: DockviewProps & { api: DockviewApi }) {
+  const owner = getOwner()!;
 
   const createComponent = (options: CreateComponentOptions) =>
-    new CustomPanel(props.panels[options.name], { id: options.id });
+    new CustomPanel(props.panels[options.name], { id: options.id }, owner);
   const createRightHeaderActionComponent = () =>
-    new CustomHeader(props.rightHeader!, {});
+    new CustomHeader(props.rightHeader!, {}, owner);
   const createLeftHeaderActionComponent = () =>
-    new CustomHeader(props.leftHeader!, {});
+    new CustomHeader(props.leftHeader!, {}, owner);
   const createPrefixHeaderActionComponent = () =>
-    new CustomHeader(props.prefixHeader!, {});
+    new CustomHeader(props.prefixHeader!, {}, owner);
   const createTabComponent = (options: CreateComponentOptions) =>
-    new CustomTab(props.tabs![options.name], { id: options.id });
+    new CustomTab(props.tabs![options.name], { id: options.id }, owner);
   const createWatermarkComponent = () =>
-    new CustomWatermark(props.watermark!, {});
+    new CustomWatermark(props.watermark!, {}, owner);
 
-  const api = createDockview(main as HTMLDivElement, {
-    createComponent,
-    disableAutoResizing: true,
-    theme: { name: "custom", className: "dockview-custom", gap: 12 },
-  });
+  // call immediately
   createRenderEffect(() =>
-    api.updateOptions({
+    props.api.updateOptions({
+      createComponent,
       ...(props.leftHeader ? { createLeftHeaderActionComponent } : {}),
       ...(props.rightHeader ? { createRightHeaderActionComponent } : {}),
       ...(props.prefixHeader ? { createPrefixHeaderActionComponent } : {}),
@@ -155,7 +160,39 @@ export function Dockview(props: DockviewProps) {
       ...(props.options ?? {}),
     }),
   );
-  createEffect(() => props.onReady?.(api));
+  createEffect(() => props.onReady?.(props.api));
+
+  return <></>;
+}
+
+export function Dockview(
+  props: DockviewProps & JSX.HTMLAttributes<HTMLDivElement>,
+) {
+  const [children, custom, normal] = splitProps(
+    props,
+    ["children"],
+    [
+      "class",
+      "panels",
+      "leftHeader",
+      "rightHeader",
+      "prefixHeader",
+      "tabs",
+      "watermark",
+      "options",
+      "onReady",
+    ],
+  );
+  const main = (
+    <div {...normal} class={`w-full h-full ${custom.class ?? ""}`} />
+  );
+
+  const api = createDockview(main as HTMLDivElement, {
+    createComponent: undefined!,
+    disableAutoResizing: true,
+    theme: { name: "custom", className: "dockview-custom", gap: 12 },
+  });
+  // call after children dispose their own panels and groups
   onCleanup(() => api.dispose());
 
   const size = createElementSize(main as HTMLDivElement);
@@ -164,6 +201,8 @@ export function Dockview(props: DockviewProps) {
   return (
     <DockviewContext.Provider value={api}>
       {main}
+      {/* we want the provider to be available in our getOwner call for convenience */}
+      <DockviewInitializer {...custom} api={api} />
       {/* wait until we have a size to add panels and groups so that floating ones get positioned correctly */}
       <Show when={size.width > 0 || size.height > 0}>{children.children}</Show>
     </DockviewContext.Provider>
