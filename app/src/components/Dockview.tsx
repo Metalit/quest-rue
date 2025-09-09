@@ -17,6 +17,7 @@ import {
   WatermarkRendererInitParameters,
 } from "dockview-core";
 import {
+  Component,
   createContext,
   createEffect,
   createRenderEffect,
@@ -37,7 +38,10 @@ const DockviewContext = createContext<DockviewApi>();
 
 export const useDockview = () => useContext(DockviewContext)!;
 
-class CustomRenderer<T, Params = Record<string, never>> {
+class CustomRenderer<
+  T,
+  Params extends Record<string, unknown> = Record<string, never>,
+> {
   _element: HTMLElement | undefined;
 
   private create(params: T) {
@@ -50,7 +54,7 @@ class CustomRenderer<T, Params = Record<string, never>> {
   }
 
   constructor(
-    readonly _create: (params: T & Params) => JSX.Element,
+    readonly _create: Component<T & Params>,
     readonly _params: Params,
     readonly _owner: Owner,
   ) {}
