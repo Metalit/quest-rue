@@ -43,6 +43,14 @@ export interface ProtoGameObject {
   tag: string;
 }
 
+export interface ProtoScene {
+  handle: number;
+  loaded: boolean;
+  name: string;
+  rootCount: number;
+  active: boolean;
+}
+
 function createBaseProtoObject(): ProtoObject {
   return { address: 0n, name: "", classInfo: undefined };
 }
@@ -543,6 +551,130 @@ export const ProtoGameObject: MessageFns<ProtoGameObject> = {
     message.scene = object.scene ?? 0;
     message.instanceId = object.instanceId ?? 0;
     message.tag = object.tag ?? "";
+    return message;
+  },
+};
+
+function createBaseProtoScene(): ProtoScene {
+  return { handle: 0, loaded: false, name: "", rootCount: 0, active: false };
+}
+
+export const ProtoScene: MessageFns<ProtoScene> = {
+  encode(message: ProtoScene, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.handle !== 0) {
+      writer.uint32(8).int32(message.handle);
+    }
+    if (message.loaded !== false) {
+      writer.uint32(16).bool(message.loaded);
+    }
+    if (message.name !== "") {
+      writer.uint32(26).string(message.name);
+    }
+    if (message.rootCount !== 0) {
+      writer.uint32(32).int32(message.rootCount);
+    }
+    if (message.active !== false) {
+      writer.uint32(40).bool(message.active);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProtoScene {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProtoScene();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.handle = reader.int32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.loaded = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.rootCount = reader.int32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.active = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProtoScene {
+    return {
+      handle: isSet(object.handle) ? globalThis.Number(object.handle) : 0,
+      loaded: isSet(object.loaded) ? globalThis.Boolean(object.loaded) : false,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      rootCount: isSet(object.rootCount) ? globalThis.Number(object.rootCount) : 0,
+      active: isSet(object.active) ? globalThis.Boolean(object.active) : false,
+    };
+  },
+
+  toJSON(message: ProtoScene): unknown {
+    const obj: any = {};
+    if (message.handle !== 0) {
+      obj.handle = Math.round(message.handle);
+    }
+    if (message.loaded !== false) {
+      obj.loaded = message.loaded;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.rootCount !== 0) {
+      obj.rootCount = Math.round(message.rootCount);
+    }
+    if (message.active !== false) {
+      obj.active = message.active;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProtoScene>, I>>(base?: I): ProtoScene {
+    return ProtoScene.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProtoScene>, I>>(object: I): ProtoScene {
+    const message = createBaseProtoScene();
+    message.handle = object.handle ?? 0;
+    message.loaded = object.loaded ?? false;
+    message.name = object.name ?? "";
+    message.rootCount = object.rootCount ?? 0;
+    message.active = object.active ?? false;
     return message;
   },
 };

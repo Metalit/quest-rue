@@ -62,6 +62,7 @@ message GetAllGameObjects {
 
 message GetAllGameObjectsResult {
     repeated ProtoGameObject objects = 1;
+    repeated ProtoScene scenes = 2;
 }
 
 message GetGameObjectComponents {

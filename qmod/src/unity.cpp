@@ -2,8 +2,8 @@
 
 #include "UnityEngine/Component.hpp"
 #include "UnityEngine/Object.hpp"
-#include "UnityEngine/Resources.hpp"
 #include "UnityEngine/SceneManagement/Scene.hpp"
+#include "UnityEngine/SceneManagement/SceneManager.hpp"
 #include "UnityEngine/Transform.hpp"
 #include "classutils.hpp"
 #include "main.hpp"
@@ -28,9 +28,19 @@ ProtoGameObject ReadGameObject(GameObject* obj) {
 
     packet.set_active(obj->get_active());
     packet.set_layer(obj->get_layer());
-    packet.set_scene(obj->get_scene().get_handle());
+    packet.set_scene(obj->get_scene().m_Handle);
     packet.set_instanceid(obj->GetInstanceID());
     packet.set_tag(obj->get_tag());
+    return packet;
+}
+
+ProtoScene ReadScene(SceneManagement::Scene scene) {
+    ProtoScene packet;
+    packet.set_handle(scene.m_Handle);
+    packet.set_loaded(scene.get_isLoaded());
+    packet.set_name(scene.get_name());
+    packet.set_rootcount(scene.get_rootCount());
+    packet.set_active(SceneManagement::SceneManager::GetActiveScene().m_Handle == scene.m_Handle);
     return packet;
 }
 
@@ -61,7 +71,7 @@ static SearchObjectsResult ConvertObjects(std::span<UnityW<Object>> arr) {
 
 SearchObjectsResult FindObjects(Il2CppClass* klass, std::string name) {
     LOG_DEBUG("Searching for objects");
-    auto objects = Resources::FindObjectsOfTypeAll(reinterpret_cast<System::Type*>(il2cpp_utils::GetSystemType(klass)));
+    auto objects = Object::FindObjectsOfType(reinterpret_cast<System::Type*>(il2cpp_utils::GetSystemType(klass)), true);
 
     if (!name.empty()) {
         LOG_DEBUG("Searching for name {}", name);
@@ -79,11 +89,14 @@ SearchObjectsResult FindObjects(Il2CppClass* klass, std::string name) {
 GetAllGameObjectsResult FindAllGameObjects() {
     GetAllGameObjectsResult result;
 
-    auto objects = Resources::FindObjectsOfTypeAll<GameObject*>();
+    auto objects = Object::FindObjectsOfType<GameObject*>(true);
     result.mutable_objects()->Reserve(objects.size());
     LOG_DEBUG("found {} game objects", objects.size());
     for (auto const& obj : objects)
         *result.add_objects() = ReadGameObject(obj);
+
+    for (int i = 0; i < SceneManagement::SceneManager::get_sceneCount(); i++)
+        *result.add_scenes() = ReadScene(SceneManagement::SceneManager::GetSceneAt(i));
 
     return result;
 }

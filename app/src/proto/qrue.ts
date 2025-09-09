@@ -7,7 +7,7 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { ProtoClassDetails, ProtoClassInfo, ProtoDataPayload, ProtoDataSegment, ProtoTypeInfo } from "./il2cpp";
-import { ProtoComponent, ProtoGameObject, ProtoObject } from "./unity";
+import { ProtoComponent, ProtoGameObject, ProtoObject, ProtoScene } from "./unity";
 
 export const protobufPackage = "";
 
@@ -105,6 +105,7 @@ export interface GetAllGameObjects {
 
 export interface GetAllGameObjectsResult {
   objects: ProtoGameObject[];
+  scenes: ProtoScene[];
 }
 
 export interface GetGameObjectComponents {
@@ -1177,13 +1178,16 @@ export const GetAllGameObjects: MessageFns<GetAllGameObjects> = {
 };
 
 function createBaseGetAllGameObjectsResult(): GetAllGameObjectsResult {
-  return { objects: [] };
+  return { objects: [], scenes: [] };
 }
 
 export const GetAllGameObjectsResult: MessageFns<GetAllGameObjectsResult> = {
   encode(message: GetAllGameObjectsResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.objects) {
       ProtoGameObject.encode(v!, writer.uint32(10).fork()).join();
+    }
+    for (const v of message.scenes) {
+      ProtoScene.encode(v!, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -1203,6 +1207,14 @@ export const GetAllGameObjectsResult: MessageFns<GetAllGameObjectsResult> = {
           message.objects.push(ProtoGameObject.decode(reader, reader.uint32()));
           continue;
         }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.scenes.push(ProtoScene.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1217,6 +1229,7 @@ export const GetAllGameObjectsResult: MessageFns<GetAllGameObjectsResult> = {
       objects: globalThis.Array.isArray(object?.objects)
         ? object.objects.map((e: any) => ProtoGameObject.fromJSON(e))
         : [],
+      scenes: globalThis.Array.isArray(object?.scenes) ? object.scenes.map((e: any) => ProtoScene.fromJSON(e)) : [],
     };
   },
 
@@ -1224,6 +1237,9 @@ export const GetAllGameObjectsResult: MessageFns<GetAllGameObjectsResult> = {
     const obj: any = {};
     if (message.objects?.length) {
       obj.objects = message.objects.map((e) => ProtoGameObject.toJSON(e));
+    }
+    if (message.scenes?.length) {
+      obj.scenes = message.scenes.map((e) => ProtoScene.toJSON(e));
     }
     return obj;
   },
@@ -1234,6 +1250,7 @@ export const GetAllGameObjectsResult: MessageFns<GetAllGameObjectsResult> = {
   fromPartial<I extends Exact<DeepPartial<GetAllGameObjectsResult>, I>>(object: I): GetAllGameObjectsResult {
     const message = createBaseGetAllGameObjectsResult();
     message.objects = object.objects?.map((e) => ProtoGameObject.fromPartial(e)) || [];
+    message.scenes = object.scenes?.map((e) => ProtoScene.fromPartial(e)) || [];
     return message;
   },
 };

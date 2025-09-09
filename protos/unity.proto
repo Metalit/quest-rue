@@ -40,3 +40,11 @@ message ProtoGameObject {
     int32 instanceId = 7;
     string tag = 8;
 }
+
+message ProtoScene {
+    int32 handle = 1;
+    bool loaded = 2;
+    string name = 3;
+    int32 rootCount = 4;
+    bool active = 5;
+}
