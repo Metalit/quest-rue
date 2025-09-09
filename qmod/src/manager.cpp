@@ -449,61 +449,59 @@ static void GetTypeComplete(GetTypeComplete const& packet, uint64_t id) {
 }
 
 void Manager::ProcessMessage(PacketWrapper const& packet) {
-    QRUE::MainThreadRunner::Schedule([packet] {
-        LOG_DEBUG("processing packet: {}", packet.DebugString());
-        auto id = packet.queryresultid();
+    LOG_DEBUG("processing packet: {}", packet.DebugString());
+    auto id = packet.queryresultid();
 
-        switch (packet.Packet_case()) {
-            case PacketWrapper::kInvokeMethod:
-                InvokeMethod(packet.invokemethod(), id);
-                break;
-            case PacketWrapper::kSetField:
-                SetField(packet.setfield(), id);
-                break;
-            case PacketWrapper::kGetField:
-                GetField(packet.getfield(), id);
-                break;
-            case PacketWrapper::kSearchObjects:
-                SearchObjects(packet.searchobjects(), id);
-                break;
-            case PacketWrapper::kGetAllGameObjects:
-                GetAllGameObjects(packet.getallgameobjects(), id);
-                break;
-            case PacketWrapper::kGetGameObjectComponents:
-                GetGameObjectComponents(packet.getgameobjectcomponents(), id);
-                break;
-            case PacketWrapper::kReadMemory:
-                ReadMemory(packet.readmemory(), id);
-                break;
-            case PacketWrapper::kWriteMemory:
-                WriteMemory(packet.writememory(), id);
-                break;
-            case PacketWrapper::kGetClassDetails:
-                GetClassDetails(packet.getclassdetails(), id);
-                break;
-            case PacketWrapper::kGetInstanceClass:
-                GetInstanceClass(packet.getinstanceclass(), id);
-                break;
-            case PacketWrapper::kGetInstanceValues:
-                GetInstanceValues(packet.getinstancevalues(), id);
-                break;
-            case PacketWrapper::kGetInstanceDetails:
-                GetInstanceDetails(packet.getinstancedetails(), id);
-                break;
-            case PacketWrapper::kCreateGameObject:
-                CreateGameObject(packet.creategameobject(), id);
-                break;
-            case PacketWrapper::kAddSafePtrAddress:
-                AddSafePtrAddress(packet.addsafeptraddress(), id);
-                break;
-            case PacketWrapper::kGetSafePtrAddresses:
-                SendSafePtrList(id);
-                break;
-            case PacketWrapper::kGetTypeComplete:
-                GetTypeComplete(packet.gettypecomplete(), id);
-                break;
-            default:
-                LOG_ERROR("Invalid packet type {}!", (int) packet.Packet_case());
-        }
-    });
+    switch (packet.Packet_case()) {
+        case PacketWrapper::kInvokeMethod:
+            InvokeMethod(packet.invokemethod(), id);
+            break;
+        case PacketWrapper::kSetField:
+            SetField(packet.setfield(), id);
+            break;
+        case PacketWrapper::kGetField:
+            GetField(packet.getfield(), id);
+            break;
+        case PacketWrapper::kSearchObjects:
+            SearchObjects(packet.searchobjects(), id);
+            break;
+        case PacketWrapper::kGetAllGameObjects:
+            GetAllGameObjects(packet.getallgameobjects(), id);
+            break;
+        case PacketWrapper::kGetGameObjectComponents:
+            GetGameObjectComponents(packet.getgameobjectcomponents(), id);
+            break;
+        case PacketWrapper::kReadMemory:
+            ReadMemory(packet.readmemory(), id);
+            break;
+        case PacketWrapper::kWriteMemory:
+            WriteMemory(packet.writememory(), id);
+            break;
+        case PacketWrapper::kGetClassDetails:
+            GetClassDetails(packet.getclassdetails(), id);
+            break;
+        case PacketWrapper::kGetInstanceClass:
+            GetInstanceClass(packet.getinstanceclass(), id);
+            break;
+        case PacketWrapper::kGetInstanceValues:
+            GetInstanceValues(packet.getinstancevalues(), id);
+            break;
+        case PacketWrapper::kGetInstanceDetails:
+            GetInstanceDetails(packet.getinstancedetails(), id);
+            break;
+        case PacketWrapper::kCreateGameObject:
+            CreateGameObject(packet.creategameobject(), id);
+            break;
+        case PacketWrapper::kAddSafePtrAddress:
+            AddSafePtrAddress(packet.addsafeptraddress(), id);
+            break;
+        case PacketWrapper::kGetSafePtrAddresses:
+            SendSafePtrList(id);
+            break;
+        case PacketWrapper::kGetTypeComplete:
+            GetTypeComplete(packet.gettypecomplete(), id);
+            break;
+        default:
+            LOG_ERROR("Invalid packet type {}!", (int) packet.Packet_case());
+    }
 }

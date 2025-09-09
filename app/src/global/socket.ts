@@ -159,6 +159,7 @@ export class NodeWebSocket extends QuestRUESocket {
 
   disconnectImpl() {
     this.socket?.close();
+    this.socket = undefined;
   }
 
   sendData(data: Uint8Array) {

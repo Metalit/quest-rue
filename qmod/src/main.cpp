@@ -72,3 +72,8 @@ extern "C" void load() {
     Manager::Init();
     LOG_INFO("Completed load!");
 }
+
+extern "C" void late_load() {
+    LOG_INFO("Initializing main thread runner");
+    QRUE::MainThreadRunner::Init();
+}

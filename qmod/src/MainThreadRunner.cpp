@@ -1,8 +1,7 @@
 #include "MainThreadRunner.hpp"
 
+#include "UnityEngine/GameObject.hpp"
 #include "main.hpp"
-
-#include <thread>
 
 DEFINE_TYPE(QRUE, MainThreadRunner);
 
@@ -30,6 +29,12 @@ void MainThreadRunner::Schedule(std::function<void()> const& func) {
 
 MainThreadRunner* MainThreadRunner::GetInstance() {
     return instance;
+}
+
+void MainThreadRunner::Init() {
+    auto object = UnityEngine::GameObject::New_ctor("QRUEMainThreadRunner");
+    UnityEngine::Object::DontDestroyOnLoad(object);
+    object->AddComponent<MainThreadRunner*>();
 }
 
 void MainThreadRunner::Update() {

@@ -11,6 +11,7 @@ DECLARE_CLASS_CODEGEN(QRUE, MainThreadRunner, UnityEngine::MonoBehaviour) {
     DECLARE_STATIC_METHOD(void, AddKeepAlive, Il2CppObject* obj);
     DECLARE_STATIC_METHOD(void, RemoveKeepAlive, Il2CppObject* obj);
     DECLARE_STATIC_METHOD(MainThreadRunner*, GetInstance);
+    DECLARE_STATIC_METHOD(void, Init);
 
    public:
     static void Schedule(std::function<void()> const& func);
