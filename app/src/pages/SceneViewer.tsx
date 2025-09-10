@@ -29,15 +29,9 @@ function RightHeader({ api }: IGroupHeaderProps) {
   return (
     <div class="flex items-center mr-2 h-full">
       <Show when={inGrid()}>
-        <span
-          class="w-6 p-1 hover:bg-shadow rounded-xs cursor-pointer"
-          onClick={toggle}
-          onKeyPress={toggle}
-          role="button"
-          tabIndex={0}
-        >
+        <button class="w-6 p-1 hover:bg-shadow rounded-sm cursor-pointer" onClick={toggle}>
           <Icon path={fullscreen() ? arrowsPointingIn : arrowsPointingOut} />
-        </span>
+        </button>
       </Show>
     </div>
   );

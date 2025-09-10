@@ -230,14 +230,14 @@ function ObjectListItem(props: {
 
   return (
     <div
-      class="h-5 flex items-center gap-1"
+      class="h-5 flex items-center gap-0.5"
       style={{
-        "padding-left": info().indent * 12 + "px",
+        "padding-left": info().indent * 15 + "px",
         "text-decoration-line": info().match ? "underline" : undefined,
       }}
     >
       <Show when={info().children > 0}>
-        <button class="btn btn-square w-4 h-4" onClick={toggleExpand}>
+        <button class="w-5 p-1 hover:bg-shadow rounded-sm cursor-pointer" onClick={toggleExpand}>
           <Icon path={info().expanded ? chevronDown : chevronRight} />
         </button>
       </Show>
