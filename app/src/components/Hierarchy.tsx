@@ -1,5 +1,5 @@
 import { Icon } from "solid-heroicons";
-import { SelectInput } from "./form/SelectInput";
+import { SelectInput } from "./input/SelectInput";
 import {
   barsArrowDown,
   barsArrowUp,
@@ -8,7 +8,7 @@ import {
   eye,
   viewfinderCircle,
 } from "solid-heroicons/outline";
-import { DropdownButton } from "./form/DropdownButton";
+import { DropdownButton } from "./input/DropdownButton";
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { gameObjectsStore } from "../global/hierarchy";
 import { VirtualList } from "./VirtualList";

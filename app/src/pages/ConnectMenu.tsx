@@ -9,7 +9,7 @@ import {
   Show,
 } from "solid-js";
 
-import { ActionButton } from "../components/form/ActionButton";
+import { ActionButton } from "../components/input/ActionButton";
 import { adbDevices, adbForward, hasAdb } from "../global/adb";
 import { socket } from "../global/socket";
 import { createAsyncMemo, createPersistentSignal } from "../global/utils";

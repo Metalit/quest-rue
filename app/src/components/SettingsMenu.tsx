@@ -11,8 +11,8 @@ import {
   setRawInput,
 } from "../global/settings";
 import { socket } from "../global/socket";
-import SegmentedControl from "./form/SegmentedControl";
-import Toggle from "./form/Toggle";
+import SegmentedControl from "./input/SegmentedControl";
+import Toggle from "./input/Toggle";
 
 export function SettingsMenu() {
   return (
