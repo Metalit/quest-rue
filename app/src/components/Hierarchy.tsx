@@ -237,7 +237,7 @@ function ObjectListItem(props: {
       }}
     >
       <Show when={info().children > 0}>
-        <button class="w-5 p-1 hover:bg-shadow rounded-sm cursor-pointer" onClick={toggleExpand}>
+        <button class="w-5 p-1 ml-[-4px] hover:bg-shadow rounded-sm cursor-pointer" onClick={toggleExpand}>
           <Icon path={info().expanded ? chevronDown : chevronRight} />
         </button>
       </Show>
