@@ -28,6 +28,7 @@
   --color-base-content: black;
   --color-secondary-content: var(--color-gray-600);
   --color-shadow: rgba(0, 0, 0, 0.1);
+  --divider-m: 0;
   --depth: 0;
 }
 
@@ -54,6 +55,7 @@
   --color-base-content: white;
   --color-secondary-content: var(--color-gray-400);
   --color-shadow: rgba(0, 0, 0, 0.3);
+  --divider-m: 0;
   --depth: 0;
 }
 
@@ -81,6 +83,7 @@
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
+  user-select: none;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -132,6 +135,12 @@
 
 .btn.btn-sm > img,
 .btn.btn-sm > svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.btn.btn-xs > img,
+.btn.btn-xs > svg {
   width: 1rem;
   height: 1rem;
 }

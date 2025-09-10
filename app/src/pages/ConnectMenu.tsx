@@ -16,11 +16,7 @@ import { createAsyncMemo, createPersistentSignal } from "../global/utils";
 
 export default function ConnectMenu() {
   const navigate = useNavigate();
-
-  // redirect on login
-  createEffect(() => {
-    if (socket.connected()) navigate("/app/");
-  });
+  createEffect(() => socket.connected() && navigate("/app/"));
 
   const [ip, setIp] = createPersistentSignal(
     "connect.address",

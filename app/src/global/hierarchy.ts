@@ -1,5 +1,5 @@
 import { createStore, reconcile } from "solid-js/store";
-import { ProtoGameObject } from "../proto/unity";
+import { ProtoGameObject, ProtoScene } from "../proto/unity";
 import { sendPacketResult } from "./packets";
 import { GetAllGameObjectsResult } from "../proto/qrue";
 import { bigToString } from "./utils";
@@ -8,33 +8,47 @@ import { bigToString } from "./utils";
 interface GameObjectsStore {
   objects: { [address: string]: ProtoGameObject };
   children: { [address: string]: string[] };
+  roots: string[];
+  scenes: ProtoScene[];
 }
 
-export const [gameObjectsStore, setGameObjectsStore] =
-  createStore<GameObjectsStore>({
-    objects: {},
-    children: {},
-  });
+const [gameObjectsStore, setGameObjectsStore] = createStore<GameObjectsStore>({
+  objects: {},
+  children: {},
+  roots: [],
+  scenes: [],
+});
+
+export { gameObjectsStore };
 
 export async function updateGameObjects() {
-  const { objects } = await sendPacketResult<GetAllGameObjectsResult>({
+  const { objects, scenes } = await sendPacketResult<GetAllGameObjectsResult>({
     getAllGameObjects: {},
   })[0];
 
-  const newObjects: GameObjectsStore["objects"] = {};
-  const newChildren: GameObjectsStore["children"] = {};
+  const processed: GameObjectsStore["objects"] = {};
+  const children: GameObjectsStore["children"] = {};
+  const roots: GameObjectsStore["roots"] = [];
 
   objects.forEach((object) => {
     const address = bigToString(object.transform!.address);
-    newObjects[address] = object;
-    if (!object.transform?.parent) return;
-    const parent = bigToString(object.transform.parent);
-    if (!(parent in newChildren)) newChildren[parent] = [];
-    newChildren[parent].push(address);
+    processed[address] = object;
+    if (object.transform?.parent) {
+      const parent = bigToString(object.transform.parent);
+      if (!(parent in children)) children[parent] = [];
+      children[parent].push(address);
+    } else roots.push(address);
   });
+
+  console.log("updating gameobject store");
 
   // reconcile will also remove any removed values, in addition to reducing updates
   setGameObjectsStore(
-    reconcile({ objects: newObjects, children: newChildren }),
+    reconcile({
+      objects: processed,
+      children,
+      roots,
+      scenes,
+    }),
   );
 }

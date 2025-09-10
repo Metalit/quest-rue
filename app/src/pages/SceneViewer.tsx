@@ -1,13 +1,16 @@
 import { IGroupHeaderProps } from "dockview-core";
 import { Icon } from "solid-heroicons";
 import { arrowsPointingIn, arrowsPointingOut } from "solid-heroicons/outline";
-import { createSignal, onCleanup, Show } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { Console } from "../components/Console";
 import { Dockview, DockviewPanel } from "../components/Dockview";
 import { Hierarchy } from "../components/Hierarchy";
 import { Selection } from "../components/Selection";
 import { Variables } from "../components/Variables";
+import { updateGameObjects } from "../global/hierarchy";
+import { socket } from "../global/socket";
+import { useNavigate } from "@solidjs/router";
 
 // eslint-disable-next-line solid/no-destructure
 function RightHeader({ api }: IGroupHeaderProps) {
@@ -41,6 +44,11 @@ function RightHeader({ api }: IGroupHeaderProps) {
 }
 
 export default function SceneViewer() {
+  const navigate = useNavigate();
+  createEffect(() => !socket.connected() && navigate("/"));
+
+  onMount(() => updateGameObjects());
+
   return (
     <div class="w-full h-full p-1 bg">
       <Dockview
