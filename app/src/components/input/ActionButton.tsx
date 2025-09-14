@@ -44,13 +44,7 @@ export function ActionButton(props: ActionButtonProps) {
       title={props.tooltip}
     >
       <Show when={props.loading} fallback={icon()}>
-        <img
-          src="/loading.svg"
-          class="animate-spin light-invert"
-          elementtiming={"Loading"}
-          fetchpriority={"auto"}
-          alt="Loading"
-        />
+        <span class="loading" />
       </Show>
     </button>
   );

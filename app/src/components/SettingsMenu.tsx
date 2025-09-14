@@ -37,8 +37,7 @@ export function SettingsMenu() {
           <label class="flex-1">{"Mono Font"}</label>
           <input
             class="small-input w-28"
-            value={monoFont()}
-            onInput={(e) => setMonoFont(e.target.value)}
+            use:valueSignal={[monoFont, setMonoFont]}
           />
         </span>
         <Toggle

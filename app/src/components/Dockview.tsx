@@ -21,30 +21,34 @@ import {
   createContext,
   createEffect,
   createRenderEffect,
+  createRoot,
   getOwner,
   JSX,
   onCleanup,
   onMount,
   Owner,
-  runWithOwner,
   Show,
   splitProps,
   useContext,
 } from "solid-js";
 
-import { UnionOmit } from "../global/utils";
+import { UnionOmit, uniqueNumber } from "../global/utils";
 
 const DockviewContext = createContext<DockviewApi>();
 
 export const useDockview = () => useContext(DockviewContext)!;
+
+export const getPanelId = () => `panel_${uniqueNumber()}`;
 
 class CustomRenderer<
   T,
   Params extends Record<string, unknown> = Record<string, never>,
 > {
   _element: HTMLElement | undefined;
+  _dispose: (() => void) | undefined;
 
-  private create(params: T) {
+  private create(params: T, disposer: () => void) {
+    this._dispose = disposer;
     // for compiler reasons this needs to be created in JSX for hmr to work
     this._element = (
       <div class="overflow-auto w-full h-full">
@@ -60,14 +64,17 @@ class CustomRenderer<
   ) {}
 
   init(params: T): void {
-    runWithOwner(this._owner, this.create.bind(this, params));
+    createRoot(this.create.bind(this, params), this._owner);
   }
 
   get element(): HTMLElement {
     return this._element!;
   }
 
-  dispose(): void {}
+  dispose() {
+    console.log("disponse", this._params);
+    this._dispose?.();
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,6 +83,8 @@ type CreateFn<T extends CustomRenderer<never, any>> = T["_create"];
 class CustomPanel
   extends CustomRenderer<GroupPanelPartInitParameters, { id: string }>
   implements IContentRenderer {}
+
+export type PanelProps = Parameters<CreateFn<CustomPanel>>[0];
 
 class CustomTab
   extends CustomRenderer<TabPartInitParameters, { id: string }>
@@ -89,19 +98,21 @@ class CustomHeader
   extends CustomRenderer<IGroupHeaderProps>
   implements IHeaderActionsRenderer {}
 
-export function DockviewPanel(props: AddPanelOptions) {
+export function DockviewPanel(
+  props: Partial<AddPanelOptions> & { component: string },
+) {
   const api = useDockview();
   if (!api) throw "DockviewPanel must be a child of a Dockview";
   onMount(() => {
-    const panel = api.addPanel(props);
+    const id = props.id ?? getPanelId();
+    const panel = api.addPanel({ ...props, id });
     onCleanup(() => api.removePanel(panel));
   });
   return <></>;
 }
 
 export function DockviewGroup(
-  props: UnionOmit<AddGroupOptions, "panels" | "activePanel" | "direction"> & {
-    direction?: AddGroupOptions["direction"];
+  props: Partial<UnionOmit<AddGroupOptions, "panels" | "activePanel">> & {
     panels?: string[];
     floating?: FloatingGroupOptions;
     children: JSX.Element;
@@ -162,6 +173,7 @@ function DockviewInitializer(props: DockviewProps & { api: DockviewApi }) {
       ...(props.tabs ? { createTabComponent } : {}),
       ...(props.watermark ? { createWatermarkComponent } : {}),
       ...(props.options ?? {}),
+      defaultTabComponent: Object.keys(props.tabs ?? {}).find(() => true),
     }),
   );
   createEffect(() => props.onReady?.(props.api));

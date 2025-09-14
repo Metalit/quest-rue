@@ -104,8 +104,6 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: max-content;
-  max-height: max-content;
 }
 
 .light-invert {
@@ -121,28 +119,49 @@
 .input:focus-within {
   outline: none;
 }
+
 .btn:focus,
 .btn:focus-within {
   @apply border-black dark:border-white;
   outline: none;
 }
 
+.btn > .loading,
 .btn > img,
 .btn > svg {
   width: 1.5rem;
   height: 1.5rem;
 }
 
+.btn.btn-sm > .loading,
 .btn.btn-sm > img,
 .btn.btn-sm > svg {
   width: 1.2rem;
   height: 1.2rem;
 }
 
+.btn.btn-xs > .loading,
 .btn.btn-xs > img,
 .btn.btn-xs > svg {
   width: 1rem;
   height: 1rem;
+}
+
+.btn > .loading {
+  scale: 75%;
+}
+
+.divider {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+/* defaults */
+button {
+  cursor: pointer;
+}
+div {
+  position: relative;
 }
 
 /* remove number input buttons */

@@ -1,12 +1,13 @@
-import toast from "solid-toast";
 import {
+  Accessor,
+  createEffect,
+  createRenderEffect,
+  createSignal,
+  Setter,
   Signal,
   SignalOptions,
-  createEffect,
-  createSignal,
-  Accessor,
-  createRenderEffect,
 } from "solid-js";
+import toast from "solid-toast";
 
 export type WithCase<T, C> = Extract<T, { $case: C }>;
 
@@ -83,6 +84,51 @@ export function createAsyncMemo<T>(
   // we use effect to listen to changes
   createRenderEffect(update);
   return [valAccessor, loading, update];
+}
+
+export function onInput(
+  element: HTMLInputElement,
+  value: () => Setter<string>,
+) {
+  element.addEventListener("input", (e) =>
+    value()((e.target as HTMLInputElement).value),
+  );
+}
+
+export function valueSignal(
+  element: HTMLInputElement,
+  value: () => [Accessor<string>, Setter<string>],
+) {
+  createRenderEffect(() => (element.value = value()[0]()));
+  onInput(element, () => value()[1]);
+}
+
+export function onCheck(
+  element: HTMLInputElement,
+  value: () => Setter<boolean>,
+) {
+  element.addEventListener("change", (e) =>
+    value()((e.target as HTMLInputElement).checked),
+  );
+}
+
+export function onEnter(element: HTMLElement, value: () => () => void) {
+  element.addEventListener("keypress", (e) => e.key == "Enter" && value()());
+}
+
+type DirectiveFn = (element: never, accessor: () => never) => void;
+type DirectiveArg<T extends DirectiveFn> = ReturnType<Parameters<T>[1]>;
+
+// for now, directives have to be added here AND vite.config.ts
+declare module "solid-js" {
+  namespace JSX {
+    interface Directives {
+      onInput: DirectiveArg<typeof onInput>;
+      valueSignal: DirectiveArg<typeof valueSignal>;
+      onCheck: DirectiveArg<typeof onCheck>;
+      onEnter: DirectiveArg<typeof onEnter>;
+    }
+  }
 }
 
 export function uniqueNumber(min = 0, max = Number.MAX_SAFE_INTEGER) {

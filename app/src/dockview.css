@@ -65,14 +65,6 @@
     }
   }
 
-  /* hide close icon on active tabs as well when not hovered */
-  .dv-active-tab .dv-default-tab .dv-default-tab-action {
-    visibility: hidden;
-  }
-  .dv-active-tab .dv-default-tab:hover .dv-default-tab-action {
-    visibility: visible;
-  }
-
   /* seems like a bug in fullscreen mode? might be my fault though */
   .dv-sash.dv-disabled {
     display: none;

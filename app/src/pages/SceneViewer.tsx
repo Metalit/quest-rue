@@ -1,6 +1,11 @@
-import { IGroupHeaderProps } from "dockview-core";
+import { useNavigate } from "@solidjs/router";
+import { IGroupHeaderProps, TabPartInitParameters } from "dockview-core";
 import { Icon } from "solid-heroicons";
-import { arrowsPointingIn, arrowsPointingOut } from "solid-heroicons/outline";
+import {
+  arrowsPointingIn,
+  arrowsPointingOut,
+  xMark,
+} from "solid-heroicons/outline";
 import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { Console } from "../components/Console";
@@ -10,7 +15,6 @@ import { Selection } from "../components/Selection";
 import { Variables } from "../components/Variables";
 import { updateGameObjects } from "../global/hierarchy";
 import { socket } from "../global/socket";
-import { useNavigate } from "@solidjs/router";
 
 // eslint-disable-next-line solid/no-destructure
 function RightHeader({ api }: IGroupHeaderProps) {
@@ -29,10 +33,28 @@ function RightHeader({ api }: IGroupHeaderProps) {
   return (
     <div class="flex items-center mr-2 h-full">
       <Show when={inGrid()}>
-        <button class="w-6 p-1 hover:bg-shadow rounded-sm cursor-pointer" onClick={toggle}>
+        <button class="w-6 p-1 rounded-sm hover:bg-shadow" onClick={toggle}>
           <Icon path={fullscreen() ? arrowsPointingIn : arrowsPointingOut} />
         </button>
       </Show>
+    </div>
+  );
+}
+
+// eslint-disable-next-line solid/no-destructure
+function Tab({ api }: TabPartInitParameters) {
+  const [title, setTitle] = createSignal(api.title ?? api.id);
+  const dispose = api.onDidTitleChange((e) => setTitle(e.title));
+  onCleanup(() => dispose.dispose());
+  return (
+    <div class="flex gap-2 items-center h-full hover:*:visible">
+      {title()}
+      <button
+        class="invisible w-6 p-1 rounded-sm hover:bg-shadow"
+        onClick={() => api.close()}
+      >
+        <Icon path={xMark} />
+      </button>
     </div>
   );
 }
@@ -53,6 +75,9 @@ export default function SceneViewer() {
           variables: Variables,
         }}
         rightHeader={RightHeader}
+        tabs={{
+          default: Tab,
+        }}
         options={{ floatingGroupBounds: "boundedWithinViewport" }}
       >
         <DockviewPanel component="selection" id="selection" title="Selection" />

@@ -134,7 +134,7 @@ export default function ConnectMenu() {
                           socket.manualDisconnect = false;
                         setDefaultAdbDevice((old) => (id === old ? "" : id));
                       }}
-                      class="btn pl-2 pr-2 join-item"
+                      class="btn px-2 join-item"
                       tooltip="Set as favorite"
                     />
                   </span>
@@ -143,7 +143,7 @@ export default function ConnectMenu() {
               <span class="grow -mb-3" />
               <ActionButton
                 img="refresh"
-                class="btn btn-sm p-0.5 h-[22px] self-start"
+                class="btn btn-xs btn-square self-start"
                 loading={devicesLoading()}
                 onClick={updateDevices}
               />

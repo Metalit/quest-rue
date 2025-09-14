@@ -4,6 +4,7 @@ import devtools from "solid-devtools/vite";
 import tailwindcss from "@tailwindcss/vite";
 import cssnano from "cssnano";
 import autoprefixer from "autoprefixer";
+import directive from "unplugin-solid-directive/vite";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -22,6 +23,14 @@ export default defineConfig({
     }),
     solidPlugin(),
     tailwindcss(),
+    directive({
+      directives: [
+        {
+          from: "/src/global/utils",
+          imports: ["onInput", "valueSignal", "onCheck", "onEnter"],
+        },
+      ],
+    }),
   ],
   css: {
     modules: {

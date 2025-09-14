@@ -1,5 +1,4 @@
 import { Icon } from "solid-heroicons";
-import { SelectInput } from "./input/SelectInput";
 import {
   barsArrowDown,
   barsArrowUp,
@@ -8,17 +7,22 @@ import {
   eye,
   viewfinderCircle,
 } from "solid-heroicons/outline";
-import { DropdownButton } from "./input/DropdownButton";
-import { createMemo, createSignal, For, Show } from "solid-js";
-import { gameObjectsStore } from "../global/hierarchy";
-import { VirtualList } from "./VirtualList";
+import { createMemo, createSignal, Show } from "solid-js";
 import {
   createStore,
   reconcile,
   SetStoreFunction,
   unwrap,
 } from "solid-js/store";
+
+import { gameObjectsStore } from "../global/hierarchy";
+import { selectInLastPanel } from "../global/selection";
 import { ProtoScene } from "../proto/unity";
+import { setDataCase, setTypeCase } from "../types/serialization";
+import { useDockview } from "./Dockview";
+import { DropdownButton, ModeOptions } from "./input/DropdownButton";
+import { SelectInput } from "./input/SelectInput";
+import { VirtualList } from "./VirtualList";
 
 const sortModes = [
   "Name",
@@ -228,6 +232,20 @@ function ObjectListItem(props: {
   const toggleExpand = () =>
     props.setInfo(props.address, "expanded", (val) => !val);
 
+  const api = useDockview();
+
+  const select = () => {
+    const typeInfo = setTypeCase({
+      classInfo: {
+        namespaze: "UnityEngine",
+        clazz: "GameObject",
+        generics: [],
+      },
+    });
+    const data = setDataCase({ classData: props.address });
+    selectInLastPanel(api, { typeInfo, data });
+  };
+
   return (
     <div
       class="h-5 flex items-center gap-0.5"
@@ -237,13 +255,19 @@ function ObjectListItem(props: {
       }}
     >
       <Show when={info().children > 0}>
-        <button class="w-5 p-1 ml-[-4px] hover:bg-shadow rounded-sm cursor-pointer" onClick={toggleExpand}>
+        <button
+          class="w-5 p-1 ml-[-4px] hover:bg-shadow rounded-sm cursor-pointer"
+          onClick={toggleExpand}
+        >
           <Icon path={info().expanded ? chevronDown : chevronRight} />
         </button>
       </Show>
-      <span class={object().active ? "" : "text-secondary-content"}>
+      <button
+        class={object().active ? "" : "text-secondary-content"}
+        onClick={select}
+      >
         {object().name}
-      </span>
+      </button>
     </div>
   );
 }
@@ -287,29 +311,6 @@ function ObjectList(props: {
   );
 }
 
-function ModeOptions(props: {
-  current: string;
-  setCurrent: (value: string) => void;
-  modes: readonly string[];
-  title: string;
-}) {
-  return (
-    <>
-      <span class="text-sm text-secondary-content p-1">{props.title}</span>
-      <For each={props.modes}>
-        {(mode) => (
-          <button
-            class={`btn btn-sm ${mode === props.current ? "btn-accent" : ""}`}
-            onClick={() => props.setCurrent(mode)}
-          >
-            {mode}
-          </button>
-        )}
-      </For>
-    </>
-  );
-}
-
 export function Hierarchy() {
   const [search, setSearch] = createSignal("");
   const [scene, setScene] = createSignal<ProtoScene>();
@@ -337,8 +338,7 @@ export function Hierarchy() {
       <input
         class="input input-sm shrink-0"
         placeholder="Search"
-        value={search()}
-        onInput={(e) => setSearch(e.target.value)}
+        use:valueSignal={[search, setSearch]}
       />
       <div class="flex gap-1">
         <SelectInput

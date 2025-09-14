@@ -24,7 +24,8 @@
     "solid-heroicons": "^3.2.4",
     "solid-js": "^1.9.9",
     "solid-toast": "^0.5.0",
-    "ts-proto": "^2.7.7"
+    "ts-proto": "^2.7.7",
+    "unplugin-solid-directive": "^0.2.1"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

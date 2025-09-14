@@ -7,9 +7,10 @@ import {
   JSX,
   splitProps,
 } from "solid-js";
-import { DropdownPositions } from "./DropdownButton";
-import { createUpdatingSignal } from "../../global/utils";
 import { Portal } from "solid-js/web";
+
+import { createUpdatingSignal } from "../../global/utils";
+import { DropdownPositions } from "./DropdownButton";
 
 let counter = 0;
 
@@ -97,8 +98,7 @@ export function SelectInput<T = string>(props: SelectInputProps<T>) {
         ref={input}
         onFocus={focusIn}
         onBlur={focusOut}
-        onInput={(e) => setValue(e.target.value)}
-        value={value()}
+        use:valueSignal={[value, setValue]}
         style={`anchor-name:--sel-in-anchor-${id}`}
       />
       <Portal mount={document.getElementById("app")!}>
