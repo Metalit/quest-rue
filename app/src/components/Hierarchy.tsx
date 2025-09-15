@@ -17,6 +17,7 @@ import {
 
 import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";
+import { stringToBig } from "../global/utils";
 import { ProtoScene } from "../proto/unity";
 import { setDataCase, setTypeCase } from "../types/serialization";
 import { useDockview } from "./Dockview";
@@ -238,11 +239,11 @@ function ObjectListItem(props: {
     const typeInfo = setTypeCase({
       classInfo: {
         namespaze: "UnityEngine",
-        clazz: "GameObject",
+        clazz: "Transform",
         generics: [],
       },
     });
-    const data = setDataCase({ classData: props.address });
+    const data = setDataCase({ classData: stringToBig(props.address) });
     selectInLastPanel(api, { typeInfo, data });
   };
 
@@ -312,9 +313,10 @@ function ObjectList(props: {
 }
 
 export function Hierarchy() {
+  const allScene = ProtoScene.fromPartial({ name: "All", handle: undefined });
+
   const [search, setSearch] = createSignal("");
-  const [scene, setScene] = createSignal<ProtoScene>();
-  const [sceneSearch, setSceneSearch] = createSignal("");
+  const [scene, setScene] = createSignal<ProtoScene>(allScene);
   const [visibility, setVisibility] = createSignal<VisibilityMode>(
     visibilityModes[0],
   );
@@ -325,13 +327,10 @@ export function Hierarchy() {
     // not implemented
   };
 
+  const scenes = () => [allScene, ...gameObjectsStore.scenes];
+
   const sceneName = (scene?: ProtoScene) =>
-    gameObjectsStore.scenes.find(({ handle }) => handle == scene?.handle)
-      ?.name ?? "All";
-  const filteredScenes = () =>
-    gameObjectsStore.scenes.filter(({ name }) =>
-      name.toLocaleLowerCase().includes(sceneSearch().toLocaleLowerCase()),
-    );
+    scenes().find(({ handle }) => handle == scene?.handle)?.name ?? "All";
 
   return (
     <div class="p-2 pt-2.5 gap-1 flex flex-col items-stretch h-full">
@@ -345,12 +344,13 @@ export function Hierarchy() {
           class="input input-sm"
           title="Scene"
           placeholder="Scene"
-          options={filteredScenes()}
+          options={scenes()}
           value={scene()}
-          showUndefined
           equals={(s1, s2) => s1?.handle == s2?.handle}
           display={sceneName}
-          onInput={setSceneSearch}
+          search={(input, { name }) =>
+            name.toLocaleLowerCase().includes(input.toLocaleLowerCase())
+          }
           onChange={setScene}
         />
         <button

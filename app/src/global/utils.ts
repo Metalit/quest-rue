@@ -1,3 +1,4 @@
+import { Icon } from "solid-heroicons";
 import {
   Accessor,
   createEffect,
@@ -8,6 +9,8 @@ import {
   SignalOptions,
 } from "solid-js";
 import toast from "solid-toast";
+
+export type IconPath = Parameters<typeof Icon>[0]["path"];
 
 export type WithCase<T, C> = Extract<T, { $case: C }>;
 

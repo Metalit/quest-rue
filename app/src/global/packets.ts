@@ -5,7 +5,7 @@ import { PacketWrapper } from "../proto/qrue";
 import { Callback, socket } from "./socket";
 import { UnionOmit, setCase, uniqueBigNumber } from "./utils";
 
-type PacketTypesFull = PacketWrapper["Packet"];
+type PacketTypesFull = NonNullable<PacketWrapper["Packet"]>;
 type PacketTypes = UnionOmit<PacketTypesFull, "$case">;
 
 const setPacketCase = setCase<PacketTypesFull>;

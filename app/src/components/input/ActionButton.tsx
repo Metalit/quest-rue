@@ -1,14 +1,10 @@
 import { Icon } from "solid-heroicons";
-import { JSX, Show } from "solid-js";
+import { Show } from "solid-js";
 
-import { errorHandle } from "../../global/utils";
+import { errorHandle, IconPath } from "../../global/utils";
 
 interface ActionButtonProps {
-  img:
-    | { path: JSX.Element; outline: boolean; mini: boolean }
-    | "enter"
-    | "save"
-    | "refresh";
+  img: IconPath | "save" | "refresh";
   onClick?: () => void;
   loading?: boolean;
   class?: string;
@@ -32,8 +28,6 @@ export function ActionButton(props: ActionButtonProps) {
 
   return (
     <button
-      // Accessibility is important
-      aria-label={props.label ?? props.tooltip}
       class={props.class}
       classList={{ tooltip: props.tooltip !== undefined }}
       // False positive

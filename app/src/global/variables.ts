@@ -5,7 +5,13 @@ import { sendPacketResult } from "./packets";
 import { GetSafePtrAddressesResult } from "../proto/qrue";
 import { bigToString, WithCase } from "./utils";
 
-const reservedNames: { [name: string]: ProtoDataPayload } = {
+const [variables, setVariables] = createStore<{
+  [name: string]: ProtoDataPayload;
+}>({});
+
+export { variables };
+
+export const constVariables: typeof variables = {
   Null: {
     data: setDataCase({ classData: 0n }),
     typeInfo: setTypeCase({
@@ -16,11 +22,21 @@ const reservedNames: { [name: string]: ProtoDataPayload } = {
       },
     }),
   },
+  Empty: {
+    data: setDataCase({ arrayData: { data: [] } }),
+    typeInfo: setTypeCase({
+      arrayInfo: {
+        memberType: setTypeCase({
+          classInfo: {
+            namespaze: "System",
+            clazz: "Object",
+            generics: [],
+          },
+        }),
+      },
+    }),
+  },
 };
-
-export const [variables, setVariables] = createStore<{
-  [name: string]: ProtoDataPayload;
-}>({});
 
 export async function addVariable(name: string, value: ProtoDataPayload) {
   if (!isVariableNameFree(name) || !validVariableName(name)) return false;
@@ -67,7 +83,7 @@ export async function updateReferenceVariables() {
       bigToString(address), // can't have a bigint as a key
       {
         data: setDataCase({ classData: address }),
-        typeInfo: setTypeCase({ classInfo: clazz }),
+        typeInfo: setTypeCase({ classInfo: clazz! }),
       } satisfies ProtoDataPayload,
     ]),
   );
@@ -113,7 +129,7 @@ export function firstFree(beginning = "unnamed_variable", ignore?: string) {
       if (!isNaN(Number(end))) usedNums.add(Number(end));
     }
   });
-  if (beginning in reservedNames) usedNums.add(0);
+  if (beginning in constVariables) usedNums.add(0);
 
   let num = 0;
   for (let i = 0; ; i++) {
@@ -127,7 +143,7 @@ export function firstFree(beginning = "unnamed_variable", ignore?: string) {
 }
 
 export function isVariableNameFree(name: string) {
-  return !(name in reservedNames) && !(name in variables);
+  return !(name in constVariables) && !(name in variables);
 }
 
 // https://github.com/mathiasbynens/mothereff.in/blob/master/js-variables/eff.js

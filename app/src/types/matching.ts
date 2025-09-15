@@ -1,157 +1,176 @@
 import {
   ProtoClassDetails,
   ProtoClassInfo,
+  ProtoDataSegment,
+  ProtoDataSegment_ArrayData,
+  ProtoDataSegment_StructData,
   ProtoTypeInfo,
 } from "../proto/il2cpp";
-import { protoTypeToString } from "./format";
 
-/**
- * Does NOT check for inheritance
- * @param targetType
- * @param typeToCheck
- * @returns
- */
-
-export function isExactProtoTypeConvertibleTo(
-  targetType: ProtoTypeInfo,
-  typeToCheck: ProtoTypeInfo,
+// switch is lame: https://stackoverflow.com/questions/78957198/type-narrowing-for-two-variables
+function compareBoth<I extends { $case: string }, T, C extends I["$case"]>(
+  info1: I,
+  info2: I,
+  $case: C,
+  value: (info: I & { $case: C }) => T,
+  equals?: (value1: T, value2: T) => boolean,
 ): boolean {
-  // TODO: Should we be more strict with primitives?
-  if (targetType.Info?.$case === "primitiveInfo") {
-    return typeToCheck.Info?.$case === "primitiveInfo";
-  }
-
-  if (targetType.Info?.$case === "arrayInfo") {
-    if (typeToCheck.Info?.$case !== "arrayInfo") return false;
-
-    const arrayT1 = targetType.Info.arrayInfo.memberType;
-    const arrayT2 = typeToCheck.Info.arrayInfo.memberType;
-
-    return (
-      arrayT1 === arrayT2 || // same
-      (arrayT1 !== undefined &&
-        arrayT2 !== undefined &&
-        isExactProtoTypeConvertibleTo(arrayT1, arrayT2))
-    );
-  }
-
-  if (targetType.Info?.$case === "structInfo") {
-    if (typeToCheck.Info?.$case !== "structInfo") return false;
-
-    const structT1 = targetType.Info.structInfo;
-    const structT2 = typeToCheck.Info.structInfo;
-
-    return isProtoClassMatch(structT1.clazz, structT2.clazz);
-  }
-  if (targetType.Info?.$case === "classInfo") {
-    if (typeToCheck.Info?.$case !== "classInfo") return false;
-
-    const clazzT1 = targetType.Info.classInfo;
-    const clazzT2 = typeToCheck.Info.classInfo;
-
-    return isProtoClassMatch(clazzT1, clazzT2);
-  }
-
-  return false;
+  if (info1.$case != $case || info2.$case != $case) return false;
+  const value1 = value(info1 as I & { $case: C });
+  const value2 = value(info2 as I & { $case: C });
+  return equals?.(value1, value2) || value1 == value2;
 }
-export function isProtoClassMatch(
-  clazzT1: ProtoClassInfo | undefined,
-  clazzT2: ProtoClassInfo | undefined,
-) {
-  if (clazzT1 === clazzT2) return true;
-  if (typeof clazzT1 !== typeof clazzT2) return false;
 
-  const namespaceMatch = clazzT1?.namespaze === clazzT2?.namespaze;
-  const nameMatch = clazzT1?.clazz === clazzT2?.clazz;
-  const clazzGenericsMatch = isProtoGenericsMatch(clazzT1, clazzT2);
+function areProtoClassesEqual(
+  class1?: ProtoClassInfo,
+  class2?: ProtoClassInfo,
+) {
+  if (class1 === class2) return true;
+  if (typeof class1 !== typeof class2) return false;
+
+  const namespaceMatch = class1?.namespaze === class2?.namespaze;
+  const nameMatch = class1?.clazz === class2?.clazz;
+  const clazzGenericsMatch = areProtoGenericsEqual(class1, class2);
 
   return namespaceMatch && nameMatch && clazzGenericsMatch;
 }
-function isProtoGenericsMatch(
-  clazzT1: ProtoClassInfo | undefined,
-  clazzT2: ProtoClassInfo | undefined,
+
+function areProtoGenericsEqual(
+  class1?: ProtoClassInfo,
+  class2?: ProtoClassInfo,
 ) {
   return (
-    clazzT1 !== undefined &&
-    clazzT2 !== undefined &&
-    clazzT1.generics.length === clazzT2.generics.length &&
-    clazzT1.generics.every((g1, i) => {
-      const g2 = clazzT2.generics[i];
-      return isExactProtoTypeConvertibleTo(g1, g2);
-    })
+    !!class1 &&
+    !!class2 &&
+    class1.generics.length == class2.generics.length &&
+    class1.generics.every((generic, i) =>
+      areProtoTypesEqual(generic, class2.generics[i]),
+    )
   );
 }
-export function protoClassDetailsToString(
-  details: ProtoClassDetails | undefined,
-): string {
-  if (!details?.clazz) return "Unknown";
 
-  return protoTypeToString(protoClassDetailsToTypeInfo(details));
+/**
+ * Checks if two types are exactly equal
+ * @param type1
+ * @param type2
+ * @returns
+ */
+export function areProtoTypesEqual(
+  type1?: ProtoTypeInfo,
+  type2?: ProtoTypeInfo,
+): boolean {
+  const info1 = type1?.Info;
+  const info2 = type2?.Info;
+  if (!info1 || !info2) return false;
+  return (
+    compareBoth(info1, info2, "primitiveInfo", (info) => info.primitiveInfo) ||
+    compareBoth(
+      info1,
+      info2,
+      "enumInfo",
+      (info) => info.enumInfo.clazz,
+      areProtoClassesEqual,
+    ) ||
+    compareBoth(
+      info1,
+      info2,
+      "arrayInfo",
+      (info) => info.arrayInfo.memberType!,
+      areProtoTypesEqual,
+    ) ||
+    compareBoth(
+      info1,
+      info2,
+      "structInfo",
+      (info) => info.structInfo.clazz,
+      areProtoClassesEqual,
+    ) ||
+    compareBoth(
+      info1,
+      info2,
+      "classInfo",
+      (info) => info.classInfo,
+      areProtoClassesEqual,
+    ) ||
+    compareBoth(
+      info1,
+      info2,
+      "genericInfo",
+      (info) => info.genericInfo.genericHandle,
+    )
+  );
 }
 
-export function protoClassDetailsToTypeInfo(
-  details: ProtoClassDetails,
-): ProtoTypeInfo {
-  return {
-    Info: {
-      $case: "classInfo",
-      classInfo: details.clazz!,
-    },
-    isByref: false,
-    // TODO: Needed?
-    size: 8,
-  };
-}
-
-export function protoClassInfoToString(
-  details: ProtoClassInfo | undefined,
-): string {
-  if (!details) return "Unknown";
-
-  return protoTypeToString(protoClassInfoToTypeInfo(details));
-}
-
-export function protoClassInfoToTypeInfo(
-  details: ProtoClassInfo,
-): ProtoTypeInfo {
-  return {
-    Info: {
-      $case: "classInfo",
-      classInfo: details,
-    },
-    isByref: false,
-    // TODO: Needed?
-    size: 8,
-  };
-}
-
-export function isProtoClassInstanceOf(
+export function areProtoClassesConvertible(
   instance: ProtoClassDetails,
   targetType: ProtoClassInfo,
 ): boolean {
-  if (isProtoClassMatch(instance.clazz, targetType)) return true;
-
-  const interfacesMatch = instance.interfaces.some((interf) =>
-    isProtoClassMatch(interf, targetType),
+  return (
+    areProtoClassesEqual(instance.clazz, targetType) ||
+    instance.interfaces.some((i) => areProtoClassesEqual(i, targetType)) ||
+    (!!instance.parent &&
+      areProtoClassesConvertible(instance.parent, targetType))
   );
-  if (interfacesMatch) return true;
+}
 
-  // check if parent matches targetType
-  // or check if parent interfaces matches targetType
-  let parent = instance.parent;
-  while (parent !== undefined) {
-    const parentMatches = isProtoClassMatch(parent.clazz, targetType);
-    if (parentMatches) return true;
+function areUint8ArraysEqual(array1: Uint8Array, array2: Uint8Array) {
+  return (
+    array1.length == array2.length &&
+    array1.every((value, idx) => value == array2[idx])
+  );
+}
 
-    // check interfaces
-    const parentInterfacesMatch = parent.interfaces.some((interf) =>
-      isProtoClassMatch(interf, targetType),
-    );
-    if (parentInterfacesMatch) return true;
+function areProtoArraysEqual(
+  { data: array1 }: ProtoDataSegment_ArrayData,
+  { data: array2 }: ProtoDataSegment_ArrayData,
+) {
+  return (
+    array1.length == array2.length &&
+    array1.every((value, idx) => isProtoDataEqual(value, array2[idx]))
+  );
+}
 
-    // check parent of parent
-    parent = parent.parent;
+function areProtoStructsEqual(
+  { data: struct1 }: ProtoDataSegment_StructData,
+  { data: struct2 }: ProtoDataSegment_StructData,
+) {
+  for (const key in struct1) {
+    if (!(key in struct2)) return false;
+    if (!isProtoDataEqual(struct1[key], struct2[key])) return false;
   }
+  return true;
+}
 
-  return false;
+export function isProtoDataEqual(
+  segment1?: ProtoDataSegment,
+  segment2?: ProtoDataSegment,
+): boolean {
+  if (!segment1 || !segment2) return false;
+  const data1 = segment1.Data;
+  const data2 = segment2.Data;
+  if (!data1 || !data2) return false;
+  return (
+    compareBoth(
+      data1,
+      data2,
+      "primitiveData",
+      (data) => data.primitiveData,
+      areUint8ArraysEqual,
+    ) ||
+    compareBoth(
+      data1,
+      data2,
+      "arrayData",
+      (data) => data.arrayData,
+      areProtoArraysEqual,
+    ) ||
+    compareBoth(
+      data1,
+      data2,
+      "structData",
+      (data) => data.structData,
+      areProtoStructsEqual,
+    ) ||
+    compareBoth(data1, data2, "classData", (data) => data.classData)
+  );
 }

@@ -126,34 +126,45 @@
   outline: none;
 }
 
-.btn > .loading,
-.btn > img,
-.btn > svg {
-  width: 1.5rem;
-  height: 1.5rem;
+.btn,
+.input {
+  --icon-size: 1.5rem;
+  &.btn-sm,
+  &.input-sm {
+    --icon-size: 1.2rem;
+  }
+  &.btn-xs,
+  &.input-xs {
+    --icon-size: 1rem;
+  }
+
+  .loading,
+  img,
+  svg {
+    width: var(--icon-size);
+    height: var(--icon-size);
+  }
+
+  .loading {
+    scale: 75%;
+  }
 }
 
-.btn.btn-sm > .loading,
-.btn.btn-sm > img,
-.btn.btn-sm > svg {
-  width: 1.2rem;
-  height: 1.2rem;
-}
-
-.btn.btn-xs > .loading,
-.btn.btn-xs > img,
-.btn.btn-xs > svg {
-  width: 1rem;
-  height: 1rem;
-}
-
-.btn > .loading {
-  scale: 75%;
+.input {
+  .loading,
+  img,
+  svg {
+    margin-left: -6px;
+  }
 }
 
 .divider {
   flex-grow: 0;
   flex-shrink: 0;
+}
+
+.dropdown {
+  position-try-fallbacks: flip-block;
 }
 
 /* defaults */

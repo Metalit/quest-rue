@@ -2,6 +2,7 @@ import { bigToString } from "../global/utils";
 import {
   ProtoClassInfo,
   ProtoDataPayload,
+  ProtoDataSegment,
   ProtoTypeInfo,
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
@@ -11,19 +12,31 @@ import {
   stringToDataSegment,
 } from "./serialization";
 
-export function protoDataToString(data: ProtoDataPayload) {
-  if (!data || !data.typeInfo) return "";
-  const typeInfo = data.typeInfo;
-  const ret = protoDataToRealValue(typeInfo, data.data);
+export function protoDataToString(
+  data?: ProtoDataSegment,
+  typeInfo?: ProtoTypeInfo,
+) {
+  if (!data || !typeInfo) return "";
+  const ret = protoDataToRealValue(typeInfo, data);
   if (
-    data.typeInfo?.Info?.$case == "primitiveInfo" &&
-    data.typeInfo.Info.primitiveInfo == ProtoTypeInfo_Primitive.LONG
+    typeInfo?.Info?.$case == "primitiveInfo" &&
+    typeInfo.Info.primitiveInfo == ProtoTypeInfo_Primitive.LONG
   )
     return ret.toString();
-  if (typeof ret === "string") return ret;
-  if (typeof ret === "bigint") return bigToString(ret);
+  // for some reason if I combine these if statements typescript complains
+  if (typeInfo?.Info?.$case == "enumInfo") {
+    if (typeof ret == "number" || typeof ret == "bigint") {
+      const match = Object.entries(typeInfo.Info.enumInfo.values).find(
+        ([, value]) => value == BigInt(ret),
+      );
+      if (match) return match[0];
+    }
+  }
+  if (typeof ret == "boolean") return ret ? "True" : "False";
+  if (typeof ret == "string") return ret;
+  if (typeof ret == "bigint") return bigToString(ret);
   return JSON.stringify(ret, (_, value) => {
-    return typeof value === "bigint" ? value.toString() : value;
+    return typeof value == "bigint" ? value.toString() : value;
   });
 }
 
@@ -78,7 +91,7 @@ export function stringToProtoType(
   if (isByref) input = input.slice(4).trim();
 
   if (primitiveStringMap.hasStr(input.toLocaleLowerCase())) {
-    const primitiveInfo = primitiveStringMap.get(input.toLocaleLowerCase());
+    const primitiveInfo = primitiveStringMap.get(input.toLocaleLowerCase())!;
     return setTypeCase({ primitiveInfo }, { isByref });
   }
   if (input.endsWith("[]")) {
@@ -97,7 +110,7 @@ export function stringToProtoType(
         .map((s) => stringToProtoType(s.trim(), false));
     }
 
-    if (generics.every((value) => value))
+    if (generics.every((value) => value !== undefined))
       return setTypeCase(
         {
           classInfo: {

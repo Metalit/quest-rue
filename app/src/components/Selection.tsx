@@ -13,7 +13,11 @@ import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { useRequestAndResponsePacket } from "../global/packets";
 import { getSelection, removePanel, setLastPanel } from "../global/selection";
-import { ProtoClassDetails, ProtoClassInfo } from "../proto/il2cpp";
+import {
+  ProtoClassDetails,
+  ProtoClassInfo,
+  ProtoDataPayload,
+} from "../proto/il2cpp";
 import { GetClassDetailsResult } from "../proto/qrue";
 import { protoTypeToString } from "../types/format";
 import { PanelProps } from "./Dockview";
@@ -22,6 +26,7 @@ import {
   FilterOptions,
   ModeOptions,
 } from "./input/DropdownButton";
+import { PropertyCell } from "./data/PropertyCell";
 
 let reloading = false;
 
@@ -86,6 +91,7 @@ function NoSelection() {
 }
 
 function DetailsList(props: {
+  selection: ProtoDataPayload;
   details: ProtoClassDetails;
   search: string;
   searchMode: SearchMode;
@@ -95,9 +101,11 @@ function DetailsList(props: {
   inverse: boolean;
 }) {
   return (
-    <div class="overflow-auto flex flex-col">
-      <For each={props.details.methods}>
-        {(method) => <div>{method.name}</div>}
+    <div class="overflow-auto flex flex-col gap-2">
+      <For each={props.details.properties}>
+        {(property) => (
+          <PropertyCell property={property} selection={props.selection} />
+        )}
       </For>
     </div>
   );
@@ -229,6 +237,7 @@ export function Selection({ api, id }: PanelProps) {
           }
         >
           <DetailsList
+            selection={getSelection(id)}
             details={details()!.classDetails!}
             search={search()}
             searchMode={searchMode()}

@@ -1,23 +1,23 @@
+import { UnionOmit, setCase, stringToBig } from "../global/utils";
 import {
   ProtoDataSegment,
   ProtoTypeInfo,
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
-import { stringToProtoType, protoTypeToString } from "./format";
-import { UnionOmit, setCase } from "../global/utils";
+import { protoTypeToString, stringToProtoType } from "./format";
 
-type DataTypes = UnionOmit<ProtoDataSegment["Data"], "$case">;
-type TypeTypes = UnionOmit<ProtoTypeInfo["Info"], "$case">;
+type DataTypes = UnionOmit<NonNullable<ProtoDataSegment["Data"]>, "$case">;
+type TypeTypes = UnionOmit<NonNullable<ProtoTypeInfo["Info"]>, "$case">;
 
 export function setDataCase(data: DataTypes): ProtoDataSegment {
-  return { Data: setCase(data) };
+  return { Data: setCase<ProtoDataSegment["Data"]>(data) };
 }
 
 export function setTypeCase(
   data: TypeTypes,
   info: { isByref?: boolean; size?: number } = {},
 ): ProtoTypeInfo {
-  const Info = setCase(data);
+  const Info = setCase<ProtoTypeInfo["Info"]>(data);
   return {
     Info,
     isByref: info.isByref ?? false,
@@ -102,7 +102,7 @@ function primitiveToDataSegment(
   };
   switch (primitive) {
     case ProtoTypeInfo_Primitive.BOOLEAN:
-      new DataView(getBuffer(1)).setUint8(0, Number(input == "true"));
+      new DataView(getBuffer(1)).setUint8(0, Number(!!input.match(/^true$/i)));
       break;
     case ProtoTypeInfo_Primitive.CHAR:
       new Uint16Array(getBuffer(2))[0] = input.charCodeAt(0);
@@ -152,7 +152,7 @@ export function stringToDataSegment(
 ): ProtoDataSegment {
   switch (typeInfo.Info?.$case) {
     case "classInfo":
-      return setDataCase({ classData: BigInt(input) });
+      return setDataCase({ classData: stringToBig(input) });
     case "structInfo": {
       // get keys and values, keeping the values as strings so they can be passed recursively
       const struct = parseShallow(input) as Record<string, string>;
@@ -176,9 +176,83 @@ export function stringToDataSegment(
     case "primitiveInfo":
       return primitiveToDataSegment(input, typeInfo.Info.primitiveInfo);
     case "enumInfo":
+      if (input in typeInfo.Info.enumInfo.values)
+        input = typeInfo.Info.enumInfo.values[input].toString();
       return primitiveToDataSegment(input, typeInfo.Info.enumInfo.valueType);
   }
   return {};
+}
+
+function validPrimitiveString(
+  input: string,
+  primitive: ProtoTypeInfo_Primitive,
+): boolean {
+  const checkBytes = (bytes: number) =>
+    !!input.match(/^[0-9]+$/) &&
+    BigInt(input) < 2n ** BigInt(bytes * 8 - 1) &&
+    BigInt(input) >= -(2n ** BigInt(bytes * 8 - 1));
+  switch (primitive) {
+    case ProtoTypeInfo_Primitive.BOOLEAN:
+      return !!input.match(/^(?:true|false)$/i);
+    case ProtoTypeInfo_Primitive.CHAR:
+      return input.length == 1;
+    case ProtoTypeInfo_Primitive.BYTE:
+      return checkBytes(1);
+    case ProtoTypeInfo_Primitive.SHORT:
+      return checkBytes(2);
+    case ProtoTypeInfo_Primitive.INT:
+      return checkBytes(4);
+    case ProtoTypeInfo_Primitive.LONG:
+      return checkBytes(8);
+    case ProtoTypeInfo_Primitive.FLOAT:
+    case ProtoTypeInfo_Primitive.DOUBLE:
+      return !!input.match(/^[0-9]*(?:(?:\.[0-9]+)|[0-9])$/);
+    case ProtoTypeInfo_Primitive.STRING:
+      return true;
+    case ProtoTypeInfo_Primitive.TYPE:
+      return !!stringToProtoType(input);
+    case ProtoTypeInfo_Primitive.PTR:
+      return checkBytes(8);
+    case ProtoTypeInfo_Primitive.VOID:
+      return input.length == 0;
+    case ProtoTypeInfo_Primitive.UNKNOWN:
+      return true;
+  }
+  return false;
+}
+
+export function validString(input: string, typeInfo: ProtoTypeInfo): boolean {
+  switch (typeInfo.Info?.$case) {
+    case "classInfo":
+      return !!input.match(/^0x[0-9a-f]+$/i);
+    case "structInfo": {
+      try {
+        const struct = parseShallow(input) as Record<string, string>;
+        return Object.values(typeInfo.Info.structInfo.fieldOffsets!).every(
+          ({ name, type }) =>
+            name in struct && validString(struct[name], type!),
+        );
+      } catch {
+        // invalid json
+        return false;
+      }
+    }
+    case "arrayInfo": {
+      try {
+        const arr = parseShallow(input) as string[];
+        const memberType = typeInfo.Info.arrayInfo.memberType!;
+        return arr.every((elem) => validString(elem, memberType));
+      } catch {
+        // invalid json
+        return false;
+      }
+    }
+    case "primitiveInfo":
+      return validPrimitiveString(input, typeInfo.Info.primitiveInfo);
+    case "enumInfo":
+      return input in typeInfo.Info.enumInfo.values;
+  }
+  return false;
 }
 
 function primitiveDataToRealValue(

@@ -1,10 +1,10 @@
 /* eslint-disable solid/style-prop */
 import { Icon } from "solid-heroicons";
-import { For, JSX, ParentProps, Setter } from "solid-js";
+import { For, ParentProps, Setter } from "solid-js";
 import { SetStoreFunction } from "solid-js/store";
 import { Portal } from "solid-js/web";
 
-import { uniqueNumber } from "../../global/utils";
+import { IconPath, uniqueNumber } from "../../global/utils";
 
 export type DropdownPositions =
   | "start"
@@ -69,7 +69,7 @@ export function ModeOptions<T extends string>(props: {
 
 export function DropdownButton(
   props: ParentProps<{
-    icon: { path: JSX.Element; outline: boolean; mini: boolean };
+    icon: IconPath;
     title?: string;
     class?: string;
     dropdownClass?: string;

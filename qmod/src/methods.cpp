@@ -131,16 +131,13 @@ void FillList(std::vector<ProtoDataPayload> const& args, void** dest) {
         dest[i] = HandleType(args[i].typeinfo(), args[i].data());
 }
 
-ProtoDataPayload VoidDataPayload(Il2CppType const* type = nullptr) {
+ProtoDataPayload VoidDataPayload() {
     ProtoDataPayload ret;
-    ProtoTypeInfo typeProto;
-    if (!type) {
-        typeProto.set_primitiveinfo(ProtoTypeInfo::VOID);
-        typeProto.set_size(0);
-        typeProto.set_isbyref(false);
-    } else
-        typeProto = ClassUtils::GetTypeInfo(type);
-    *ret.mutable_typeinfo() = typeProto;
+    ProtoTypeInfo info;
+    info.set_primitiveinfo(ProtoTypeInfo::VOID);
+    info.set_size(0);
+    info.set_isbyref(false);
+    *ret.mutable_typeinfo() = info;
     return ret;
 }
 
@@ -263,11 +260,9 @@ std::map<int, ProtoDataPayload> GetByrefOutputs(std::vector<ProtoDataPayload> co
     return ret;
 }
 
-ProtoDataPayload HandleReturn(MethodInfo const* method, Il2CppObject* ret) {
-    if (method->return_type->type == IL2CPP_TYPE_VOID) {
-        LOG_DEBUG("void return");
+ProtoDataPayload HandleReturn(MethodInfo const* method, Il2CppObject* ret = nullptr) {
+    if (method->return_type->type == IL2CPP_TYPE_VOID)
         return VoidDataPayload();
-    }
     size_t size = fieldTypeSize(method->return_type);
     char ownedValue[size];
 
@@ -305,11 +300,10 @@ namespace MethodUtils {
 
         if (method->name == std::string("get_renderingDisplaySize")) {
             LOG_INFO("Skipping get_renderingDisplaySize due to crash");
-            return {VoidDataPayload(method->return_type), {}};
+            return {HandleReturn(method), {}};
         }
 
         void* il2cppArgs[args.size()];
-        // TODO: type checking?
         FillList(args, il2cppArgs);
 
         Il2CppException* ex = nullptr;
@@ -319,13 +313,11 @@ namespace MethodUtils {
             error = il2cpp_utils::ExceptionToString(ex);
             LOG_INFO("{}: Failed with exception: {}", method->name, error);
             LOG_INFO("{}", StringW(ex->stack_trace));
-            return {VoidDataPayload(method->return_type), {}};
+            return {HandleReturn(method), {}};
         }
 
         LOG_DEBUG("Returning");
         auto byrefs = GetByrefOutputs(args, il2cppArgs);
-        if (!ret)
-            return {VoidDataPayload(method->return_type), byrefs};
         return {HandleReturn(method, ret), byrefs};
     }
 

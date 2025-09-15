@@ -5,123 +5,186 @@ import {
   createSignal,
   For,
   JSX,
+  Show,
   splitProps,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
-import { createUpdatingSignal } from "../../global/utils";
+import {
+  createUpdatingSignal,
+  IconPath,
+  uniqueNumber,
+} from "../../global/utils";
 import { DropdownPositions } from "./DropdownButton";
+import { Icon } from "solid-heroicons";
 
-let counter = 0;
-
-interface SelectInputProps<T>
+interface SelectInputProps<V, O>
   extends Omit<
     JSX.InputHTMLAttributes<HTMLInputElement>,
     "ref" | "onInput" | "onChange" | "onFocus" | "onBlur" | "value"
   > {
-  options: T[];
-  value: T;
+  value: V;
+  options: O[];
   showUndefined?: boolean;
-  equals?: (a: T, b: T) => boolean;
-  display?: (value: T) => string;
+  free?: boolean;
+  equals?: (a: V, b: V) => boolean;
+  display?: (value: V) => string;
+  search?: ((input: string, value: O) => boolean) | "default";
   onInput?: (value: string) => void;
-  onChange?: (value: T) => void;
+  onChange?: (value: V) => void;
   dropdownPosition?: DropdownPositions | DropdownPositions[];
+  preIcon?: IconPath;
 }
 
-export function SelectInput<T = string>(props: SelectInputProps<T>) {
-  let input!: HTMLInputElement;
-  let menu!: HTMLDivElement;
+export function SelectInput<V = string, O extends V = V>(
+  props: SelectInputProps<V, O>,
+) {
+  let inputElement!: HTMLInputElement;
+  let menuElement!: HTMLDivElement;
 
-  const id = counter++;
+  const id = uniqueNumber();
 
-  const [custom, others] = splitProps(props, [
-    "options",
-    "value",
-    "showUndefined",
-    "equals",
-    "display",
-    "onInput",
-    "onChange",
-    "dropdownPosition",
-  ]);
+  const [label, custom, others] = splitProps(
+    props,
+    ["class"],
+    [
+      "value",
+      "options",
+      "showUndefined",
+      "free",
+      "equals",
+      "display",
+      "search",
+      "onInput",
+      "onChange",
+      "dropdownPosition",
+      "preIcon",
+    ],
+  );
 
-  const [value, setValue] = createSignal("");
+  const [input, setInput] = createSignal("");
   const [selected, setSelected] = createUpdatingSignal(() => custom.value, {
     equals: false,
   });
   const [focused, setFocused] = createSignal(false);
   const [tempHide, setTempHide] = createSignal(false);
-  const [frozenOptions, setFrozenOptions] = createSignal<T[]>();
+  const [frozenOptions, setFrozenOptions] = createSignal<O[]>();
+
+  const search = (value: O) => {
+    if (typeof custom.search == "function")
+      return custom.search(input(), value);
+    if (custom.search == "default" && typeof value == "string")
+      return value.toLocaleLowerCase().includes(input().toLocaleLowerCase());
+    return true;
+  };
 
   const options = () =>
-    custom.showUndefined ? [undefined!, ...custom.options] : custom.options;
+    frozenOptions() ??
+    (custom.showUndefined
+      ? [undefined!, ...custom.options]
+      : custom.options
+    ).filter(search);
 
-  const display = (value: T) => custom.display?.(value) ?? `${value}`;
-  const equals = (a: T, b: T) => custom.equals?.(a, b) ?? a == b;
+  const display = (value: V) => custom.display?.(value) ?? `${value}`;
 
-  createEffect(() => setValue(display(selected())));
-  createEffect(() => custom.onInput?.(value()));
+  const isSelected = (value: O) =>
+    (custom.equals?.(value, selected()) ?? value == selected()) &&
+    (!custom.free || input() == display(value));
 
-  const focusIn = () => {
+  const select = (value: O) => {
+    batch(() => {
+      setFrozenOptions(options());
+      setSelected(() => value);
+      setTempHide(true);
+      custom.onChange?.(value);
+    });
+  };
+
+  createEffect(() => setInput(display(selected())));
+  createEffect(() => custom.onInput?.(input()));
+
+  let focusIdx = -1;
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    const children = menuElement.childNodes as NodeListOf<HTMLElement>;
+    if (e.key == "Escape") setTempHide(true);
+    else if (e.key == "ArrowDown" && focusIdx < children.length - 1)
+      children[++focusIdx].focus();
+    else if (e.key == "ArrowUp" && focusIdx > 0) children[--focusIdx].focus();
+    else if (e.key == "ArrowUp" && focusIdx == 0) inputElement.focus();
+    else return;
+    e.preventDefault();
+  };
+
+  const focusIn = () =>
     batch(() => {
       if (!focused()) {
-        setValue("");
+        if (!custom.free) setInput("");
         setFrozenOptions(undefined);
       }
       setFocused(true);
+      document.addEventListener("keydown", onKeyDown);
     });
-  };
+
   const focusOut = (e: FocusEvent) => {
     if (
-      input.contains(e.relatedTarget as unknown as Node) ||
-      menu.contains(e.relatedTarget as unknown as Node)
+      inputElement.contains(e.relatedTarget as unknown as Node) ||
+      menuElement.contains(e.relatedTarget as unknown as Node)
     )
       return;
     batch(() => {
       setFocused(false);
       setTempHide(false);
-      setFrozenOptions((opts) => opts ?? options());
-      setValue(display(selected()));
+      setFrozenOptions(options());
+      if (!custom.free) setInput(display(selected()));
+      document.removeEventListener("keydown", onKeyDown);
     });
   };
 
   // need options.source to have correct tab order with a portal
-  createEffect(() =>
-    focused() && !tempHide() ? menu.showPopover() : menu.hidePopover(),
-  );
+  createEffect(() => {
+    if (focused() && !tempHide()) menuElement.showPopover();
+    else {
+      menuElement.hidePopover();
+      focusIdx = -1;
+    }
+  });
 
   return (
-    <>
+    <label class={label.class} style={`anchor-name:--sel-in-anchor-${id}`}>
+      <Show when={custom.preIcon}>
+        <Icon path={custom.preIcon!} />
+      </Show>
       <input
         {...others}
-        ref={input}
+        ref={inputElement}
         onFocus={focusIn}
         onBlur={focusOut}
-        use:valueSignal={[value, setValue]}
-        style={`anchor-name:--sel-in-anchor-${id}`}
+        use:valueSignal={[input, setInput]}
+        use:onEnter={() => {
+          if (options().length > 0) select(options()[0]);
+          else if (custom.showUndefined) select(undefined!);
+        }}
+        onClick={(e) => {
+          setTempHide(false);
+          if (typeof others.onClick == "function") others.onClick(e);
+        }}
+        onInput={() => setTempHide(false)}
       />
       <Portal mount={document.getElementById("app")!}>
         <div
-          ref={menu}
+          ref={menuElement}
           onFocusIn={focusIn}
           onFocusOut={focusOut}
-          class={`dropdown dropdown-${custom.dropdownPosition ?? "start"} floating-menu flex flex-col p-1 gap-1`}
+          class={`dropdown dropdown-${custom.dropdownPosition ?? "start"} floating-menu flex flex-col p-1 gap-1 empty:transition-none empty:hidden`}
           popover="manual"
           style={`position-anchor:--sel-in-anchor-${id}`}
         >
-          <For each={frozenOptions() ?? options()}>
+          <For each={options()}>
             {(option) => (
               <button
-                class={`btn btn-sm ${equals(option, selected()) ? "btn-accent" : ""}`}
-                onClick={() => {
-                  batch(() => {
-                    setFrozenOptions(options());
-                    setSelected(() => option);
-                    setTempHide(true);
-                    custom.onChange?.(option);
-                  });
-                }}
+                class={`btn btn-sm ${isSelected(option) ? "btn-accent" : ""}`}
+                onClick={() => select(option)}
               >
                 {display(option)}
               </button>
@@ -129,6 +192,6 @@ export function SelectInput<T = string>(props: SelectInputProps<T>) {
           </For>
         </div>
       </Portal>
-    </>
+    </label>
   );
 }
