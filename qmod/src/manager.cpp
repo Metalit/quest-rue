@@ -134,14 +134,14 @@ static void SearchObjects(SearchObjects const& packet, uint64_t id) {
 
     std::string name = packet.has_name() ? packet.name() : "";
 
-    Il2CppClass* klass = GetClass(packet.componentclass());
-    if (!klass) {
+    Il2CppClass* clazz = GetClass(packet.componentclass());
+    if (!clazz) {
         INPUT_ERROR("Could not find class {}", packet.componentclass().DebugString())
         Socket::Send(wrapper);
         return;
     }
 
-    *wrapper.mutable_searchobjectsresult() = FindObjects(klass, name);
+    *wrapper.mutable_searchobjectsresult() = FindObjects(clazz, name);
 
     Socket::Send(wrapper);
 }
@@ -238,7 +238,7 @@ static void WriteMemory(WriteMemory const& packet, uint64_t id) {
 
 std::unordered_map<Il2CppClass const*, ProtoClassDetails> cachedClasses;
 
-ProtoClassDetails getClassDetails_internal(Il2CppClass* clazz) {
+ProtoClassDetails GetClassDetailsCached(Il2CppClass* clazz) {
     if (clazz == nullptr)
         return ProtoClassDetails();  // don't add to cache
 
@@ -316,14 +316,14 @@ static void GetClassDetails(GetClassDetails const& packet, uint64_t id) {
 
     auto result = wrapper.mutable_getclassdetailsresult();
 
-    Il2CppClass* klass = GetClass(packet.classinfo());
-    if (!klass) {
+    Il2CppClass* clazz = GetClass(packet.classinfo());
+    if (!clazz) {
         INPUT_ERROR("Could not find class {}", packet.classinfo().DebugString())
         Socket::Send(wrapper);
         return;
     }
 
-    *result->mutable_classdetails() = getClassDetails_internal(klass);
+    *result->mutable_classdetails() = GetClassDetailsCached(clazz);
 
     Socket::Send(wrapper);
 }
@@ -344,7 +344,7 @@ static void GetInstanceClass(GetInstanceClass const& packet, uint64_t id) {
     Socket::Send(wrapper);
 }
 
-GetInstanceValuesResult getInstanceValues_internal(Il2CppObject* instance, ProtoClassDetails const* classDetails) {
+GetInstanceValuesResult GetInstanceValuesForDetails(Il2CppObject* instance, ProtoClassDetails const* classDetails) {
     GetInstanceValuesResult ret;
 
     while (classDetails) {
@@ -383,8 +383,8 @@ static void GetInstanceValues(GetInstanceValues const& packet, uint64_t id) {
     if (!TryValidatePtr(instance))
         INPUT_ERROR("instance pointer was invalid")
     else {
-        auto details = getClassDetails_internal(instance->klass);
-        *wrapper.mutable_getinstancevaluesresult() = getInstanceValues_internal(instance, &details);
+        auto details = GetClassDetailsCached(instance->klass);
+        *wrapper.mutable_getinstancevaluesresult() = GetInstanceValuesForDetails(instance, &details);
     }
     Socket::Send(wrapper);
 }
@@ -401,8 +401,8 @@ static void GetInstanceDetails(GetInstanceDetails const& packet, uint64_t id) {
     else {
         auto result = wrapper.mutable_getinstancedetailsresult();
         auto classDetails = result->mutable_classdetails();
-        *classDetails = getClassDetails_internal(instance->klass);
-        *result->mutable_values() = getInstanceValues_internal(instance, classDetails);
+        *classDetails = GetClassDetailsCached(instance->klass);
+        *result->mutable_values() = GetInstanceValuesForDetails(instance, classDetails);
     }
     Socket::Send(wrapper);
 }
@@ -426,10 +426,10 @@ static void SendSafePtrList(uint64_t id) {
     auto& addresses = *res->mutable_addresses();
 
     auto objs = QRUE::MainThreadRunner::GetInstance()->keepAliveObjects;
-    for (auto const& addr : objs) {
+    for (auto const& inst : objs) {
         auto& info = *addresses.Add();
-        info.set_address(asInt(addr));
-        *info.mutable_clazz() = ClassUtils::GetClassInfo(typeofclass(addr->klass));
+        info.set_address(asInt(inst));
+        *info.mutable_clazz() = ClassUtils::GetClassInfo(typeofclass(inst->klass));
     }
 
     Socket::Send(wrapper);

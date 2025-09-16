@@ -69,9 +69,9 @@ static SearchObjectsResult ConvertObjects(std::span<UnityW<Object>> arr) {
     return result;
 }
 
-SearchObjectsResult FindObjects(Il2CppClass* klass, std::string name) {
+SearchObjectsResult FindObjects(Il2CppClass* clazz, std::string name) {
     LOG_DEBUG("Searching for objects");
-    auto objects = Object::FindObjectsOfType(reinterpret_cast<System::Type*>(il2cpp_utils::GetSystemType(klass)), true);
+    auto objects = Object::FindObjectsOfType(reinterpret_cast<System::Type*>(il2cpp_utils::GetSystemType(clazz)), true);
 
     if (!name.empty()) {
         LOG_DEBUG("Searching for name {}", name);

@@ -54,8 +54,8 @@ handle_enum:
                 t = il2cpp_functions::class_from_il2cpp_type(type)->element_class->byval_arg.type;
                 goto handle_enum;
             } else {
-                auto klass = il2cpp_functions::class_from_il2cpp_type(type);
-                return il2cpp_functions::class_instance_size(klass) - sizeof(Il2CppObject);
+                auto clazz = il2cpp_functions::class_from_il2cpp_type(type);
+                return il2cpp_functions::class_instance_size(clazz) - sizeof(Il2CppObject);
             }
         case IL2CPP_TYPE_GENERICINST:
             // t =
@@ -76,14 +76,14 @@ handle_enum:
 }
 
 // field_get_value, field_set_value
-std::vector<FieldInfo const*> ClassUtils::GetFields(Il2CppClass const* klass) {
-    if (!klass->fields)
+std::vector<FieldInfo const*> ClassUtils::GetFields(Il2CppClass const* clazz) {
+    if (!clazz->fields)
         return {};
 
     std::vector<FieldInfo const*> ret;
-    ret.reserve(klass->field_count);
+    ret.reserve(clazz->field_count);
 
-    for (auto const& field : std::span(klass->fields, klass->field_count))
+    for (auto const& field : std::span(clazz->fields, clazz->field_count))
         ret.emplace_back(&field);
     return ret;
 }
@@ -98,14 +98,14 @@ std::pair<MethodInfo const*, MethodInfo const*> ClassUtils::GetPropMethods(Prope
     return ret;
 }
 
-std::vector<PropertyInfo const*> ClassUtils::GetProperties(Il2CppClass const* klass) {
-    if (!klass->properties)
+std::vector<PropertyInfo const*> ClassUtils::GetProperties(Il2CppClass const* clazz) {
+    if (!clazz->properties)
         return {};
 
     std::vector<PropertyInfo const*> ret;
-    ret.reserve(klass->property_count);
+    ret.reserve(clazz->property_count);
 
-    for (auto const& property : std::span(klass->properties, klass->property_count)) {
+    for (auto const& property : std::span(clazz->properties, clazz->property_count)) {
         bool normal = !property.get || property.get->parameters_count == 0;
         normal = normal && (!property.set || property.set->parameters_count == 1);
         if (normal)
@@ -114,36 +114,36 @@ std::vector<PropertyInfo const*> ClassUtils::GetProperties(Il2CppClass const* kl
     return ret;
 }
 
-std::vector<MethodInfo const*> ClassUtils::GetMethods(Il2CppClass const* klass) {
-    if (!klass->methods)
+std::vector<MethodInfo const*> ClassUtils::GetMethods(Il2CppClass const* clazz) {
+    if (!clazz->methods)
         return {};
 
     std::vector<MethodInfo const*> ret;
-    ret.reserve(klass->method_count);
+    ret.reserve(clazz->method_count);
 
-    for (auto const& method : std::span(klass->methods, klass->method_count)) {
+    for (auto const& method : std::span(clazz->methods, clazz->method_count)) {
         if (method)
             ret.emplace_back(method);
     }
     return ret;
 }
 
-std::vector<Il2CppClass const*> ClassUtils::GetInterfaces(Il2CppClass const* klass) {
-    if (!klass->implementedInterfaces)
+std::vector<Il2CppClass const*> ClassUtils::GetInterfaces(Il2CppClass const* clazz) {
+    if (!clazz->implementedInterfaces)
         return {};
 
     std::vector<Il2CppClass const*> ret;
-    ret.reserve(klass->interfaces_count);
+    ret.reserve(clazz->interfaces_count);
 
-    for (auto const& interface : std::span(klass->implementedInterfaces, klass->interfaces_count)) {
+    for (auto const& interface : std::span(clazz->implementedInterfaces, clazz->interfaces_count)) {
         if (interface)
             ret.push_back(interface);
     }
     return ret;
 }
 
-Il2CppClass const* ClassUtils::GetParent(Il2CppClass const* klass) {
-    return klass->parent;
+Il2CppClass const* ClassUtils::GetParent(Il2CppClass const* clazz) {
+    return clazz->parent;
 }
 
 bool ClassUtils::GetIsLiteral(FieldInfo const* field) {
@@ -425,11 +425,11 @@ static Il2CppClass* GetClass(ProtoEnumInfo const& enumInfo) {
 Il2CppClass* ClassUtils::GetClass(ProtoClassInfo const& classInfo) {
     LOG_DEBUG("Getting class from class info {}::{}", classInfo.namespaze(), classInfo.clazz());
 
-    auto klass = il2cpp_utils::GetClassFromName(classInfo.namespaze(), classInfo.clazz());
-    if (!klass || classInfo.generics_size() <= 0)
-        return klass;
+    auto clazz = il2cpp_utils::GetClassFromName(classInfo.namespaze(), classInfo.clazz());
+    if (!clazz || classInfo.generics_size() <= 0)
+        return clazz;
     // no MakeGenericMethod for classes in bshook
-    auto runtimeClass = il2cpp_utils::GetSystemType(klass);
+    auto runtimeClass = il2cpp_utils::GetSystemType(clazz);
     ArrayW<System::Type*> genericArgs(classInfo.generics_size());
     for (int i = 0; i < genericArgs.size(); i++) {
         auto genericType = GetClass(classInfo.generics(i));
@@ -463,13 +463,13 @@ Il2CppClass* ClassUtils::GetClass(ProtoTypeInfo const& typeInfo) {
 }
 
 Il2CppType* ClassUtils::GetType(ProtoTypeInfo const& typeInfo) {
-    auto klass = GetClass(typeInfo);
-    if (!klass)
+    auto clazz = GetClass(typeInfo);
+    if (!clazz)
         return nullptr;
     // this probably handles byref
     if (typeInfo.isbyref())
-        return &klass->this_arg;
-    return &klass->byval_arg;
+        return &clazz->this_arg;
+    return &clazz->byval_arg;
 }
 
 static void CheckAddClass(GetTypeComplete const& search, Il2CppClass* clazz, std::set<std::string>& matches, std::string_view declaring = "") {

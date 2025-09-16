@@ -21,10 +21,10 @@ export function PropertyCell(props: PropertyCellProps) {
   const [setResult, setLoading, setValue] =
     useRequestAndResponsePacket<InvokeMethodResult>();
 
-  const errorHandler = (type: "Get" | "Set", result?: InvokeMethodResult) =>
+  const showError = (type: "Get" | "Set", result?: InvokeMethodResult) =>
     result?.error && toast.error(`${type} property error: ${result.error}`);
-  createEffect(() => errorHandler("Get", getResult()));
-  createEffect(() => errorHandler("Set", setResult()));
+  createEffect(() => showError("Get", getResult()));
+  createEffect(() => showError("Set", setResult()));
 
   const [value, setInputValue] = createUpdatingSignal(
     () => getResult()?.result?.data,

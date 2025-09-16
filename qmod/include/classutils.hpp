@@ -5,23 +5,23 @@
 
 size_t fieldTypeSize(Il2CppType const* type);
 
-#define typeofclass(klass) &klass->byval_arg
+#define typeofclass(clazz) &clazz->byval_arg
 #define classoftype(type) il2cpp_functions::class_from_il2cpp_type(type)
 #define classofinst(instance) instance->klass
 #define typeofinst(instance) typeofclass(classofinst(instance))
 
 namespace ClassUtils {
-    std::vector<FieldInfo const*> GetFields(Il2CppClass const* klass);
+    std::vector<FieldInfo const*> GetFields(Il2CppClass const* clazz);
 
     // [getter?, setter?]
     std::pair<MethodInfo const*, MethodInfo const*> GetPropMethods(PropertyInfo const* prop);
-    std::vector<PropertyInfo const*> GetProperties(Il2CppClass const* klass);
+    std::vector<PropertyInfo const*> GetProperties(Il2CppClass const* clazz);
 
-    std::vector<MethodInfo const*> GetMethods(Il2CppClass const* klass);
+    std::vector<MethodInfo const*> GetMethods(Il2CppClass const* clazz);
 
-    std::vector<Il2CppClass const*> GetInterfaces(Il2CppClass const* klass);
+    std::vector<Il2CppClass const*> GetInterfaces(Il2CppClass const* clazz);
 
-    Il2CppClass const* GetParent(Il2CppClass const* klass);
+    Il2CppClass const* GetParent(Il2CppClass const* clazz);
 
     bool GetIsLiteral(FieldInfo const* field);
 
@@ -30,13 +30,13 @@ namespace ClassUtils {
     bool GetIsStatic(MethodInfo const* method);
 
     bool GetIsCustom(Il2CppType const* type);
-    inline bool GetIsCustom(Il2CppClass const* klass) {
-        return GetIsCustom(typeofclass(klass));
+    inline bool GetIsCustom(Il2CppClass const* clazz) {
+        return GetIsCustom(typeofclass(clazz));
     }
 
     ProtoTypeInfo GetTypeInfo(Il2CppType const* type);
-    inline ProtoTypeInfo GetTypeInfo(Il2CppClass const* klass) {
-        return GetTypeInfo(typeofclass(klass));
+    inline ProtoTypeInfo GetTypeInfo(Il2CppClass const* clazz) {
+        return GetTypeInfo(typeofclass(clazz));
     }
     ProtoTypeInfo::Primitive GetPrimitive(Il2CppType const* primitiveType);
     ProtoClassInfo GetClassInfo(Il2CppType const* classType);
