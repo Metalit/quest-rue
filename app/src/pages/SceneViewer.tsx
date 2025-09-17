@@ -33,7 +33,7 @@ function RightHeader({ api }: IGroupHeaderProps) {
   return (
     <div class="flex items-center mr-2 h-full">
       <Show when={inGrid()}>
-        <button class="w-6 p-1 rounded-sm hover:bg-shadow" onClick={toggle}>
+        <button class="btn btn-square btn-ghost btn-xs" onClick={toggle}>
           <Icon path={fullscreen() ? arrowsPointingIn : arrowsPointingOut} />
         </button>
       </Show>
@@ -50,7 +50,7 @@ function Tab({ api }: TabPartInitParameters) {
     <div class="flex gap-2 items-center h-full hover:*:visible">
       {title()}
       <button
-        class="invisible w-6 p-1 rounded-sm hover:bg-shadow"
+        class="invisible btn btn-square btn-ghost btn-xs"
         onClick={() => api.close()}
       >
         <Icon path={xMark} />
@@ -66,7 +66,7 @@ export default function SceneViewer() {
   onMount(() => updateGameObjects());
 
   return (
-    <div class="w-full h-full p-1 bg">
+    <div class="size-full p-1 bg">
       <Dockview
         panels={{
           console: Console,

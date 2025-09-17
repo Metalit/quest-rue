@@ -10,6 +10,7 @@ interface ActionButtonProps {
   class?: string;
   label?: string;
   tooltip?: string;
+  disabled?: boolean;
 }
 
 export function ActionButton(props: ActionButtonProps) {
@@ -29,6 +30,7 @@ export function ActionButton(props: ActionButtonProps) {
   return (
     <button
       class={props.class}
+      disabled={props.disabled}
       classList={{ tooltip: props.tooltip !== undefined }}
       // False positive
       // eslint-disable-next-line solid/reactivity

@@ -25,6 +25,14 @@ export function setTypeCase(
   };
 }
 
+export function typeForClass(
+  namespaze: string,
+  clazz: string,
+  generics: ProtoTypeInfo[] = [],
+) {
+  return setTypeCase({ classInfo: { namespaze, clazz, generics } });
+}
+
 // converts an object to a json string, but without extra quotes if the object is a string
 function stringifyQuotesless(obj: unknown) {
   if (typeof obj == "string") return obj;

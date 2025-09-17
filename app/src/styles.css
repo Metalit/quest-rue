@@ -106,6 +106,22 @@
   transform: translate(-50%, -50%);
 }
 
+/* https://css-tricks.com/an-auto-filling-css-grid-with-max-columns/ */
+.max-cols-grid {
+  --grid-column-gap: 20px;
+  --grid-column-count: 2;
+  --grid-item-min-width: 450px;
+
+  /* calculated */
+  --gap-count: calc(var(--grid-column-count) - 1);
+  --total-gap-width: calc(var(--gap-count) * var(--grid-column-gap));
+  --grid-item-max-width: calc((100% - var(--total-gap-width)) / var(--grid-column-count));
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(var(--grid-item-min-width), var(--grid-item-max-width)), 1fr));
+  grid-column-gap: var(--grid-column-gap);
+}
+
 .light-invert {
   @apply invert dark:filter-none;
 }
@@ -115,19 +131,41 @@
 }
 
 /* patches */
-.input:focus,
-.input:focus-within {
-  outline: none;
+.btn:not(.btn-ghost) {
+  &:focus,
+  &:focus-within {
+    @apply border-black dark:border-white;
+  }
+
+  &.disabled,
+  &.btn-disabled,
+  &[disabled] {
+    --btn-bg: color-mix(
+      in oklab,
+      var(--btn-color, var(--color-base-200)),
+      #000 7%
+    );
+    background-color: var(--btn-bg);
+  }
 }
 
-.btn:focus,
-.btn:focus-within {
-  @apply border-black dark:border-white;
-  outline: none;
+.btn.btn-ghost {
+  --btn-shadow: "";
+  --btn-bg: #0000;
+  --btn-border: #0000;
+  --btn-noise: none;
+  border: none;
+
+  @apply hover:bg-shadow;
 }
 
 .btn,
 .input {
+  &:focus,
+  &:focus-within {
+    outline: none;
+  }
+
   --icon-size: 1.5rem;
   &.btn-sm,
   &.input-sm {
@@ -151,6 +189,9 @@
 }
 
 .input {
+  min-width: 3rem;
+  max-width: 20rem;
+
   .loading,
   img,
   svg {

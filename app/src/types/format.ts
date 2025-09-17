@@ -127,15 +127,14 @@ export function stringToProtoType(
   return undefined;
 }
 
-function protoClassToString(classInfo: ProtoClassInfo): string {
+export function protoClassToString(classInfo: ProtoClassInfo): string {
   let ret = `${classInfo.clazz}`;
   if (classInfo.generics?.length) {
     ret += "<";
     ret += classInfo.generics.map((t) => protoTypeToString(t)).join(", ");
     ret += ">";
   }
-  if (classInfo.namespaze) return `${classInfo.namespaze}::${ret}`;
-  return ret;
+  return `${classInfo.namespaze}::${ret}`;
 }
 
 export function protoTypeToString(type: ProtoTypeInfo): string {

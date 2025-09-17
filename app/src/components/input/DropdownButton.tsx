@@ -70,6 +70,7 @@ export function ModeOptions<T extends string>(props: {
 export function DropdownButton(
   props: ParentProps<{
     icon: IconPath;
+    text?: string;
     title?: string;
     class?: string;
     dropdownClass?: string;
@@ -82,11 +83,12 @@ export function DropdownButton(
 
   return (
     <button
-      class={`btn btn-square ${props.class ?? ""}`}
+      class={`btn ${props.text ? "" : "btn-square"} ${props.class ?? ""}`}
       style={`anchor-name:--drpdn-anchor-${id}`}
       popovertarget={`drpdn-pop-${id}`}
       title={props.title}
     >
+      {props.text ?? ""}
       <Icon path={props.icon} />
       <Portal mount={document.getElementById("app")!}>
         <div

@@ -75,7 +75,7 @@ export function createAsyncMemo<T>(
   // TODO: Use createResource or handle errors properly
   const [valAccessor, valSetter] = createSignal<T>();
   const [loading, setLoading] = createSignal(true);
-  const update = async () => {
+  const fetch = async () => {
     setLoading(true);
     // resolve promise before setter
     const v = await valPromise();
@@ -85,8 +85,8 @@ export function createAsyncMemo<T>(
   };
   // run even if inital render phase
   // we use effect to listen to changes
-  createRenderEffect(update);
-  return [valAccessor, loading, update];
+  createRenderEffect(fetch);
+  return [valAccessor, loading, fetch];
 }
 
 export function onInput(

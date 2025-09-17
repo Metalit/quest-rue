@@ -1,4 +1,4 @@
-import { createEffect, Show } from "solid-js";
+import { createEffect } from "solid-js";
 import toast from "solid-toast";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
@@ -7,7 +7,7 @@ import { ProtoDataPayload, ProtoPropertyInfo } from "../../proto/il2cpp";
 import { InvokeMethodResult } from "../../proto/qrue";
 import { ValueCell } from "./ValueCell";
 import { ActionButton } from "../input/ActionButton";
-import { arrowRightOnRectangle } from "solid-heroicons/outline";
+import { arrowPath, arrowRightOnRectangle } from "solid-heroicons/outline";
 
 interface PropertyCellProps {
   property: ProtoPropertyInfo;
@@ -53,10 +53,14 @@ export function PropertyCell(props: PropertyCellProps) {
       },
     });
 
+  createEffect(() => !props.skipRetrieve && get());
+
   return (
-    <div class="flex gap-3 items-center">
-      <span class="mono w-48">{props.property.name}</span>
-      <div class="join">
+    <div class="flex items-center justify-between">
+      <span class="mono grow min-w-0" title={props.property.name}>
+        {props.property.name}
+      </span>
+      <div class="join w-3/5 shrink-0 justify-end">
         <ValueCell
           class="join-item"
           input={!!props.property.setterId}
@@ -65,24 +69,22 @@ export function PropertyCell(props: PropertyCellProps) {
           onChange={setInputValue}
           value={value()}
         />
-        <Show when={props.property.getterId}>
-          <ActionButton
-            class="join-item btn btn-sm btn-square"
-            img="refresh"
-            tooltip="Get Value"
-            loading={getLoading()}
-            onClick={get}
-          />
-        </Show>
-        <Show when={props.property.setterId}>
-          <ActionButton
-            class="join-item btn btn-sm btn-square"
-            img={arrowRightOnRectangle}
-            tooltip="Set Value"
-            loading={setLoading()}
-            onClick={set}
-          />
-        </Show>
+        <ActionButton
+          class="join-item btn btn-sm btn-square"
+          img={arrowPath}
+          tooltip="Get Value"
+          loading={getLoading()}
+          onClick={get}
+          disabled={!props.property.getterId}
+        />
+        <ActionButton
+          class="join-item btn btn-sm btn-square"
+          img={arrowRightOnRectangle}
+          tooltip="Set Value"
+          loading={setLoading()}
+          onClick={set}
+          disabled={!props.property.setterId}
+        />
       </div>
     </div>
   );

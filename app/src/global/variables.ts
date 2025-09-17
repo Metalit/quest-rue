@@ -1,6 +1,6 @@
 import { createStore, produce } from "solid-js/store";
 import { ProtoDataPayload, ProtoTypeInfo } from "../proto/il2cpp";
-import { setDataCase, setTypeCase } from "../types/serialization";
+import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
 import { sendPacketResult } from "./packets";
 import { GetSafePtrAddressesResult } from "../proto/qrue";
 import { bigToString, WithCase } from "./utils";
@@ -14,25 +14,13 @@ export { variables };
 export const constVariables: typeof variables = {
   Null: {
     data: setDataCase({ classData: 0n }),
-    typeInfo: setTypeCase({
-      classInfo: {
-        namespaze: "System",
-        clazz: "Object",
-        generics: [],
-      },
-    }),
+    typeInfo: typeForClass("System", "Object"),
   },
   Empty: {
     data: setDataCase({ arrayData: { data: [] } }),
     typeInfo: setTypeCase({
       arrayInfo: {
-        memberType: setTypeCase({
-          classInfo: {
-            namespaze: "System",
-            clazz: "Object",
-            generics: [],
-          },
-        }),
+        memberType: typeForClass("System", "Object"),
       },
     }),
   },

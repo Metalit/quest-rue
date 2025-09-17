@@ -19,7 +19,7 @@ import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";
 import { stringToBig } from "../global/utils";
 import { ProtoScene } from "../proto/unity";
-import { setDataCase, setTypeCase } from "../types/serialization";
+import { setDataCase, typeForClass } from "../types/serialization";
 import { useDockview } from "./Dockview";
 import { DropdownButton, ModeOptions } from "./input/DropdownButton";
 import { SelectInput } from "./input/SelectInput";
@@ -236,13 +236,7 @@ function ObjectListItem(props: {
   const api = useDockview();
 
   const select = () => {
-    const typeInfo = setTypeCase({
-      classInfo: {
-        namespaze: "UnityEngine",
-        clazz: "Transform",
-        generics: [],
-      },
-    });
+    const typeInfo = typeForClass("UnityEngine", "Transform");
     const data = setDataCase({ classData: stringToBig(props.address) });
     selectInLastPanel(api, { typeInfo, data });
   };
@@ -257,7 +251,7 @@ function ObjectListItem(props: {
     >
       <Show when={info().children > 0}>
         <button
-          class="w-5 p-1 ml-[-4px] hover:bg-shadow rounded-sm cursor-pointer"
+          class="btn btn-ghost size-5 p-1 ml-[-4px]"
           onClick={toggleExpand}
         >
           <Icon path={info().expanded ? chevronDown : chevronRight} />
@@ -333,9 +327,9 @@ export function Hierarchy() {
     scenes().find(({ handle }) => handle == scene?.handle)?.name ?? "All";
 
   return (
-    <div class="p-2 pt-2.5 gap-1 flex flex-col items-stretch h-full">
+    <div class="p-2 pt-2.5 gap-1 flex flex-col items-stretch size-full">
       <input
-        class="input input-sm shrink-0"
+        class="input input-sm shrink-0 w-full"
         placeholder="Search"
         use:valueSignal={[search, setSearch]}
       />

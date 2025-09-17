@@ -1,9 +1,11 @@
 import { Icon } from "solid-heroicons";
 import {
+  arrowLongRight,
   barsArrowDown,
   barsArrowUp,
   chevronDoubleRight,
   chevronDown,
+  ellipsisHorizontalCircle,
   eye,
   funnel,
   magnifyingGlass,
@@ -11,15 +13,13 @@ import {
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 
 import { createStore } from "solid-js/store";
-import { useRequestAndResponsePacket } from "../global/packets";
 import { getSelection, removePanel, setLastPanel } from "../global/selection";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
   ProtoDataPayload,
 } from "../proto/il2cpp";
-import { GetClassDetailsResult } from "../proto/qrue";
-import { protoTypeToString } from "../types/format";
+import { protoClassToString, protoTypeToString } from "../types/format";
 import { PanelProps } from "./Dockview";
 import {
   DropdownButton,
@@ -27,6 +27,11 @@ import {
   ModeOptions,
 } from "./input/DropdownButton";
 import { PropertyCell } from "./data/PropertyCell";
+import { getClassDetails } from "../global/cache";
+import { createAsyncMemo } from "../global/utils";
+import { MaxColsGrid } from "./MaxColsGrid";
+import { columnCount } from "../global/settings";
+import { FieldCell } from "./data/FieldCell";
 
 let reloading = false;
 
@@ -101,13 +106,50 @@ function DetailsList(props: {
   inverse: boolean;
 }) {
   return (
-    <div class="overflow-auto flex flex-col gap-2">
+    <MaxColsGrid class="overflow-auto gap-y-2" maxCols={columnCount()}>
+      <For each={props.details.fields}>
+        {(field) => <FieldCell field={field} selection={props.selection} />}
+      </For>
       <For each={props.details.properties}>
         {(property) => (
           <PropertyCell property={property} selection={props.selection} />
         )}
       </For>
+    </MaxColsGrid>
+  );
+}
+
+function InheritancePanel(props: { details?: ProtoClassDetails }) {
+  const items = () => {
+    const list: (ProtoClassInfo | ProtoClassInfo[])[] = [];
+    let current = props.details;
+    while (current) {
+      if (current != props.details) list.push(current.clazz!);
+      if (current.interfaces.length > 0) list.push(current.interfaces);
+      current = current.parent;
+    }
+    return list;
+  };
+
+  const Interfaces = (props: { items: ProtoClassInfo[] }) => (
+    <div class="flex items-center gap-3">
+      <Icon class="size-5 mr-[-6px]" path={arrowLongRight} />
+      <For each={props.items}>
+        {(item) => <span>{protoClassToString(item)}</span>}
+      </For>
     </div>
+  );
+
+  return (
+    <For each={items()}>
+      {(item) =>
+        Array.isArray(item) ? (
+          <Interfaces items={item} />
+        ) : (
+          <span>{protoClassToString(item)}</span>
+        )
+      }
+    </For>
   );
 }
 
@@ -128,17 +170,15 @@ export function Selection({ api, id }: PanelProps) {
   // doesn't update when created for some reason
   requestAnimationFrame(() => api.setTitle(title()));
 
-  const [details, detailsLoading, getDetails] =
-    useRequestAndResponsePacket<GetClassDetailsResult>(true);
-
-  createEffect(() => {
+  const [details, loading] = createAsyncMemo(async () => {
     const selection = getSelection(id);
     let classInfo: ProtoClassInfo | undefined = undefined;
     if (selection.typeInfo?.Info?.$case == "classInfo")
       classInfo = selection.typeInfo.Info.classInfo;
     else if (selection.typeInfo?.Info?.$case == "structInfo")
       classInfo = selection.typeInfo.Info.structInfo.clazz;
-    if (classInfo) getDetails({ getClassDetails: { classInfo } });
+    if (classInfo) return await getClassDetails(classInfo);
+    else return undefined;
   });
 
   const [search, setSearch] = createSignal("");
@@ -152,11 +192,17 @@ export function Selection({ api, id }: PanelProps) {
 
   return (
     <Show when={getSelection(id).typeInfo} fallback={<NoSelection />}>
-      <div class="w-full h-full flex flex-col p-2">
-        <div class="flex flex-wrap gap-3 gap-y-1">
-          <span class="mono h-8 content-end">
-            {protoTypeToString(getSelection(id).typeInfo!)}
-          </span>
+      <div class="size-full flex flex-col p-2">
+        <div class="flex flex-wrap items-end gap-1 gap-y-1">
+          <DropdownButton
+            class="btn-sm btn-ghost mono text-[16px]"
+            text={protoTypeToString(getSelection(id).typeInfo!)}
+            icon={ellipsisHorizontalCircle}
+            dropdownClass="mono p-2 gap-2 max-w-2xl max-h-96 overflow-auto"
+          >
+            <InheritancePanel details={details()} />
+          </DropdownButton>
+          <span class="h-8" />
           <div class="grow basis-0 flex gap-1 items-center justify-end">
             <div class="grow justify-end join">
               <input
@@ -229,16 +275,16 @@ export function Selection({ api, id }: PanelProps) {
         </div>
         <div class="divider" />
         <Show
-          when={!detailsLoading() && details()?.classDetails}
+          when={!loading() && details()}
           fallback={
-            <div class="w-full h-full">
+            <div class="size-full">
               <span class="absolute-centered loading loading-xl" />
             </div>
           }
         >
           <DetailsList
             selection={getSelection(id)}
-            details={details()!.classDetails!}
+            details={details()!}
             search={search()}
             searchMode={searchMode()}
             filters={filters}

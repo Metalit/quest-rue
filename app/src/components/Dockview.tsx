@@ -51,7 +51,7 @@ class CustomRenderer<
     this._dispose = disposer;
     // for compiler reasons this needs to be created in JSX for hmr to work
     this._element = (
-      <div class="overflow-auto w-full h-full">
+      <div class="overflow-auto size-full">
         {this._create({ ...params, ...this._params })}
       </div>
     ) as HTMLElement;
@@ -200,7 +200,7 @@ export function Dockview(
     ],
   );
   const main = (
-    <div {...normal} class={`w-full h-full ${custom.class ?? ""}`} />
+    <div {...normal} class={`size-full ${custom.class ?? ""}`} />
   );
 
   const api = createDockview(main as HTMLDivElement, {
