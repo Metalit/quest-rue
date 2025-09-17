@@ -164,7 +164,9 @@
 }
 
 .dropdown {
-  position-try-fallbacks: flip-block;
+  /* why doesn't this work on scroll? */
+  position-try: flip-block, flip-inline;
+  position-visibility: anchors-visible;
 }
 
 /* defaults */
