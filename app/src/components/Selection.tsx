@@ -11,27 +11,28 @@ import {
   magnifyingGlass,
 } from "solid-heroicons/outline";
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
-
 import { createStore } from "solid-js/store";
+
+import { getClassDetails } from "../global/cache";
 import { getSelection, removePanel, setLastPanel } from "../global/selection";
+import { columnCount } from "../global/settings";
+import { createAsyncMemo } from "../global/utils";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
   ProtoDataPayload,
 } from "../proto/il2cpp";
 import { protoClassToString, protoTypeToString } from "../types/format";
+import { FieldCell } from "./data/FieldCell";
+import { MethodCell } from "./data/MethodCell";
+import { PropertyCell } from "./data/PropertyCell";
 import { PanelProps } from "./Dockview";
 import {
   DropdownButton,
   FilterOptions,
   ModeOptions,
 } from "./input/DropdownButton";
-import { PropertyCell } from "./data/PropertyCell";
-import { getClassDetails } from "../global/cache";
-import { createAsyncMemo } from "../global/utils";
 import { MaxColsGrid } from "./MaxColsGrid";
-import { columnCount } from "../global/settings";
-import { FieldCell } from "./data/FieldCell";
 
 let reloading = false;
 
@@ -114,6 +115,9 @@ function DetailsList(props: {
         {(property) => (
           <PropertyCell property={property} selection={props.selection} />
         )}
+      </For>
+      <For each={props.details.methods}>
+        {(method) => <MethodCell method={method} selection={props.selection} />}
       </For>
     </MaxColsGrid>
   );

@@ -1,3 +1,4 @@
+import { arrowPath, arrowRightOnRectangle } from "solid-heroicons/outline";
 import { createEffect } from "solid-js";
 import toast from "solid-toast";
 
@@ -5,9 +6,8 @@ import { useRequestAndResponsePacket } from "../../global/packets";
 import { createUpdatingSignal } from "../../global/utils";
 import { ProtoDataPayload, ProtoPropertyInfo } from "../../proto/il2cpp";
 import { InvokeMethodResult } from "../../proto/qrue";
-import { ValueCell } from "./ValueCell";
 import { ActionButton } from "../input/ActionButton";
-import { arrowPath, arrowRightOnRectangle } from "solid-heroicons/outline";
+import { ValueCell } from "./ValueCell";
 
 interface PropertyCellProps {
   property: ProtoPropertyInfo;
@@ -63,8 +63,7 @@ export function PropertyCell(props: PropertyCellProps) {
       <div class="join w-3/5 shrink-0 justify-end">
         <ValueCell
           class="join-item"
-          input={!!props.property.setterId}
-          output={!!props.property.getterId}
+          disableInput={!props.property.setterId}
           typeInfo={props.property.type!}
           onChange={setInputValue}
           value={value()}

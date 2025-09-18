@@ -23,3 +23,12 @@ export async function getClassDetails(classInfo: ProtoClassInfo) {
 
   return result.classDetails;
 }
+
+export function tryGetCachedClassDetails(classInfo: ProtoClassInfo) {
+  const key = protoClassToString(classInfo);
+  return classDetailsCache[key];
+}
+
+export function clearDetailsCache() {
+  for (const key in classDetailsCache) delete classDetailsCache[key];
+}

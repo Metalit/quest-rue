@@ -19,9 +19,9 @@ export function MaxColsGrid(
       {...normal}
       class={`max-cols-grid ${modified.class ?? ""}`}
       style={{
-        "--grid-column-gap": modified.colGap,
-        "--grid-column-count": modified.maxCols,
-        "--grid-item-min-width": modified.minWidth,
+        "--grid-column-gap": `${modified.colGap ?? 20}px`,
+        "--grid-column-count": modified.maxCols ?? 2,
+        "--grid-item-min-width": `${modified.minWidth ?? 450}px`,
       }}
     />
   );

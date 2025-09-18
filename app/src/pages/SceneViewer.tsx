@@ -13,6 +13,7 @@ import { Dockview, DockviewPanel } from "../components/Dockview";
 import { Hierarchy } from "../components/Hierarchy";
 import { Selection } from "../components/Selection";
 import { Variables } from "../components/Variables";
+import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { socket } from "../global/socket";
 
@@ -63,7 +64,10 @@ export default function SceneViewer() {
   const navigate = useNavigate();
   createEffect(() => !socket.connected() && navigate("/"));
 
-  onMount(() => updateGameObjects());
+  onMount(() => {
+    clearDetailsCache();
+    updateGameObjects();
+  });
 
   return (
     <div class="size-full p-1 bg">

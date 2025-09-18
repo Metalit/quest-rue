@@ -1,24 +1,30 @@
-import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 
+import { findVariablesForType } from "../../global/variables";
 import {
   ProtoDataSegment,
   ProtoTypeInfo,
   ProtoTypeInfo_Primitive,
 } from "../../proto/il2cpp";
 import { protoDataToString, protoTypeToString } from "../../types/format";
+import { isProtoDataEqual } from "../../types/matching";
 import { stringToDataSegment, validString } from "../../types/serialization";
 import { SelectInput } from "../input/SelectInput";
-import { constVariables, variables } from "../../global/variables";
-import { areProtoTypesEqual, isProtoDataEqual } from "../../types/matching";
+
+const variableCases: NonNullable<ProtoTypeInfo["Info"]>["$case"][] = [
+  "arrayInfo",
+  "classInfo",
+  "structInfo",
+];
 
 interface ValueCellProps {
   class?: string;
   typeInfo: ProtoTypeInfo;
-  input: boolean;
-  output: boolean;
+  disableInput?: boolean;
   title?: string;
+  placeholder?: string;
   value?: ProtoDataSegment;
-  onChange: (value: ProtoDataSegment) => void;
+  onChange?: (value: ProtoDataSegment) => void;
 }
 
 function FreeInputCell(props: ValueCellProps) {
@@ -34,7 +40,7 @@ function FreeInputCell(props: ValueCellProps) {
     const inputData = stringToDataSegment(input(), props.typeInfo);
     if (!isProtoDataEqual(inputData, lastInputData)) {
       lastInputData = inputData;
-      props.onChange(lastInputData);
+      props.onChange?.(lastInputData);
     }
   });
   // update if the value changed from a source other than the input
@@ -49,7 +55,7 @@ function FreeInputCell(props: ValueCellProps) {
   return (
     <input
       class={`input input-sm ${valid(input()) ? "" : "focus:input-error"} ${props.class ?? ""}`}
-      placeholder={props.title}
+      placeholder={props.placeholder}
       title={props.title}
       use:valueSignal={[input, setInput]}
     />
@@ -72,12 +78,12 @@ function OptionsInputCell(props: ValueCellProps) {
   return (
     <SelectInput
       class={`input input-sm ${props.class ?? ""}`}
-      placeholder={props.title}
+      placeholder={props.placeholder}
       title={props.title}
       options={options()}
       value={protoDataToString(props.value, props.typeInfo)}
       onChange={(value) =>
-        props.onChange(stringToDataSegment(value, props.typeInfo))
+        props.onChange?.(stringToDataSegment(value, props.typeInfo))
       }
       search="default"
     />
@@ -100,36 +106,22 @@ function ManualInputCell(props: ValueCellProps) {
 
 // array, struct, or class
 function VariableInputCell(props: ValueCellProps) {
-  const allowedVariables = createMemo(() =>
-    Object.entries(variables)
-      .filter(
-        ([, { typeInfo }]) =>
-          areProtoTypesEqual(props.typeInfo, typeInfo) || true,
-      )
-      .concat(
-        Object.entries(constVariables).filter(
-          ([, { typeInfo }]) =>
-            typeInfo?.Info?.$case == props.typeInfo.Info?.$case,
-        ),
-      ),
-  );
+  const allowedVariables = () => findVariablesForType(props.typeInfo);
 
-  const match = createMemo(
-    () =>
-      allowedVariables().find(([, { data }]) =>
-        isProtoDataEqual(data, props.value),
-      ) ?? [undefined, undefined],
-  );
+  const match = () =>
+    allowedVariables().find(([, { data }]) =>
+      isProtoDataEqual(data, props.value),
+    ) ?? [undefined, undefined];
 
   // todo: option to create a new variable
   return (
     <SelectInput
       class={`input input-sm ${props.class ?? ""}`}
-      placeholder={props.title}
+      placeholder={props.placeholder}
       title={props.title}
       value={match()}
       options={allowedVariables()}
-      onChange={([, data]) => data?.data && props.onChange(data.data)}
+      onChange={([, data]) => data?.data && props.onChange?.(data.data)}
       equals={([name1], [name2]) => name1 == name2}
       search={(input, [name]) =>
         name.toLocaleLowerCase().includes(input.toLocaleLowerCase())
@@ -141,16 +133,39 @@ function VariableInputCell(props: ValueCellProps) {
   );
 }
 
+function OutputOnlyCell(props: ValueCellProps) {
+  return (
+    <input
+      class={`input input-sm ${props.class ?? ""}`}
+      placeholder={props.placeholder}
+      title={props.title}
+      value={protoDataToString(props.value, props.typeInfo)}
+      readonly
+    />
+  );
+}
+
+function ValueCellWithTitle(props: ValueCellProps) {
+  return (
+    <Show when={!props.disableInput} fallback={<OutputOnlyCell {...props} />}>
+      <Show
+        when={variableCases.includes(props.typeInfo.Info!.$case!)}
+        fallback={<ManualInputCell {...props} />}
+      >
+        <VariableInputCell {...props} />
+      </Show>
+    </Show>
+  );
+}
+
 export function ValueCell(props: ValueCellProps) {
   const title = () => props.title ?? protoTypeToString(props.typeInfo);
+  const placeholder = () => props.placeholder ?? title();
   return (
-    <Show
-      when={["classInfo", "structInfo", "arrayInfo"].includes(
-        props.typeInfo.Info?.$case ?? "",
-      )}
-      fallback={<ManualInputCell {...props} title={title()} />}
-    >
-      <VariableInputCell {...props} title={title()} />
-    </Show>
+    <ValueCellWithTitle
+      {...props}
+      title={title()}
+      placeholder={placeholder()}
+    />
   );
 }

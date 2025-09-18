@@ -1,12 +1,12 @@
+import { arrowPath } from "solid-heroicons/outline";
 import { createEffect } from "solid-js";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
 import { createUpdatingSignal } from "../../global/utils";
 import { ProtoDataPayload, ProtoFieldInfo } from "../../proto/il2cpp";
 import { GetFieldResult, SetFieldResult } from "../../proto/qrue";
-import { ValueCell } from "./ValueCell";
 import { ActionButton } from "../input/ActionButton";
-import { arrowPath } from "solid-heroicons/outline";
+import { ValueCell } from "./ValueCell";
 
 interface FieldCellProps {
   field: ProtoFieldInfo;
@@ -55,8 +55,6 @@ export function FieldCell(props: FieldCellProps) {
       <div class="join w-3/5 shrink-0 justify-end">
         <ValueCell
           class="join-item"
-          input
-          output
           typeInfo={props.field.type!}
           onChange={setInputValue}
           value={inputValue()}

@@ -1,8 +1,14 @@
 import { createStore, produce } from "solid-js/store";
+
 import { ProtoDataPayload, ProtoTypeInfo } from "../proto/il2cpp";
-import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
-import { sendPacketResult } from "./packets";
 import { GetSafePtrAddressesResult } from "../proto/qrue";
+import {
+  areProtoClassesConvertible,
+  areProtoTypesEqual,
+} from "../types/matching";
+import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
+import { getClassDetails, tryGetCachedClassDetails } from "./cache";
+import { sendPacketResult } from "./packets";
 import { bigToString, WithCase } from "./utils";
 
 const [variables, setVariables] = createStore<{
@@ -29,6 +35,8 @@ export const constVariables: typeof variables = {
 export async function addVariable(name: string, value: ProtoDataPayload) {
   if (!isVariableNameFree(name) || !validVariableName(name)) return false;
   setVariables({ [name]: value });
+  if (value.typeInfo?.Info?.$case == "classInfo")
+    await getClassDetails(value.typeInfo.Info.classInfo);
   if (value.data?.Data?.$case == "classData")
     await sendPacketResult({
       addSafePtrAddress: { address: value.data.Data.classData, remove: false },
@@ -65,6 +73,9 @@ export async function updateReferenceVariables() {
     getSafePtrAddresses: {},
   })[0];
 
+  // populate class details in cache
+  await Promise.all(addresses.map(({ clazz }) => getClassDetails(clazz!)));
+
   // find class details of all the new variables
   const newVariables = Object.fromEntries(
     addresses.map(({ address, clazz }) => [
@@ -100,6 +111,27 @@ export async function updateReferenceVariables() {
       }
     }),
   );
+}
+
+export function findVariablesForType(typeInfo: ProtoTypeInfo) {
+  return Object.entries(variables)
+    .filter(([, { typeInfo: variableType }]) => {
+      if (
+        typeInfo.Info?.$case == "classInfo" &&
+        variableType?.Info?.$case == "classInfo"
+      ) {
+        const details = tryGetCachedClassDetails(variableType.Info.classInfo);
+        if (details)
+          return areProtoClassesConvertible(details, typeInfo.Info.classInfo);
+      }
+      return areProtoTypesEqual(typeInfo, variableType);
+    })
+    .concat(
+      Object.entries(constVariables).filter(
+        ([, { typeInfo: variableType }]) =>
+          typeInfo.Info?.$case == variableType?.Info?.$case,
+      ),
+    );
 }
 
 export function findReferenceVariable(address: bigint) {
