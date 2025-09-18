@@ -74,10 +74,11 @@ message ProtoFieldInfo {
 
 message ProtoPropertyInfo {
     string name = 1;
-    optional uint64 getterId = 2;
-    optional uint64 setterId = 3;
-    optional uint64 backingFieldId = 4;
-    ProtoTypeInfo type = 5;
+    uint64 id = 2;
+    ProtoTypeInfo type = 3;
+    optional uint64 getterId = 4;
+    optional uint64 setterId = 5;
+    optional uint64 backingFieldId = 6;
 }
 
 message ProtoMethodInfo {

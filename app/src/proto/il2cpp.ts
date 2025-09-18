@@ -172,10 +172,11 @@ export interface ProtoFieldInfo {
 
 export interface ProtoPropertyInfo {
   name: string;
+  id: bigint;
+  type: ProtoTypeInfo | undefined;
   getterId?: bigint | undefined;
   setterId?: bigint | undefined;
   backingFieldId?: bigint | undefined;
-  type: ProtoTypeInfo | undefined;
 }
 
 export interface ProtoMethodInfo {
@@ -1165,7 +1166,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
 };
 
 function createBaseProtoPropertyInfo(): ProtoPropertyInfo {
-  return { name: "", getterId: undefined, setterId: undefined, backingFieldId: undefined, type: undefined };
+  return { name: "", id: 0n, type: undefined, getterId: undefined, setterId: undefined, backingFieldId: undefined };
 }
 
 export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
@@ -1173,26 +1174,32 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
+    if (message.id !== 0n) {
+      if (BigInt.asUintN(64, message.id) !== message.id) {
+        throw new globalThis.Error("value provided for field message.id of type uint64 too large");
+      }
+      writer.uint32(16).uint64(message.id);
+    }
+    if (message.type !== undefined) {
+      ProtoTypeInfo.encode(message.type, writer.uint32(26).fork()).join();
+    }
     if (message.getterId !== undefined) {
       if (BigInt.asUintN(64, message.getterId) !== message.getterId) {
         throw new globalThis.Error("value provided for field message.getterId of type uint64 too large");
       }
-      writer.uint32(16).uint64(message.getterId);
+      writer.uint32(32).uint64(message.getterId);
     }
     if (message.setterId !== undefined) {
       if (BigInt.asUintN(64, message.setterId) !== message.setterId) {
         throw new globalThis.Error("value provided for field message.setterId of type uint64 too large");
       }
-      writer.uint32(24).uint64(message.setterId);
+      writer.uint32(40).uint64(message.setterId);
     }
     if (message.backingFieldId !== undefined) {
       if (BigInt.asUintN(64, message.backingFieldId) !== message.backingFieldId) {
         throw new globalThis.Error("value provided for field message.backingFieldId of type uint64 too large");
       }
-      writer.uint32(32).uint64(message.backingFieldId);
-    }
-    if (message.type !== undefined) {
-      ProtoTypeInfo.encode(message.type, writer.uint32(42).fork()).join();
+      writer.uint32(48).uint64(message.backingFieldId);
     }
     return writer;
   },
@@ -1217,15 +1224,15 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
             break;
           }
 
-          message.getterId = reader.uint64() as bigint;
+          message.id = reader.uint64() as bigint;
           continue;
         }
         case 3: {
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.setterId = reader.uint64() as bigint;
+          message.type = ProtoTypeInfo.decode(reader, reader.uint32());
           continue;
         }
         case 4: {
@@ -1233,15 +1240,23 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
             break;
           }
 
-          message.backingFieldId = reader.uint64() as bigint;
+          message.getterId = reader.uint64() as bigint;
           continue;
         }
         case 5: {
-          if (tag !== 42) {
+          if (tag !== 40) {
             break;
           }
 
-          message.type = ProtoTypeInfo.decode(reader, reader.uint32());
+          message.setterId = reader.uint64() as bigint;
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.backingFieldId = reader.uint64() as bigint;
           continue;
         }
       }
@@ -1256,10 +1271,11 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
   fromJSON(object: any): ProtoPropertyInfo {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      type: isSet(object.type) ? ProtoTypeInfo.fromJSON(object.type) : undefined,
       getterId: isSet(object.getterId) ? BigInt(object.getterId) : undefined,
       setterId: isSet(object.setterId) ? BigInt(object.setterId) : undefined,
       backingFieldId: isSet(object.backingFieldId) ? BigInt(object.backingFieldId) : undefined,
-      type: isSet(object.type) ? ProtoTypeInfo.fromJSON(object.type) : undefined,
     };
   },
 
@@ -1267,6 +1283,12 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.id !== 0n) {
+      obj.id = message.id.toString();
+    }
+    if (message.type !== undefined) {
+      obj.type = ProtoTypeInfo.toJSON(message.type);
     }
     if (message.getterId !== undefined) {
       obj.getterId = message.getterId.toString();
@@ -1277,9 +1299,6 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
     if (message.backingFieldId !== undefined) {
       obj.backingFieldId = message.backingFieldId.toString();
     }
-    if (message.type !== undefined) {
-      obj.type = ProtoTypeInfo.toJSON(message.type);
-    }
     return obj;
   },
 
@@ -1289,12 +1308,13 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
   fromPartial<I extends Exact<DeepPartial<ProtoPropertyInfo>, I>>(object: I): ProtoPropertyInfo {
     const message = createBaseProtoPropertyInfo();
     message.name = object.name ?? "";
-    message.getterId = object.getterId ?? undefined;
-    message.setterId = object.setterId ?? undefined;
-    message.backingFieldId = object.backingFieldId ?? undefined;
+    message.id = object.id ?? 0n;
     message.type = (object.type !== undefined && object.type !== null)
       ? ProtoTypeInfo.fromPartial(object.type)
       : undefined;
+    message.getterId = object.getterId ?? undefined;
+    message.setterId = object.setterId ?? undefined;
+    message.backingFieldId = object.backingFieldId ?? undefined;
     return message;
   },
 };

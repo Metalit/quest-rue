@@ -1,5 +1,5 @@
 import { DockviewApi } from "dockview-core";
-import { createStore } from "solid-js/store";
+import { createStore, reconcile } from "solid-js/store";
 
 import { getPanelId } from "../components/Dockview";
 import { ProtoDataPayload } from "../proto/il2cpp";
@@ -45,4 +45,9 @@ export function setSelection(id: string, data: ProtoDataPayload) {
 
 export function getSelection(id: string) {
   return selections[id] ?? {};
+}
+
+export function clearSelections() {
+  panels.clear();
+  setSelections(reconcile({}));
 }

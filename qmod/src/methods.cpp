@@ -324,6 +324,7 @@ namespace MethodUtils {
     ProtoPropertyInfo GetPropertyInfo(PropertyInfo const* property) {
         ProtoPropertyInfo info;
         info.set_name(property->name);
+        info.set_id(asInt(property));
         if (auto getter = property->get) {
             info.set_getterid(asInt(getter));
             *info.mutable_type() = ClassUtils::GetTypeInfo(getter->return_type);

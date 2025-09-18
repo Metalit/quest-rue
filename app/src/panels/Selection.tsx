@@ -10,7 +10,14 @@ import {
   funnel,
   magnifyingGlass,
 } from "solid-heroicons/outline";
-import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 import { createStore } from "solid-js/store";
 
 import { FieldCell } from "../components/data/FieldCell";
@@ -31,12 +38,15 @@ import {
   ProtoClassDetails,
   ProtoClassInfo,
   ProtoDataPayload,
+  ProtoFieldInfo,
+  ProtoMethodInfo,
+  ProtoPropertyInfo,
 } from "../proto/il2cpp";
 import { protoClassToString, protoTypeToString } from "../types/format";
 
 let reloading = false;
 
-const searchModes = ["Name", "Type", "Parameters"] as const;
+const searchModes = ["Name", "Type"] as const;
 
 type SearchMode = (typeof searchModes)[number];
 
@@ -61,6 +71,8 @@ type VisibilityMode = (typeof visibilityModes)[number];
 const sortModes = ["Default", "Name", "Parameters", "Type"] as const;
 
 type SortMode = (typeof sortModes)[number];
+
+type Member = ProtoFieldInfo | ProtoPropertyInfo | ProtoMethodInfo;
 
 function NoSelection() {
   const [classInput, setClassInput] = createSignal("");
@@ -96,6 +108,115 @@ function NoSelection() {
   );
 }
 
+function isField(member: Member): member is ProtoFieldInfo {
+  const cast = member as ProtoFieldInfo;
+  return cast.literal !== undefined;
+}
+
+function isProperty(member: Member): member is ProtoPropertyInfo {
+  const cast = member as ProtoPropertyInfo;
+  return cast.getterId !== undefined || cast.setterId !== undefined;
+}
+
+function isMethod(member: Member): member is ProtoMethodInfo {
+  const cast = member as ProtoMethodInfo;
+  return cast.returnType !== undefined;
+}
+
+function memberType(member: Member) {
+  return isMethod(member) ? member.returnType! : member.type!;
+}
+
+function getSortingField(member: Member, mode: SortMode) {
+  switch (mode) {
+    case "Default":
+      return member.id;
+    case "Name":
+      return member.name;
+    case "Parameters":
+      return isMethod(member) ? member.args.length : member.id;
+    case "Type":
+      return protoTypeToString(memberType(member));
+  }
+}
+
+function compareMembers(
+  member1: Member,
+  member2: Member,
+  mode: SortMode,
+  inverse: boolean,
+  fallback: SortMode,
+): number {
+  const key1 = getSortingField(member1, mode);
+  const key2 = getSortingField(member2, mode);
+  let ret = 0;
+  if (typeof key1 == "bigint") ret = Number(key1 - (key2 as bigint));
+  else if (typeof key1 == "string") ret = key1.localeCompare(key2 as string);
+  if (ret == 0 && mode != fallback)
+    return compareMembers(member1, member2, fallback, inverse, fallback);
+  return inverse ? ret * -1 : ret;
+}
+
+function filterMembers<T extends Member>(
+  members: T[],
+  statics: T[],
+  search: string,
+  searchMode: SearchMode,
+  filters: FilterMode,
+  visibility: VisibilityMode,
+  sort: SortMode,
+  inverse: boolean,
+): [T[], T[]] {
+  let first: T;
+  if (members.length != 0) first = members[0];
+  else if (statics.length != 0) first = statics[0];
+  else return [[], []];
+  if (
+    (isField(first) && !filters.Fields) ||
+    (isMethod(first) && !filters.Methods)
+  )
+    return [[], []];
+
+  let list1: T[] = [];
+  let list2: T[] = [];
+  switch (visibility) {
+    case "Show Static Members":
+      list1 = [...members, ...statics];
+      break;
+    case "Hide Static Members":
+      list1 = members;
+      break;
+    case "Static Members Last":
+      list1 = members;
+      list2 = statics;
+      break;
+    case "Static Members Only":
+      list1 = statics;
+      break;
+  }
+  search = search.toLocaleLowerCase();
+  return [list1, list2].map((list) =>
+    list
+      .filter(
+        (member) =>
+          !isProperty(member) ||
+          (member.getterId && filters.Getters) ||
+          (member.setterId && filters.Setters),
+      )
+      .filter((member) =>
+        (searchMode == "Name"
+          ? member.name
+          : protoTypeToString(memberType(member))
+        )
+          .toLocaleLowerCase()
+          .includes(search),
+      )
+      .sort((member1, member2) =>
+        compareMembers(member1, member2, sort, inverse, "Default"),
+      ),
+  ) as [T[], T[]];
+}
+
 function DetailsList(props: {
   selection: ProtoDataPayload;
   details: ProtoClassDetails;
@@ -106,17 +227,56 @@ function DetailsList(props: {
   sort: SortMode;
   inverse: boolean;
 }) {
+  const fieldLists = createMemo(() =>
+    filterMembers(
+      props.details.fields,
+      props.details.staticFields,
+      props.search,
+      props.searchMode,
+      props.filters,
+      props.visibility,
+      props.sort,
+      props.inverse,
+    ),
+  );
+
+  const propertyLists = createMemo(() =>
+    filterMembers(
+      props.details.properties,
+      props.details.staticProperties,
+      props.search,
+      props.searchMode,
+      props.filters,
+      props.visibility,
+      props.sort,
+      props.inverse,
+    ),
+  );
+
+  const methodLists = createMemo(() =>
+    filterMembers(
+      props.details.methods,
+      props.details.staticMethods,
+      props.search,
+      props.searchMode,
+      props.filters,
+      props.visibility,
+      props.sort,
+      props.inverse,
+    ),
+  );
+
   return (
     <MaxColsGrid class="overflow-auto gap-y-2" maxCols={columnCount()}>
-      <For each={props.details.fields}>
+      <For each={fieldLists()[0]}>
         {(field) => <FieldCell field={field} selection={props.selection} />}
       </For>
-      <For each={props.details.properties}>
+      <For each={propertyLists()[0]}>
         {(property) => (
           <PropertyCell property={property} selection={props.selection} />
         )}
       </For>
-      <For each={props.details.methods}>
+      <For each={methodLists()[0]}>
         {(method) => <MethodCell method={method} selection={props.selection} />}
       </For>
     </MaxColsGrid>
@@ -189,7 +349,7 @@ export function Selection({ api, id }: PanelProps) {
   const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
   const [filters, setFilters] = createStore({ ...filterModes });
   const [visibility, setVisibility] = createSignal<VisibilityMode>(
-    visibilityModes[0],
+    visibilityModes[2],
   );
   const [sorting, setSorting] = createSignal<SortMode>(sortModes[0]);
   const [inverse, setInverse] = createSignal(false);

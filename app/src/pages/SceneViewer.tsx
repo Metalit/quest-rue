@@ -11,6 +11,7 @@ import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { Dockview, DockviewPanel } from "../components/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
+import { clearSelections } from "../global/selection";
 import { socket } from "../global/socket";
 import { Console } from "../panels/Console";
 import { Hierarchy } from "../panels/Hierarchy";
@@ -66,6 +67,7 @@ export default function SceneViewer() {
 
   onMount(() => {
     clearDetailsCache();
+    clearSelections();
     updateGameObjects();
   });
 
