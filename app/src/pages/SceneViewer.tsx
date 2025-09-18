@@ -8,14 +8,14 @@ import {
 } from "solid-heroicons/outline";
 import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
 
-import { Console } from "../components/Console";
 import { Dockview, DockviewPanel } from "../components/Dockview";
-import { Hierarchy } from "../components/Hierarchy";
-import { Selection } from "../components/Selection";
-import { Variables } from "../components/Variables";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { socket } from "../global/socket";
+import { Console } from "../panels/Console";
+import { Hierarchy } from "../panels/Hierarchy";
+import { Selection } from "../panels/Selection";
+import { Variables } from "../panels/Variables";
 
 // eslint-disable-next-line solid/no-destructure
 function RightHeader({ api }: IGroupHeaderProps) {

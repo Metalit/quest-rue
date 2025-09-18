@@ -15,15 +15,15 @@ import {
   unwrap,
 } from "solid-js/store";
 
+import { useDockview } from "../components/Dockview";
+import { DropdownButton, ModeOptions } from "../components/input/DropdownButton";
+import { SelectInput } from "../components/input/SelectInput";
+import { VirtualList } from "../components/VirtualList";
 import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";
 import { stringToBig } from "../global/utils";
 import { ProtoScene } from "../proto/unity";
 import { setDataCase, typeForClass } from "../types/serialization";
-import { useDockview } from "./Dockview";
-import { DropdownButton, ModeOptions } from "./input/DropdownButton";
-import { SelectInput } from "./input/SelectInput";
-import { VirtualList } from "./VirtualList";
 
 const sortModes = [
   "Name",

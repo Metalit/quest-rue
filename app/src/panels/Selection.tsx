@@ -13,6 +13,16 @@ import {
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 
+import { FieldCell } from "../components/data/FieldCell";
+import { MethodCell } from "../components/data/MethodCell";
+import { PropertyCell } from "../components/data/PropertyCell";
+import { PanelProps } from "../components/Dockview";
+import {
+  DropdownButton,
+  FilterOptions,
+  ModeOptions,
+} from "../components/input/DropdownButton";
+import { MaxColsGrid } from "../components/MaxColsGrid";
 import { getClassDetails } from "../global/cache";
 import { getSelection, removePanel, setLastPanel } from "../global/selection";
 import { columnCount } from "../global/settings";
@@ -23,16 +33,6 @@ import {
   ProtoDataPayload,
 } from "../proto/il2cpp";
 import { protoClassToString, protoTypeToString } from "../types/format";
-import { FieldCell } from "./data/FieldCell";
-import { MethodCell } from "./data/MethodCell";
-import { PropertyCell } from "./data/PropertyCell";
-import { PanelProps } from "./Dockview";
-import {
-  DropdownButton,
-  FilterOptions,
-  ModeOptions,
-} from "./input/DropdownButton";
-import { MaxColsGrid } from "./MaxColsGrid";
 
 let reloading = false;
 
