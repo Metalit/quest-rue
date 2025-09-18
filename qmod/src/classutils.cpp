@@ -214,7 +214,7 @@ ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type) {
         *info.mutable_genericinfo() = GetGenericInfo(type);
     else if (classoftype(type)->enumtype)  // check BEFORE value type - enums are that! (idk what IL2CPP_TYPE_ENUM is for)
         *info.mutable_enuminfo() = GetEnumInfo(type);
-    else if (type->type == IL2CPP_TYPE_VALUETYPE)
+    else if (type->type == IL2CPP_TYPE_VALUETYPE || type->type == IL2CPP_TYPE_GENERICINST)  // genericinst is instance of a generic struct I think
         *info.mutable_structinfo() = GetStructInfo(type);
     else if (auto primitive = GetPrimitive(type); primitive >= 0)
         info.set_primitiveinfo(primitive);
