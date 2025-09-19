@@ -3,7 +3,7 @@
 #include "System/Enum.hpp"
 #include "System/RuntimeType.hpp"
 #include "main.hpp"
-#include "methods.hpp"
+#include "members.hpp"
 
 using namespace ClassUtils;
 using namespace il2cpp_utils;

@@ -5,7 +5,7 @@
 #include "classutils.hpp"
 #include "main.hpp"
 #include "mem.hpp"
-#include "methods.hpp"
+#include "members.hpp"
 #include "socket.hpp"
 #include "unity.hpp"
 
@@ -107,8 +107,7 @@ static void InvokeMethod(InvokeMethod const& packet, uint64_t queryId) {
             for (int i = 0; i < packet.args_size(); i++)
                 args.emplace_back(packet.args(i));
 
-            std::string err = "";
-            auto [ret, byrefs] = MethodUtils::Run(method, packet.inst(), args, err);
+            auto [ret, byrefs, err] = MethodUtils::Run(method, packet.inst(), args);
 
             InvokeMethodResult& result = *wrapper.mutable_invokemethodresult();
             result.set_methodid(asInt(method));
@@ -355,8 +354,7 @@ static void AddPropertyValue(ProtoDataPayload const& instance, ProtoPropertyInfo
     if (!prop.has_getterid() || !prop.getterid())
         return;
     auto getter = asPtr(MethodInfo, prop.getterid());
-    std::string err = "";
-    auto [value, _] = MethodUtils::Run(getter, instance, {}, err);
+    auto [value, _, err] = MethodUtils::Run(getter, instance, {});
     if (!err.empty())
         LOG_ERROR("getting property failed with error: {}", err);
     else {

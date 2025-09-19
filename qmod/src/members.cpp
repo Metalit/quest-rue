@@ -1,4 +1,4 @@
-#include "methods.hpp"
+#include "members.hpp"
 
 #include "classutils.hpp"
 #include "main.hpp"
@@ -287,20 +287,19 @@ bool shouldGetParamName(MethodInfo const* method) {
 #endif
 
 namespace MethodUtils {
-    MethodResult Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args, std::string& error) {
+    MethodResult Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args) {
         void* inst = nullptr;
         if (!ClassUtils::GetIsStatic(method))
             inst = HandleType(object.typeinfo(), object.data());
-
-        return Run(method, inst, args, error);
+        return Run(method, inst, args);
     }
-    MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args, std::string& error) {
+    MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args) {
         LOG_DEBUG("Running method {} {}", fmt::ptr(method), method->name);
         LOG_DEBUG("{} parameters", method->parameters_count);
 
         if (method->name == std::string("get_renderingDisplaySize")) {
             LOG_INFO("Skipping get_renderingDisplaySize due to crash");
-            return {HandleReturn(method), {}};
+            return {HandleReturn(method), {}, ""};
         }
 
         void* il2cppArgs[args.size()];
@@ -310,15 +309,15 @@ namespace MethodUtils {
         auto ret = il2cpp_functions::runtime_invoke(method, object, (void**) il2cppArgs, &ex);
 
         if (ex) {
-            error = il2cpp_utils::ExceptionToString(ex);
+            std::string error = il2cpp_utils::ExceptionToString(ex);
             LOG_INFO("{}: Failed with exception: {}", method->name, error);
             LOG_INFO("{}", StringW(ex->stack_trace));
-            return {HandleReturn(method), {}};
+            return {HandleReturn(method), {}, error};
         }
 
         LOG_DEBUG("Returning");
         auto byrefs = GetByrefOutputs(args, il2cppArgs);
-        return {HandleReturn(method, ret), byrefs};
+        return {HandleReturn(method, ret), byrefs, ""};
     }
 
     ProtoPropertyInfo GetPropertyInfo(PropertyInfo const* property) {
