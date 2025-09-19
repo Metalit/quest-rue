@@ -4,7 +4,7 @@ import { Show } from "solid-js";
 import { errorHandle, IconPath } from "../../global/utils";
 
 interface ActionButtonProps {
-  img: IconPath | "save" | "refresh";
+  img: IconPath | "save";
   onClick?: () => void;
   loading?: boolean;
   class?: string;
@@ -32,11 +32,8 @@ export function ActionButton(props: ActionButtonProps) {
       class={props.class}
       disabled={props.disabled}
       classList={{ tooltip: props.tooltip !== undefined }}
-      // False positive
-      // eslint-disable-next-line solid/reactivity
-      onClick={() => errorHandle(() => props.onClick?.())}
-      // eslint-disable-next-line solid/reactivity
-      onKeyPress={() => errorHandle(() => props.onClick?.())}
+      onClick={() => errorHandle(props.onClick ?? (() => {}))}
+      onKeyPress={() => errorHandle(props.onClick ?? (() => {}))}
       title={props.tooltip}
     >
       <Show when={props.loading} fallback={icon()}>
