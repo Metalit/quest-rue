@@ -1,4 +1,3 @@
-import { useNavigate } from "@solidjs/router";
 import { IGroupHeaderProps, TabPartInitParameters } from "dockview-core";
 import { Icon } from "solid-heroicons";
 import {
@@ -6,13 +5,12 @@ import {
   arrowsPointingOut,
   xMark,
 } from "solid-heroicons/outline";
-import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { Dockview, DockviewPanel } from "../components/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { clearSelections } from "../global/selection";
-import { socket } from "../global/socket";
 import { Console } from "../panels/Console";
 import { Hierarchy } from "../panels/Hierarchy";
 import { Selection } from "../panels/Selection";
@@ -62,9 +60,6 @@ function Tab({ api }: TabPartInitParameters) {
 }
 
 export default function SceneViewer() {
-  const navigate = useNavigate();
-  createEffect(() => !socket.connected() && navigate("/"));
-
   onMount(() => {
     clearDetailsCache();
     clearSelections();

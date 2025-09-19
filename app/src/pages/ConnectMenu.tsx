@@ -1,4 +1,3 @@
-import { useNavigate } from "@solidjs/router";
 import { star } from "solid-heroicons/outline";
 import { star as starFilled } from "solid-heroicons/solid";
 import {
@@ -15,9 +14,6 @@ import { socket } from "../global/socket";
 import { createAsyncMemo, createPersistentSignal } from "../global/utils";
 
 export default function ConnectMenu() {
-  const navigate = useNavigate();
-  createEffect(() => socket.connected() && navigate("/app/"));
-
   const [ip, setIp] = createPersistentSignal(
     "connect.address",
     () => "192.168.0.1",
