@@ -1,9 +1,14 @@
-import { ProtoTypeInfo } from "../proto/il2cpp";
+import { bigToString, extractCase } from "../global/utils";
+import { ProtoMethodInfo, ProtoTypeInfo } from "../proto/il2cpp";
+import { areProtoTypesEqual } from "./matching";
+
+export type GenericsMap = Record<
+  string,
+  { generic: ProtoTypeInfo; value?: ProtoTypeInfo }
+>;
 
 export function getGenerics(type?: ProtoTypeInfo): ProtoTypeInfo[] {
-  if (type == undefined) return [];
-
-  switch (type.Info?.$case) {
+  switch (type?.Info?.$case) {
     case "classInfo":
       return type.Info.classInfo.generics?.flatMap((t) => getGenerics(t)) ?? [];
     case "arrayInfo":
@@ -19,20 +24,35 @@ export function getGenerics(type?: ProtoTypeInfo): ProtoTypeInfo[] {
   return [];
 }
 
+export function getArgGenericsMap(method: ProtoMethodInfo): GenericsMap {
+  return Object.fromEntries(
+    method.args
+      .flatMap(({ type }) => getGenerics(type))
+      .concat(getGenerics(method.returnType))
+      .map((generic) => [
+        bigToString(
+          extractCase(generic.Info, "genericInfo")?.genericHandle ?? -1n,
+        ),
+        { generic },
+      ]),
+  );
+}
+
 export function getInstantiation(
   type: ProtoTypeInfo,
-  generics: Map<bigint, ProtoTypeInfo>,
+  generics: GenericsMap,
 ): ProtoTypeInfo {
   const copy = ProtoTypeInfo.fromJSON(ProtoTypeInfo.toJSON(type));
   const info = copy.Info;
 
+  const tryGetGeneric = (generic: ProtoTypeInfo) =>
+    (generic.Info?.$case == "genericInfo" &&
+      generics[bigToString(generic.Info.genericInfo.genericHandle)]?.value) ||
+    generic;
+
   switch (info?.$case) {
     case "classInfo":
-      info.classInfo.generics = info.classInfo.generics.map((t) => {
-        if (t.Info?.$case == "genericInfo")
-          return generics.get(t.Info.genericInfo.genericHandle) ?? t;
-        return t;
-      });
+      info.classInfo.generics = info.classInfo.generics.map(tryGetGeneric);
       break;
     case "arrayInfo":
       info.arrayInfo.memberType = getInstantiation(
@@ -42,21 +62,16 @@ export function getInstantiation(
       break;
     case "structInfo":
       if (info.structInfo.clazz) {
-        info.structInfo.clazz.generics = info.structInfo.clazz.generics.map(
-          (g) =>
-            generics.get(
-              g.Info?.$case == "genericInfo"
-                ? g.Info?.genericInfo?.genericHandle
-                : BigInt(-1),
-            ) ?? g,
-        );
+        info.structInfo.clazz.generics =
+          info.structInfo.clazz.generics.map(tryGetGeneric);
       }
       break;
     case "genericInfo":
       return {
-        ...(generics.get(info.genericInfo.genericHandle) ?? copy),
+        ...(generics[bigToString(info.genericInfo.genericHandle)]?.value ??
+          copy),
         isByref: copy.isByref,
       };
   }
-  return copy;
+  return areProtoTypesEqual(type, copy) ? type : copy;
 }

@@ -1,5 +1,6 @@
-import { createEffect, createSignal, Show } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
 
+import { createUpdatingParser, extractCase } from "../../global/utils";
 import { findVariablesForType } from "../../global/variables";
 import {
   ProtoDataSegment,
@@ -8,8 +9,13 @@ import {
 } from "../../proto/il2cpp";
 import { protoDataToString, protoTypeToString } from "../../types/format";
 import { isProtoDataEqual } from "../../types/matching";
-import { stringToDataSegment, validString } from "../../types/serialization";
+import {
+  setDataCase,
+  stringToDataSegment,
+  validString,
+} from "../../types/serialization";
 import { SelectInput } from "../input/SelectInput";
+import { TypeCell } from "./TypeCell";
 
 const variableCases: NonNullable<ProtoTypeInfo["Info"]>["$case"][] = [
   "arrayInfo",
@@ -20,7 +26,7 @@ const variableCases: NonNullable<ProtoTypeInfo["Info"]>["$case"][] = [
 interface ValueCellProps {
   class?: string;
   typeInfo: ProtoTypeInfo;
-  disableInput?: boolean;
+  readonly?: boolean;
   title?: string;
   placeholder?: string;
   value?: ProtoDataSegment;
@@ -28,33 +34,18 @@ interface ValueCellProps {
 }
 
 function FreeInputCell(props: ValueCellProps) {
-  const [input, setInput] = createSignal("");
-
-  let lastInputData: ProtoDataSegment | undefined = undefined;
-
-  const valid = (input: string) => validString(input, props.typeInfo);
-
-  // each time a new value is input, send it
-  createEffect(() => {
-    if (!valid(input())) return;
-    const inputData = stringToDataSegment(input(), props.typeInfo);
-    if (!isProtoDataEqual(inputData, lastInputData)) {
-      lastInputData = inputData;
-      props.onChange?.(lastInputData);
-    }
-  });
-  // update if the value changed from a source other than the input
-  createEffect(() => {
-    if (!isProtoDataEqual(lastInputData, props.value)) {
-      lastInputData = props.value; // prevent sending it back to props.onChange
-      setInput(protoDataToString(props.value, props.typeInfo));
-    }
-  });
-  // the effect logic is to make sure user input doesn't get randomly reformatted
+  const [input, setInput, valid] = createUpdatingParser(
+    () => props.value,
+    (value) => props.onChange?.(value),
+    isProtoDataEqual,
+    protoDataToString,
+    (input) => stringToDataSegment(input, props.typeInfo),
+    (input) => validString(input, props.typeInfo),
+  );
 
   return (
     <input
-      class={`input input-sm ${valid(input()) ? "" : "focus:input-error"} ${props.class ?? ""}`}
+      class={`input input-sm ${valid() ? "" : "focus:input-error"} ${props.class ?? ""}`}
       placeholder={props.placeholder}
       title={props.title}
       use:valueSignal={[input, setInput]}
@@ -63,7 +54,6 @@ function FreeInputCell(props: ValueCellProps) {
 }
 
 function OptionsInputCell(props: ValueCellProps) {
-  // todo: add type autocomplete (generics and type primitive)
   const options = () => {
     const info = props.typeInfo.Info;
     if (info?.$case == "enumInfo") return Object.keys(info.enumInfo.values);
@@ -92,15 +82,41 @@ function OptionsInputCell(props: ValueCellProps) {
 
 // primitive, generic, or enum
 function ManualInputCell(props: ValueCellProps) {
+  const type = () =>
+    props.typeInfo.Info?.$case == "primitiveInfo" &&
+    props.typeInfo.Info.primitiveInfo == ProtoTypeInfo_Primitive.TYPE;
+
   const free = () =>
     props.typeInfo.Info?.$case == "primitiveInfo" &&
-    // props.typeInfo.Info.primitiveInfo != ProtoTypeInfo_Primitive.TYPE &&
+    props.typeInfo.Info.primitiveInfo != ProtoTypeInfo_Primitive.TYPE &&
     props.typeInfo.Info.primitiveInfo != ProtoTypeInfo_Primitive.BOOLEAN;
 
+  const typeValue = () => {
+    const data = extractCase(props.value?.Data, "primitiveData");
+    return data ? ProtoTypeInfo.decode(data) : undefined;
+  };
+
+  const setTypeValue = (value: ProtoTypeInfo) =>
+    props.onChange?.(
+      setDataCase({ primitiveData: ProtoTypeInfo.encode(value).finish() }),
+    );
+
   return (
-    <Show when={free()} fallback={<OptionsInputCell {...props} />}>
-      <FreeInputCell {...props} />
-    </Show>
+    <Switch fallback={<OptionsInputCell {...props} />}>
+      <Match when={free()}>
+        <FreeInputCell {...props} />
+      </Match>
+      <Match when={type()}>
+        <TypeCell
+          class={props.class}
+          placeholder={props.placeholder}
+          title={props.title}
+          readonly={props.readonly}
+          value={typeValue()}
+          onChange={setTypeValue}
+        />
+      </Match>
+    </Switch>
   );
 }
 
@@ -147,7 +163,7 @@ function OutputOnlyCell(props: ValueCellProps) {
 
 function ValueCellWithTitle(props: ValueCellProps) {
   return (
-    <Show when={!props.disableInput} fallback={<OutputOnlyCell {...props} />}>
+    <Show when={!props.readonly} fallback={<OutputOnlyCell {...props} />}>
       <Show
         when={variableCases.includes(props.typeInfo.Info!.$case!)}
         fallback={<ManualInputCell {...props} />}

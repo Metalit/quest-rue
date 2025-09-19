@@ -61,9 +61,12 @@ function Tab({ api }: TabPartInitParameters) {
 
 export default function SceneViewer() {
   onMount(() => {
+    updateGameObjects();
+  });
+
+  onCleanup(() => {
     clearDetailsCache();
     clearSelections();
-    updateGameObjects();
   });
 
   return (

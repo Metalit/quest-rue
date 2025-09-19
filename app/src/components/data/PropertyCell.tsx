@@ -64,7 +64,7 @@ export function PropertyCell(props: PropertyCellProps) {
       <div class="join w-3/5 shrink-0 justify-end">
         <ValueCell
           class="join-item"
-          disableInput={!props.property.setterId}
+          readonly={!props.property.setterId}
           typeInfo={props.property.type!}
           onChange={props.setValue}
           value={props.value}

@@ -12,7 +12,22 @@ import toast from "solid-toast";
 
 export type IconPath = Parameters<typeof Icon>[0]["path"];
 
-export type WithCase<T, C> = Extract<T, { $case: C }>;
+export type WithCase<
+  T extends { $case: string } | undefined,
+  C extends NonNullable<T>["$case"],
+> = Extract<NonNullable<T>, { $case: C }>;
+
+type CaseValue<T, C extends string> = T extends { [k in C]: infer V }
+  ? V
+  : never;
+
+// there is probably a better way to do this, typescript-wise
+export function extractCase<
+  T extends { $case: string } | undefined,
+  C extends NonNullable<T>["$case"],
+>(value: T, $case: C): CaseValue<T, C> | undefined {
+  return (value as { [k in C]: CaseValue<T, C> } | undefined)?.[$case];
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UnionOmit<T, K extends keyof any> = T extends any
@@ -31,13 +46,55 @@ export function setCase<TResult>(object: UnionOmit<TResult, "$case">): TResult {
  *
  */
 export function createUpdatingSignal<T>(
-  val: () => T,
+  value: () => T,
   options?: SignalOptions<T>,
 ): Signal<T> {
-  const [valAccessor, valSetter] = createSignal(val(), options);
-  // reset the value when val is modified
-  createEffect(() => valSetter(() => val())); // typescript is so stupid sometimes
+  const [valAccessor, valSetter] = createSignal(value(), options);
+  // reset the value when val is modified (extra function calls because T *could* be a function itself)
+  createEffect(() => valSetter(() => value()));
   return [valAccessor, valSetter];
+}
+
+/**
+ * Creates a signal that represents a parsed value, that may be modified by changing the value or the parsed string
+ * Allows for the user to type input for a value without their input being reformatted, while reactively updating
+ * if the value changes from an outside source
+ *
+ */
+export function createUpdatingParser<T>(
+  value: () => T | undefined,
+  setValue: (value: T) => void,
+  equals: (v1: T | undefined, v2: T | undefined) => boolean,
+  toString: (value: T | undefined) => string,
+  fromString: (input: string) => T,
+  valid?: (input: string) => boolean,
+) {
+  const [input, setInput] = createSignal("");
+
+  const validInput = () => !valid || valid(input());
+
+  let lastParsedInput: T | undefined = undefined;
+
+  // each time a new value is input, parse it and update (if valid)
+  createEffect(() => {
+    if (!validInput()) return;
+    const parsedInput = fromString(input());
+    if (!equals(parsedInput, lastParsedInput)) {
+      lastParsedInput = parsedInput;
+      setValue(parsedInput);
+    }
+  });
+
+  // update if the value changed from the outside source
+  createEffect(() => {
+    const newValue = value();
+    if (!equals(lastParsedInput, newValue)) {
+      lastParsedInput = newValue; // prevent sending unnecessary updates
+      setInput(toString(newValue));
+    }
+  });
+
+  return [input, setInput, validInput] as const;
 }
 
 /**

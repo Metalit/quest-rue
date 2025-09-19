@@ -72,7 +72,6 @@ class CustomRenderer<
   }
 
   dispose() {
-    console.log("disponse", this._params);
     this._dispose?.();
   }
 }
@@ -199,9 +198,7 @@ export function Dockview(
       "onReady",
     ],
   );
-  const main = (
-    <div {...normal} class={`size-full ${custom.class ?? ""}`} />
-  );
+  const main = <div {...normal} class={`size-full ${custom.class ?? ""}`} />;
 
   const api = createDockview(main as HTMLDivElement, {
     createComponent: undefined!,

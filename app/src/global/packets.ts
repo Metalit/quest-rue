@@ -100,7 +100,10 @@ export function useRequestAndResponsePacket<TResponse>(
     },
     (error) => {
       toast.error(`Error in input: ${error}`);
-      setLoading(false);
+      batch(() => {
+        setValue(undefined);
+        setLoading(false);
+      });
     },
     currentId,
   );
@@ -111,10 +114,7 @@ export function useRequestAndResponsePacket<TResponse>(
 
     const id = uniqueBigNumber();
     currentId.value = id;
-    batch(() => {
-      setLoading(true);
-      setValue(undefined);
-    });
+    setLoading(true);
     sendPacket(packet, id);
   };
 

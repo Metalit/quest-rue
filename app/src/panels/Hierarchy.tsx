@@ -16,12 +16,14 @@ import {
 } from "solid-js/store";
 
 import { useDockview } from "../components/Dockview";
-import { DropdownButton, ModeOptions } from "../components/input/DropdownButton";
+import {
+  DropdownButton,
+  ModeOptions,
+} from "../components/input/DropdownButton";
 import { SelectInput } from "../components/input/SelectInput";
 import { VirtualList } from "../components/VirtualList";
 import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";
-import { stringToBig } from "../global/utils";
 import { ProtoScene } from "../proto/unity";
 import { setDataCase, typeForClass } from "../types/serialization";
 
@@ -236,8 +238,8 @@ function ObjectListItem(props: {
   const api = useDockview();
 
   const select = () => {
-    const typeInfo = typeForClass("UnityEngine", "Transform");
-    const data = setDataCase({ classData: stringToBig(props.address) });
+    const typeInfo = typeForClass("UnityEngine", "GameObject");
+    const data = setDataCase({ classData: object().address });
     selectInLastPanel(api, { typeInfo, data });
   };
 

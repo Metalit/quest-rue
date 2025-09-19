@@ -472,26 +472,44 @@ Il2CppType* ClassUtils::GetType(ProtoTypeInfo const& typeInfo) {
     return &clazz->byval_arg;
 }
 
-static void CheckAddClass(GetTypeComplete const& search, Il2CppClass* clazz, std::set<std::string>& matches, std::string_view declaring = "") {
-    std::string value = clazz->namespaze;
+struct my_equal {
+    bool operator()(char ch1, char ch2) { return std::tolower(ch1) == std::tolower(ch2); }
+};
+
+bool ContainsAnyCase(std::string_view const& str1, std::string_view const& str2) {
+    return std::search(str1.begin(), str1.end(), str2.begin(), str2.end(), [](char ch1, char ch2) {
+               return std::tolower(ch1) == std::tolower(ch2);
+           }) != str1.end();
+}
+
+static void CheckAddClass(
+    GetTypeComplete const& search, Il2CppClass* clazz, std::set<std::string>& matches, std::string_view namespaze = "", std::string name = ""
+) {
+    std::string toSearch = clazz->namespaze;
+    std::string toAdd = clazz->namespaze;
     std::string_view searchString = search.namespaze();
 
     if (search.has_clazz()) {
         // I believe nested types have no namespace, but either way we've already checked it
-        if (declaring.empty() && search.has_namespaze() && search.namespaze() != clazz->namespaze)
+        if (name.empty() && search.has_namespaze() && search.namespaze() != clazz->namespaze)
             return;
-        value = clazz->name;
+        if (namespaze.empty())
+            namespaze = clazz->namespaze;
+        if (!name.empty())
+            name = fmt::format("{}/{}", name, clazz->name);
+        else
+            name = clazz->name;
+        toSearch = name;
+        toAdd = fmt::format("{}::{}", namespaze, name);
         searchString = search.clazz();
-        if (!declaring.empty())
-            value = fmt::format("{}/{}", declaring, value);
         // only search nested types if we are looking for classes and not namespaces
         void* iter = nullptr;
         while (auto nested = il2cpp_functions::class_get_nested_types(clazz, &iter))
-            CheckAddClass(search, nested, matches, value);
+            CheckAddClass(search, nested, matches, namespaze, name);
     }
 
-    if (value.find(searchString) != std::string::npos)
-        matches.emplace(value);
+    if (ContainsAnyCase(toSearch, searchString))
+        matches.emplace(toAdd);
 }
 
 std::set<std::string> ClassUtils::SearchClasses(GetTypeComplete const& search) {

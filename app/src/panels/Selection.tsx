@@ -377,18 +377,20 @@ export function Selection({ api, id }: PanelProps) {
 
   const [values, setValues] = createStore<ValuesStore>({});
 
-  createEffect(() =>
-    sendPacketResult<GetInstanceValuesResult>({
-      getInstanceValues: { instance: getSelection(id) },
-    })[0].then((result) =>
-      setValues(
-        reconcile(
-          Object.fromEntries(
-            result.values.map(({ id, data }) => [bigToString(id), data]),
+  createEffect(
+    () =>
+      getSelection(id) &&
+      sendPacketResult<GetInstanceValuesResult>({
+        getInstanceValues: { instance: getSelection(id) },
+      })[0].then((result) =>
+        setValues(
+          reconcile(
+            Object.fromEntries(
+              result.values.map(({ id, data }) => [bigToString(id), data]),
+            ),
           ),
         ),
       ),
-    ),
   );
 
   const [search, setSearch] = createSignal("");

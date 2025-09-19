@@ -84,7 +84,7 @@ const primitiveStringMap = new TwoWayMap({
 // will return classInfo for enum and struct types as well
 export function stringToProtoType(
   input: string,
-  requireValid = true,
+  requireValid = false,
 ): ProtoTypeInfo | undefined {
   input = input.trim();
   const isByref = input.toLocaleLowerCase().startsWith("ref ");
@@ -95,7 +95,7 @@ export function stringToProtoType(
     return setTypeCase({ primitiveInfo }, { isByref });
   }
   if (input.endsWith("[]")) {
-    const memberType = stringToProtoType(input.slice(0, -2), false);
+    const memberType = stringToProtoType(input.slice(0, -2));
     if (memberType)
       return setTypeCase({ arrayInfo: { memberType } }, { isByref });
   } else if (input.includes("::")) {
@@ -107,7 +107,7 @@ export function stringToProtoType(
       clazz = newClazz;
       generics = genericStrings
         .split(",")
-        .map((s) => stringToProtoType(s.trim(), false));
+        .map((s) => stringToProtoType(s.trim()));
     }
 
     if (generics.every((value) => value !== undefined))
@@ -137,9 +137,9 @@ export function protoClassToString(classInfo: ProtoClassInfo): string {
   return `${classInfo.namespaze}::${ret}`;
 }
 
-export function protoTypeToString(type: ProtoTypeInfo): string {
+export function protoTypeToString(type?: ProtoTypeInfo): string {
   let str: string | undefined = undefined;
-  switch (type.Info?.$case) {
+  switch (type?.Info?.$case) {
     case "classInfo":
       str = protoClassToString(type.Info.classInfo);
       break;
@@ -159,7 +159,7 @@ export function protoTypeToString(type: ProtoTypeInfo): string {
       str = protoClassToString(type.Info.enumInfo.clazz!);
       break;
   }
-  if (str && type.isByref) return "ref " + str;
+  if (str && type?.isByref) return "ref " + str;
   return str ?? "";
 }
 

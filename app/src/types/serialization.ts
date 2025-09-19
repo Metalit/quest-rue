@@ -140,7 +140,7 @@ function primitiveToDataSegment(
       break;
     }
     case ProtoTypeInfo_Primitive.TYPE:
-      data = ProtoTypeInfo.encode(stringToProtoType(input)!).finish();
+      data = ProtoTypeInfo.encode(stringToProtoType(input, true)!).finish();
       break;
     case ProtoTypeInfo_Primitive.PTR:
       new DataView(getBuffer(8)).setBigInt64(0, BigInt(input), true);
@@ -257,6 +257,8 @@ export function validString(input: string, typeInfo: ProtoTypeInfo): boolean {
     }
     case "primitiveInfo":
       return validPrimitiveString(input, typeInfo.Info.primitiveInfo);
+    case "genericInfo":
+      return !!stringToProtoType(input);
     case "enumInfo":
       return input in typeInfo.Info.enumInfo.values;
   }
@@ -301,7 +303,7 @@ function primitiveDataToRealValue(
     case ProtoTypeInfo_Primitive.UNKNOWN:
       return "unknown";
     case ProtoTypeInfo_Primitive.VOID:
-      console.log("void data to real value");
+      console.error("void data to real value");
   }
   return "";
 }

@@ -9,7 +9,7 @@ import {
 import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
 import { getClassDetails, tryGetCachedClassDetails } from "./cache";
 import { sendPacketResult } from "./packets";
-import { bigToString, WithCase } from "./utils";
+import { bigToString, extractCase } from "./utils";
 
 const [variables, setVariables] = createStore<{
   [name: string]: ProtoDataPayload;
@@ -102,11 +102,8 @@ export async function updateReferenceVariables() {
         } else delete variables[name];
       }
       for (const [address, value] of Object.entries(newVariables)) {
-        const info = value.typeInfo.Info as WithCase<
-          ProtoTypeInfo["Info"],
-          "classInfo"
-        >;
-        const name = firstFree(`${info.classInfo.clazz}_0x${address}`);
+        const info = extractCase(value.typeInfo.Info, "classInfo")!;
+        const name = firstFree(`${info.clazz}_0x${address}`);
         variables[name] = value;
       }
     }),
