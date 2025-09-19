@@ -38,7 +38,7 @@ function FreeInputCell(props: ValueCellProps) {
     () => props.value,
     (value) => props.onChange?.(value),
     isProtoDataEqual,
-    protoDataToString,
+    (value) => protoDataToString(value, props.typeInfo),
     (input) => stringToDataSegment(input, props.typeInfo),
     (input) => validString(input, props.typeInfo),
   );
