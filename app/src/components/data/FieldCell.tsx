@@ -2,8 +2,11 @@ import { arrowPath } from "solid-heroicons/outline";
 import { createEffect } from "solid-js";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
-import { createUpdatingSignal } from "../../global/utils";
-import { ProtoDataPayload, ProtoFieldInfo } from "../../proto/il2cpp";
+import {
+  ProtoDataPayload,
+  ProtoDataSegment,
+  ProtoFieldInfo,
+} from "../../proto/il2cpp";
 import { GetFieldResult, SetFieldResult } from "../../proto/qrue";
 import { ActionButton } from "../input/ActionButton";
 import { ValueCell } from "./ValueCell";
@@ -11,18 +14,17 @@ import { ValueCell } from "./ValueCell";
 interface FieldCellProps {
   field: ProtoFieldInfo;
   selection: ProtoDataPayload;
-  skipRetrieve?: boolean;
+  value?: ProtoDataSegment;
+  setValue: (data?: ProtoDataSegment) => void;
 }
 
 export function FieldCell(props: FieldCellProps) {
-  const [value, getLoading, getValue] =
+  const [getResult, getLoading, getValue] =
     useRequestAndResponsePacket<GetFieldResult>();
   const [, setLoading, setValue] =
     useRequestAndResponsePacket<SetFieldResult>();
 
-  const [inputValue, setInputValue] = createUpdatingSignal(
-    () => value()?.value?.data,
-  );
+  createEffect(() => getResult() && props.setValue(getResult()?.value?.data));
 
   const get = () =>
     getValue({
@@ -34,16 +36,15 @@ export function FieldCell(props: FieldCellProps) {
 
   const set = () =>
     !props.field.literal &&
-    inputValue() &&
+    props.value &&
     setValue({
       setField: {
         fieldId: props.field.id,
         inst: props.selection,
-        value: { data: inputValue(), typeInfo: props.field.type },
+        value: { data: props.value, typeInfo: props.field.type },
       },
     });
 
-  createEffect(() => !props.skipRetrieve && get());
   // automatically whenever a valid input is given
   createEffect(set);
 
@@ -56,8 +57,8 @@ export function FieldCell(props: FieldCellProps) {
         <ValueCell
           class="join-item"
           typeInfo={props.field.type!}
-          onChange={setInputValue}
-          value={inputValue()}
+          onChange={props.setValue}
+          value={props.value}
         />
         <ActionButton
           class="join-item btn btn-sm btn-square"

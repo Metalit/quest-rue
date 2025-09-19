@@ -18,7 +18,7 @@ import {
   onCleanup,
   Show,
 } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createStore, reconcile, SetStoreFunction } from "solid-js/store";
 
 import { FieldCell } from "../components/data/FieldCell";
 import { MethodCell } from "../components/data/MethodCell";
@@ -31,20 +31,27 @@ import {
 } from "../components/input/DropdownButton";
 import { MaxColsGrid } from "../components/MaxColsGrid";
 import { getClassDetails } from "../global/cache";
+import { sendPacketResult } from "../global/packets";
 import { getSelection, removePanel, setLastPanel } from "../global/selection";
 import { columnCount } from "../global/settings";
-import { createAsyncMemo } from "../global/utils";
+import { bigToString, createAsyncMemo } from "../global/utils";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
   ProtoDataPayload,
+  ProtoDataSegment,
   ProtoFieldInfo,
   ProtoMethodInfo,
   ProtoPropertyInfo,
 } from "../proto/il2cpp";
+import { GetInstanceValuesResult } from "../proto/qrue";
 import { protoClassToString, protoTypeToString } from "../types/format";
 
 let reloading = false;
+
+type Member = ProtoFieldInfo | ProtoPropertyInfo | ProtoMethodInfo;
+
+type ValuesStore = Record<string, ProtoDataSegment | undefined>;
 
 const searchModes = ["Name", "Type"] as const;
 
@@ -71,8 +78,6 @@ type VisibilityMode = (typeof visibilityModes)[number];
 const sortModes = ["Default", "Name", "Parameters", "Type"] as const;
 
 type SortMode = (typeof sortModes)[number];
-
-type Member = ProtoFieldInfo | ProtoPropertyInfo | ProtoMethodInfo;
 
 function NoSelection() {
   const [classInput, setClassInput] = createSignal("");
@@ -220,6 +225,8 @@ function filterMembers<T extends Member>(
 function DetailsList(props: {
   selection: ProtoDataPayload;
   details: ProtoClassDetails;
+  values: ValuesStore;
+  setValues: SetStoreFunction<ValuesStore>;
   search: string;
   searchMode: SearchMode;
   filters: FilterMode;
@@ -269,15 +276,38 @@ function DetailsList(props: {
   return (
     <MaxColsGrid class="overflow-auto gap-y-2" maxCols={columnCount()}>
       <For each={fieldLists()[0]}>
-        {(field) => <FieldCell field={field} selection={props.selection} />}
+        {(field) => (
+          <FieldCell
+            field={field}
+            selection={props.selection}
+            value={props.values[bigToString(field.id)]}
+            setValue={(value) => props.setValues(bigToString(field.id), value)}
+          />
+        )}
       </For>
       <For each={propertyLists()[0]}>
         {(property) => (
-          <PropertyCell property={property} selection={props.selection} />
+          <PropertyCell
+            property={property}
+            selection={props.selection}
+            value={props.values[bigToString(property.id)]}
+            setValue={(value) =>
+              props.setValues(bigToString(property.id), value)
+            }
+          />
         )}
       </For>
       <For each={methodLists()[0]}>
-        {(method) => <MethodCell method={method} selection={props.selection} />}
+        {(method) => (
+          <MethodCell
+            method={method}
+            selection={props.selection}
+            rememberedReturn={props.values[bigToString(method.id)]}
+            setReturn={(value) =>
+              props.setValues(bigToString(method.id), value)
+            }
+          />
+        )}
       </For>
     </MaxColsGrid>
   );
@@ -344,6 +374,22 @@ export function Selection({ api, id }: PanelProps) {
     if (classInfo) return await getClassDetails(classInfo);
     else return undefined;
   });
+
+  const [values, setValues] = createStore<ValuesStore>({});
+
+  createEffect(() =>
+    sendPacketResult<GetInstanceValuesResult>({
+      getInstanceValues: { instance: getSelection(id) },
+    })[0].then((result) =>
+      setValues(
+        reconcile(
+          Object.fromEntries(
+            result.values.map(({ id, data }) => [bigToString(id), data]),
+          ),
+        ),
+      ),
+    ),
+  );
 
   const [search, setSearch] = createSignal("");
   const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
@@ -449,6 +495,8 @@ export function Selection({ api, id }: PanelProps) {
           <DetailsList
             selection={getSelection(id)}
             details={details()!}
+            values={values}
+            setValues={setValues}
             search={search()}
             searchMode={searchMode()}
             filters={filters}

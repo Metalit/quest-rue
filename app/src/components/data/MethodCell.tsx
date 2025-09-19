@@ -14,7 +14,11 @@ import { createStore } from "solid-js/store";
 import toast from "solid-toast";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
-import { ProtoDataPayload, ProtoMethodInfo } from "../../proto/il2cpp";
+import {
+  ProtoDataPayload,
+  ProtoDataSegment,
+  ProtoMethodInfo,
+} from "../../proto/il2cpp";
 import { InvokeMethodResult } from "../../proto/qrue";
 import { ActionButton } from "../input/ActionButton";
 import { MaxColsGrid } from "../MaxColsGrid";
@@ -23,6 +27,8 @@ import { ValueCell } from "./ValueCell";
 interface MethodCellProps {
   method: ProtoMethodInfo;
   selection: ProtoDataPayload;
+  rememberedReturn?: ProtoDataSegment;
+  setReturn: (value?: ProtoDataSegment) => void;
   expanded?: boolean;
 }
 
@@ -33,7 +39,10 @@ export function MethodCell(props: MethodCellProps) {
   const showError = (result?: InvokeMethodResult) =>
     result?.error &&
     toast.error(`Error running ${props.method.name}: ${result.error}`);
-  createEffect(() => showError(result()));
+  createEffect(() => {
+    showError(result());
+    result() && props.setReturn(result()?.result?.data);
+  });
 
   const run = () =>
     updateResult({
@@ -81,7 +90,7 @@ export function MethodCell(props: MethodCellProps) {
           <ActionButton
             class="join-item btn btn-sm btn-square"
             img={expanded() ? chevronDown : chevronLeft}
-            tooltip="Show Arguments"
+            tooltip="Show Parameters"
             onClick={() => setUserExpanded((val) => !val)}
             disabled={props.method.args.length == 0 || props.expanded}
           />
@@ -90,7 +99,7 @@ export function MethodCell(props: MethodCellProps) {
       <Show when={expanded()}>
         <MaxColsGrid
           colGap={8}
-          maxCols={4}
+          maxCols={5}
           minWidth={280}
           class="w-full gap-y-2"
         >

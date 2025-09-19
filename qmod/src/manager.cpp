@@ -344,27 +344,40 @@ static void GetInstanceClass(GetInstanceClass const& packet, uint64_t id) {
     Socket::Send(wrapper);
 }
 
-GetInstanceValuesResult GetInstanceValuesForDetails(Il2CppObject* instance, ProtoClassDetails const* classDetails) {
+static void AddFieldValue(ProtoDataPayload const& instance, ProtoFieldInfo const& field, GetInstanceValuesResult& ret) {
+    auto& value = *ret.add_values();
+    value.set_id(field.id());
+    auto fieldInfo = asPtr(FieldInfo, field.id());
+    *value.mutable_data() = FieldUtils::Get(fieldInfo, instance).data();
+}
+
+static void AddPropertyValue(ProtoDataPayload const& instance, ProtoPropertyInfo const& prop, GetInstanceValuesResult& ret) {
+    if (!prop.has_getterid() || !prop.getterid())
+        return;
+    auto getter = asPtr(MethodInfo, prop.getterid());
+    std::string err = "";
+    auto [value, _] = MethodUtils::Run(getter, instance, {}, err);
+    if (!err.empty())
+        LOG_ERROR("getting property failed with error: {}", err);
+    else {
+        auto& valuePair = *ret.add_values();
+        valuePair.set_id(prop.id());
+        *valuePair.mutable_data() = value.data();
+    }
+}
+
+static GetInstanceValuesResult GetInstanceValuesForDetails(ProtoDataPayload const& instance, ProtoClassDetails const* classDetails) {
     GetInstanceValuesResult ret;
 
     while (classDetails) {
-        for (int i = 0; i < classDetails->fields_size(); i++) {
-            auto field = classDetails->fields(i);
-            auto fieldInfo = asPtr(FieldInfo, field.id());
-            (*ret.mutable_fieldvalues())[field.id()] = FieldUtils::Get(fieldInfo, instance).data();
-        }
-        for (int i = 0; i < classDetails->properties_size(); i++) {
-            auto prop = classDetails->properties(i);
-            if (!prop.has_getterid() || !prop.getterid())
-                continue;
-            auto getter = asPtr(MethodInfo, prop.getterid());
-            std::string err = "";
-            auto [res, _] = MethodUtils::Run(getter, instance, {}, err);
-            if (!err.empty())
-                LOG_ERROR("getting property failed with error: {}", err);
-            else
-                (*ret.mutable_propertyvalues())[prop.getterid()] = res.data();
-        }
+        for (auto field : classDetails->fields())
+            AddFieldValue(instance, field, ret);
+        for (auto field : classDetails->staticfields())
+            AddFieldValue(instance, field, ret);
+        for (auto prop : classDetails->properties())
+            AddPropertyValue(instance, prop, ret);
+        for (auto prop : classDetails->staticproperties())
+            AddPropertyValue(instance, prop, ret);
         if (!classDetails->has_parent())
             break;
         classDetails = &classDetails->parent();
@@ -377,32 +390,14 @@ static void GetInstanceValues(GetInstanceValues const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
-    auto instance = asPtr(Il2CppObject, packet.address());
+    auto& instance = packet.instance();
 
-    LOG_DEBUG("Requesting values of {}", packet.address());
-    if (!TryValidatePtr(instance))
+    if (instance.data().has_classdata() && !TryValidatePtr(asPtr(Il2CppObject, instance.data().classdata())))
         INPUT_ERROR("instance pointer was invalid")
     else {
-        auto details = GetClassDetailsCached(instance->klass);
+        auto clazz = GetClass(instance.typeinfo());
+        auto details = GetClassDetailsCached(clazz);
         *wrapper.mutable_getinstancevaluesresult() = GetInstanceValuesForDetails(instance, &details);
-    }
-    Socket::Send(wrapper);
-}
-
-static void GetInstanceDetails(GetInstanceDetails const& packet, uint64_t id) {
-    PacketWrapper wrapper;
-    wrapper.set_queryresultid(id);
-
-    LOG_DEBUG("Requesting details of {}", packet.address());
-    auto instance = asPtr(Il2CppObject, packet.address());
-
-    if (!TryValidatePtr(instance))
-        INPUT_ERROR("instance pointer was invalid")
-    else {
-        auto result = wrapper.mutable_getinstancedetailsresult();
-        auto classDetails = result->mutable_classdetails();
-        *classDetails = GetClassDetailsCached(instance->klass);
-        *result->mutable_values() = GetInstanceValuesForDetails(instance, classDetails);
     }
     Socket::Send(wrapper);
 }
@@ -485,9 +480,6 @@ void Manager::ProcessMessage(PacketWrapper const& packet) {
             break;
         case PacketWrapper::kGetInstanceValues:
             GetInstanceValues(packet.getinstancevalues(), id);
-            break;
-        case PacketWrapper::kGetInstanceDetails:
-            GetInstanceDetails(packet.getinstancedetails(), id);
             break;
         case PacketWrapper::kCreateGameObject:
             CreateGameObject(packet.creategameobject(), id);

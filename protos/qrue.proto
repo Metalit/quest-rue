@@ -66,7 +66,7 @@ message GetAllGameObjectsResult {
 }
 
 message GetGameObjectComponents {
-    /// GameObject address
+    // GameObject address
     uint64 address = 1;
 }
 
@@ -121,23 +121,16 @@ message GetInstanceClassResult {
 }
 
 message GetInstanceValues {
-    uint64 address = 1;
+    // class or struct only
+    ProtoDataPayload instance = 1;
 }
 
 message GetInstanceValuesResult {
-    /* nullable */
-    map<uint64, ProtoDataSegment> fieldValues = 1;
-    /* nullable */
-    map<uint64, ProtoDataSegment> propertyValues = 2;
-}
-
-message GetInstanceDetails {
-    uint64 address = 1;
-}
-
-message GetInstanceDetailsResult {
-    ProtoClassDetails classDetails = 1;
-    GetInstanceValuesResult values = 2;
+    message ValuePair {
+        uint64 id = 1;
+        ProtoDataSegment data = 2;
+    }
+    repeated ValuePair values = 1;
 }
 
 message CreateGameObject {
@@ -151,7 +144,7 @@ message CreateGameObjectResult {
 // Returns GetListSafePtrAddressResult
 message AddSafePtrAddress {
     uint64 address = 1;
-    bool remove = 2; // if true, removes the address
+    bool remove = 2;
 }
 
 message GetSafePtrAddresses  {
@@ -174,7 +167,6 @@ message GetTypeCompleteResult {
     repeated string options = 1;
 }
 
-// TODO: Rename?
 message PacketWrapper {
     uint64 queryResultId = 1;
     oneof Packet {
@@ -201,8 +193,6 @@ message PacketWrapper {
         GetInstanceClassResult getInstanceClassResult = 22;
         GetInstanceValues getInstanceValues = 23;
         GetInstanceValuesResult getInstanceValuesResult = 24;
-        GetInstanceDetails getInstanceDetails = 25;
-        GetInstanceDetailsResult getInstanceDetailsResult = 26;
         CreateGameObject createGameObject = 27;
         CreateGameObjectResult createGameObjectResult = 28;
         AddSafePtrAddress addSafePtrAddress = 29;

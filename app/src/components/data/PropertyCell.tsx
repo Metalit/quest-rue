@@ -3,8 +3,11 @@ import { createEffect } from "solid-js";
 import toast from "solid-toast";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
-import { createUpdatingSignal } from "../../global/utils";
-import { ProtoDataPayload, ProtoPropertyInfo } from "../../proto/il2cpp";
+import {
+  ProtoDataPayload,
+  ProtoDataSegment,
+  ProtoPropertyInfo,
+} from "../../proto/il2cpp";
 import { InvokeMethodResult } from "../../proto/qrue";
 import { ActionButton } from "../input/ActionButton";
 import { ValueCell } from "./ValueCell";
@@ -12,7 +15,8 @@ import { ValueCell } from "./ValueCell";
 interface PropertyCellProps {
   property: ProtoPropertyInfo;
   selection: ProtoDataPayload;
-  skipRetrieve?: boolean;
+  value?: ProtoDataSegment;
+  setValue: (data?: ProtoDataSegment) => void;
 }
 
 export function PropertyCell(props: PropertyCellProps) {
@@ -23,12 +27,11 @@ export function PropertyCell(props: PropertyCellProps) {
 
   const showError = (type: "Get" | "Set", result?: InvokeMethodResult) =>
     result?.error && toast.error(`${type} property error: ${result.error}`);
-  createEffect(() => showError("Get", getResult()));
+  createEffect(() => {
+    showError("Get", getResult());
+    if (getResult()) props.setValue(getResult()?.result?.data);
+  });
   createEffect(() => showError("Set", setResult()));
-
-  const [value, setInputValue] = createUpdatingSignal(
-    () => getResult()?.result?.data,
-  );
 
   const get = () =>
     props.property.getterId &&
@@ -43,17 +46,15 @@ export function PropertyCell(props: PropertyCellProps) {
 
   const set = () =>
     props.property.setterId &&
-    value() &&
+    props.value &&
     setValue({
       invokeMethod: {
         inst: props.selection,
         methodId: props.property.setterId,
-        args: [{ data: value(), typeInfo: props.property.type }],
+        args: [{ data: props.value, typeInfo: props.property.type }],
         generics: [],
       },
     });
-
-  createEffect(() => !props.skipRetrieve && get());
 
   return (
     <div class="flex items-center justify-between">
@@ -65,8 +66,8 @@ export function PropertyCell(props: PropertyCellProps) {
           class="join-item"
           disableInput={!props.property.setterId}
           typeInfo={props.property.type!}
-          onChange={setInputValue}
-          value={value()}
+          onChange={props.setValue}
+          value={props.value}
         />
         <ActionButton
           class="join-item btn btn-sm btn-square"

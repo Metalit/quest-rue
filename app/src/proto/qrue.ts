@@ -109,7 +109,7 @@ export interface GetAllGameObjectsResult {
 }
 
 export interface GetGameObjectComponents {
-  /** / GameObject address */
+  /** GameObject address */
   address: bigint;
 }
 
@@ -222,33 +222,17 @@ export interface GetInstanceClassResult {
 }
 
 export interface GetInstanceValues {
-  address: bigint;
+  /** class or struct only */
+  instance: ProtoDataPayload | undefined;
 }
 
 export interface GetInstanceValuesResult {
-  /** nullable */
-  fieldValues: { [key: bigint]: ProtoDataSegment };
-  /** nullable */
-  propertyValues: { [key: bigint]: ProtoDataSegment };
+  values: GetInstanceValuesResult_ValuePair[];
 }
 
-export interface GetInstanceValuesResult_FieldValuesEntry {
-  key: bigint;
-  value: ProtoDataSegment | undefined;
-}
-
-export interface GetInstanceValuesResult_PropertyValuesEntry {
-  key: bigint;
-  value: ProtoDataSegment | undefined;
-}
-
-export interface GetInstanceDetails {
-  address: bigint;
-}
-
-export interface GetInstanceDetailsResult {
-  classDetails: ProtoClassDetails | undefined;
-  values: GetInstanceValuesResult | undefined;
+export interface GetInstanceValuesResult_ValuePair {
+  id: bigint;
+  data: ProtoDataSegment | undefined;
 }
 
 export interface CreateGameObject {
@@ -262,7 +246,6 @@ export interface CreateGameObjectResult {
 /** Returns GetListSafePtrAddressResult */
 export interface AddSafePtrAddress {
   address: bigint;
-  /** if true, removes the address */
   remove: boolean;
 }
 
@@ -287,7 +270,6 @@ export interface GetTypeCompleteResult {
   options: string[];
 }
 
-/** TODO: Rename? */
 export interface PacketWrapper {
   queryResultId: bigint;
   Packet?:
@@ -314,8 +296,6 @@ export interface PacketWrapper {
     | { $case: "getInstanceClassResult"; getInstanceClassResult: GetInstanceClassResult }
     | { $case: "getInstanceValues"; getInstanceValues: GetInstanceValues }
     | { $case: "getInstanceValuesResult"; getInstanceValuesResult: GetInstanceValuesResult }
-    | { $case: "getInstanceDetails"; getInstanceDetails: GetInstanceDetails }
-    | { $case: "getInstanceDetailsResult"; getInstanceDetailsResult: GetInstanceDetailsResult }
     | { $case: "createGameObject"; createGameObject: CreateGameObject }
     | { $case: "createGameObjectResult"; createGameObjectResult: CreateGameObjectResult }
     | { $case: "addSafePtrAddress"; addSafePtrAddress: AddSafePtrAddress }
@@ -1976,16 +1956,13 @@ export const GetInstanceClassResult: MessageFns<GetInstanceClassResult> = {
 };
 
 function createBaseGetInstanceValues(): GetInstanceValues {
-  return { address: 0n };
+  return { instance: undefined };
 }
 
 export const GetInstanceValues: MessageFns<GetInstanceValues> = {
   encode(message: GetInstanceValues, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
-      if (BigInt.asUintN(64, message.address) !== message.address) {
-        throw new globalThis.Error("value provided for field message.address of type uint64 too large");
-      }
-      writer.uint32(8).uint64(message.address);
+    if (message.instance !== undefined) {
+      ProtoDataPayload.encode(message.instance, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -1998,11 +1975,11 @@ export const GetInstanceValues: MessageFns<GetInstanceValues> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.address = reader.uint64() as bigint;
+          message.instance = ProtoDataPayload.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -2015,13 +1992,13 @@ export const GetInstanceValues: MessageFns<GetInstanceValues> = {
   },
 
   fromJSON(object: any): GetInstanceValues {
-    return { address: isSet(object.address) ? BigInt(object.address) : 0n };
+    return { instance: isSet(object.instance) ? ProtoDataPayload.fromJSON(object.instance) : undefined };
   },
 
   toJSON(message: GetInstanceValues): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
-      obj.address = message.address.toString();
+    if (message.instance !== undefined) {
+      obj.instance = ProtoDataPayload.toJSON(message.instance);
     }
     return obj;
   },
@@ -2031,23 +2008,22 @@ export const GetInstanceValues: MessageFns<GetInstanceValues> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetInstanceValues>, I>>(object: I): GetInstanceValues {
     const message = createBaseGetInstanceValues();
-    message.address = object.address ?? 0n;
+    message.instance = (object.instance !== undefined && object.instance !== null)
+      ? ProtoDataPayload.fromPartial(object.instance)
+      : undefined;
     return message;
   },
 };
 
 function createBaseGetInstanceValuesResult(): GetInstanceValuesResult {
-  return { fieldValues: {}, propertyValues: {} };
+  return { values: [] };
 }
 
 export const GetInstanceValuesResult: MessageFns<GetInstanceValuesResult> = {
   encode(message: GetInstanceValuesResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    Object.entries(message.fieldValues).forEach(([key, value]) => {
-      GetInstanceValuesResult_FieldValuesEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
-    });
-    Object.entries(message.propertyValues).forEach(([key, value]) => {
-      GetInstanceValuesResult_PropertyValuesEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
-    });
+    for (const v of message.values) {
+      GetInstanceValuesResult_ValuePair.encode(v!, writer.uint32(10).fork()).join();
+    }
     return writer;
   },
 
@@ -2063,21 +2039,7 @@ export const GetInstanceValuesResult: MessageFns<GetInstanceValuesResult> = {
             break;
           }
 
-          const entry1 = GetInstanceValuesResult_FieldValuesEntry.decode(reader, reader.uint32());
-          if (entry1.value !== undefined) {
-            message.fieldValues[entry1.key] = entry1.value;
-          }
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          const entry2 = GetInstanceValuesResult_PropertyValuesEntry.decode(reader, reader.uint32());
-          if (entry2.value !== undefined) {
-            message.propertyValues[entry2.key] = entry2.value;
-          }
+          message.values.push(GetInstanceValuesResult_ValuePair.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -2091,40 +2053,16 @@ export const GetInstanceValuesResult: MessageFns<GetInstanceValuesResult> = {
 
   fromJSON(object: any): GetInstanceValuesResult {
     return {
-      fieldValues: isObject(object.fieldValues)
-        ? Object.entries(object.fieldValues).reduce<{ [key: bigint]: ProtoDataSegment }>((acc, [key, value]) => {
-          acc[globalThis.Number(key)] = ProtoDataSegment.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
-      propertyValues: isObject(object.propertyValues)
-        ? Object.entries(object.propertyValues).reduce<{ [key: bigint]: ProtoDataSegment }>((acc, [key, value]) => {
-          acc[globalThis.Number(key)] = ProtoDataSegment.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
+      values: globalThis.Array.isArray(object?.values)
+        ? object.values.map((e: any) => GetInstanceValuesResult_ValuePair.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: GetInstanceValuesResult): unknown {
     const obj: any = {};
-    if (message.fieldValues) {
-      const entries = Object.entries(message.fieldValues);
-      if (entries.length > 0) {
-        obj.fieldValues = {};
-        entries.forEach(([k, v]) => {
-          obj.fieldValues[k] = ProtoDataSegment.toJSON(v);
-        });
-      }
-    }
-    if (message.propertyValues) {
-      const entries = Object.entries(message.propertyValues);
-      if (entries.length > 0) {
-        obj.propertyValues = {};
-        entries.forEach(([k, v]) => {
-          obj.propertyValues[k] = ProtoDataSegment.toJSON(v);
-        });
-      }
+    if (message.values?.length) {
+      obj.values = message.values.map((e) => GetInstanceValuesResult_ValuePair.toJSON(e));
     }
     return obj;
   },
@@ -2134,50 +2072,33 @@ export const GetInstanceValuesResult: MessageFns<GetInstanceValuesResult> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetInstanceValuesResult>, I>>(object: I): GetInstanceValuesResult {
     const message = createBaseGetInstanceValuesResult();
-    message.fieldValues = Object.entries(object.fieldValues ?? {}).reduce<{ [key: bigint]: ProtoDataSegment }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[globalThis.Number(key)] = ProtoDataSegment.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
-    message.propertyValues = Object.entries(object.propertyValues ?? {}).reduce<{ [key: bigint]: ProtoDataSegment }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[globalThis.Number(key)] = ProtoDataSegment.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
+    message.values = object.values?.map((e) => GetInstanceValuesResult_ValuePair.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseGetInstanceValuesResult_FieldValuesEntry(): GetInstanceValuesResult_FieldValuesEntry {
-  return { key: 0n, value: undefined };
+function createBaseGetInstanceValuesResult_ValuePair(): GetInstanceValuesResult_ValuePair {
+  return { id: 0n, data: undefined };
 }
 
-export const GetInstanceValuesResult_FieldValuesEntry: MessageFns<GetInstanceValuesResult_FieldValuesEntry> = {
-  encode(message: GetInstanceValuesResult_FieldValuesEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.key !== 0n) {
-      if (BigInt.asUintN(64, message.key) !== message.key) {
-        throw new globalThis.Error("value provided for field message.key of type uint64 too large");
+export const GetInstanceValuesResult_ValuePair: MessageFns<GetInstanceValuesResult_ValuePair> = {
+  encode(message: GetInstanceValuesResult_ValuePair, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0n) {
+      if (BigInt.asUintN(64, message.id) !== message.id) {
+        throw new globalThis.Error("value provided for field message.id of type uint64 too large");
       }
-      writer.uint32(8).uint64(message.key);
+      writer.uint32(8).uint64(message.id);
     }
-    if (message.value !== undefined) {
-      ProtoDataSegment.encode(message.value, writer.uint32(18).fork()).join();
+    if (message.data !== undefined) {
+      ProtoDataSegment.encode(message.data, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetInstanceValuesResult_FieldValuesEntry {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetInstanceValuesResult_ValuePair {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetInstanceValuesResult_FieldValuesEntry();
+    const message = createBaseGetInstanceValuesResult_ValuePair();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2186,7 +2107,7 @@ export const GetInstanceValuesResult_FieldValuesEntry: MessageFns<GetInstanceVal
             break;
           }
 
-          message.key = reader.uint64() as bigint;
+          message.id = reader.uint64() as bigint;
           continue;
         }
         case 2: {
@@ -2194,7 +2115,7 @@ export const GetInstanceValuesResult_FieldValuesEntry: MessageFns<GetInstanceVal
             break;
           }
 
-          message.value = ProtoDataSegment.decode(reader, reader.uint32());
+          message.data = ProtoDataSegment.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -2206,265 +2127,36 @@ export const GetInstanceValuesResult_FieldValuesEntry: MessageFns<GetInstanceVal
     return message;
   },
 
-  fromJSON(object: any): GetInstanceValuesResult_FieldValuesEntry {
+  fromJSON(object: any): GetInstanceValuesResult_ValuePair {
     return {
-      key: isSet(object.key) ? BigInt(object.key) : 0n,
-      value: isSet(object.value) ? ProtoDataSegment.fromJSON(object.value) : undefined,
+      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      data: isSet(object.data) ? ProtoDataSegment.fromJSON(object.data) : undefined,
     };
   },
 
-  toJSON(message: GetInstanceValuesResult_FieldValuesEntry): unknown {
+  toJSON(message: GetInstanceValuesResult_ValuePair): unknown {
     const obj: any = {};
-    if (message.key !== 0n) {
-      obj.key = message.key.toString();
+    if (message.id !== 0n) {
+      obj.id = message.id.toString();
     }
-    if (message.value !== undefined) {
-      obj.value = ProtoDataSegment.toJSON(message.value);
+    if (message.data !== undefined) {
+      obj.data = ProtoDataSegment.toJSON(message.data);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetInstanceValuesResult_FieldValuesEntry>, I>>(
+  create<I extends Exact<DeepPartial<GetInstanceValuesResult_ValuePair>, I>>(
     base?: I,
-  ): GetInstanceValuesResult_FieldValuesEntry {
-    return GetInstanceValuesResult_FieldValuesEntry.fromPartial(base ?? ({} as any));
+  ): GetInstanceValuesResult_ValuePair {
+    return GetInstanceValuesResult_ValuePair.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetInstanceValuesResult_FieldValuesEntry>, I>>(
+  fromPartial<I extends Exact<DeepPartial<GetInstanceValuesResult_ValuePair>, I>>(
     object: I,
-  ): GetInstanceValuesResult_FieldValuesEntry {
-    const message = createBaseGetInstanceValuesResult_FieldValuesEntry();
-    message.key = object.key ?? 0n;
-    message.value = (object.value !== undefined && object.value !== null)
-      ? ProtoDataSegment.fromPartial(object.value)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseGetInstanceValuesResult_PropertyValuesEntry(): GetInstanceValuesResult_PropertyValuesEntry {
-  return { key: 0n, value: undefined };
-}
-
-export const GetInstanceValuesResult_PropertyValuesEntry: MessageFns<GetInstanceValuesResult_PropertyValuesEntry> = {
-  encode(
-    message: GetInstanceValuesResult_PropertyValuesEntry,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
-    if (message.key !== 0n) {
-      if (BigInt.asUintN(64, message.key) !== message.key) {
-        throw new globalThis.Error("value provided for field message.key of type uint64 too large");
-      }
-      writer.uint32(8).uint64(message.key);
-    }
-    if (message.value !== undefined) {
-      ProtoDataSegment.encode(message.value, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GetInstanceValuesResult_PropertyValuesEntry {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetInstanceValuesResult_PropertyValuesEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.key = reader.uint64() as bigint;
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = ProtoDataSegment.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetInstanceValuesResult_PropertyValuesEntry {
-    return {
-      key: isSet(object.key) ? BigInt(object.key) : 0n,
-      value: isSet(object.value) ? ProtoDataSegment.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: GetInstanceValuesResult_PropertyValuesEntry): unknown {
-    const obj: any = {};
-    if (message.key !== 0n) {
-      obj.key = message.key.toString();
-    }
-    if (message.value !== undefined) {
-      obj.value = ProtoDataSegment.toJSON(message.value);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetInstanceValuesResult_PropertyValuesEntry>, I>>(
-    base?: I,
-  ): GetInstanceValuesResult_PropertyValuesEntry {
-    return GetInstanceValuesResult_PropertyValuesEntry.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetInstanceValuesResult_PropertyValuesEntry>, I>>(
-    object: I,
-  ): GetInstanceValuesResult_PropertyValuesEntry {
-    const message = createBaseGetInstanceValuesResult_PropertyValuesEntry();
-    message.key = object.key ?? 0n;
-    message.value = (object.value !== undefined && object.value !== null)
-      ? ProtoDataSegment.fromPartial(object.value)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseGetInstanceDetails(): GetInstanceDetails {
-  return { address: 0n };
-}
-
-export const GetInstanceDetails: MessageFns<GetInstanceDetails> = {
-  encode(message: GetInstanceDetails, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
-      if (BigInt.asUintN(64, message.address) !== message.address) {
-        throw new globalThis.Error("value provided for field message.address of type uint64 too large");
-      }
-      writer.uint32(8).uint64(message.address);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GetInstanceDetails {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetInstanceDetails();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.address = reader.uint64() as bigint;
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetInstanceDetails {
-    return { address: isSet(object.address) ? BigInt(object.address) : 0n };
-  },
-
-  toJSON(message: GetInstanceDetails): unknown {
-    const obj: any = {};
-    if (message.address !== 0n) {
-      obj.address = message.address.toString();
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetInstanceDetails>, I>>(base?: I): GetInstanceDetails {
-    return GetInstanceDetails.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetInstanceDetails>, I>>(object: I): GetInstanceDetails {
-    const message = createBaseGetInstanceDetails();
-    message.address = object.address ?? 0n;
-    return message;
-  },
-};
-
-function createBaseGetInstanceDetailsResult(): GetInstanceDetailsResult {
-  return { classDetails: undefined, values: undefined };
-}
-
-export const GetInstanceDetailsResult: MessageFns<GetInstanceDetailsResult> = {
-  encode(message: GetInstanceDetailsResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.classDetails !== undefined) {
-      ProtoClassDetails.encode(message.classDetails, writer.uint32(10).fork()).join();
-    }
-    if (message.values !== undefined) {
-      GetInstanceValuesResult.encode(message.values, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GetInstanceDetailsResult {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetInstanceDetailsResult();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.classDetails = ProtoClassDetails.decode(reader, reader.uint32());
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.values = GetInstanceValuesResult.decode(reader, reader.uint32());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetInstanceDetailsResult {
-    return {
-      classDetails: isSet(object.classDetails) ? ProtoClassDetails.fromJSON(object.classDetails) : undefined,
-      values: isSet(object.values) ? GetInstanceValuesResult.fromJSON(object.values) : undefined,
-    };
-  },
-
-  toJSON(message: GetInstanceDetailsResult): unknown {
-    const obj: any = {};
-    if (message.classDetails !== undefined) {
-      obj.classDetails = ProtoClassDetails.toJSON(message.classDetails);
-    }
-    if (message.values !== undefined) {
-      obj.values = GetInstanceValuesResult.toJSON(message.values);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetInstanceDetailsResult>, I>>(base?: I): GetInstanceDetailsResult {
-    return GetInstanceDetailsResult.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetInstanceDetailsResult>, I>>(object: I): GetInstanceDetailsResult {
-    const message = createBaseGetInstanceDetailsResult();
-    message.classDetails = (object.classDetails !== undefined && object.classDetails !== null)
-      ? ProtoClassDetails.fromPartial(object.classDetails)
-      : undefined;
-    message.values = (object.values !== undefined && object.values !== null)
-      ? GetInstanceValuesResult.fromPartial(object.values)
+  ): GetInstanceValuesResult_ValuePair {
+    const message = createBaseGetInstanceValuesResult_ValuePair();
+    message.id = object.id ?? 0n;
+    message.data = (object.data !== undefined && object.data !== null)
+      ? ProtoDataSegment.fromPartial(object.data)
       : undefined;
     return message;
   },
@@ -3080,12 +2772,6 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
       case "getInstanceValuesResult":
         GetInstanceValuesResult.encode(message.Packet.getInstanceValuesResult, writer.uint32(194).fork()).join();
         break;
-      case "getInstanceDetails":
-        GetInstanceDetails.encode(message.Packet.getInstanceDetails, writer.uint32(202).fork()).join();
-        break;
-      case "getInstanceDetailsResult":
-        GetInstanceDetailsResult.encode(message.Packet.getInstanceDetailsResult, writer.uint32(210).fork()).join();
-        break;
       case "createGameObject":
         CreateGameObject.encode(message.Packet.createGameObject, writer.uint32(218).fork()).join();
         break;
@@ -3352,28 +3038,6 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           };
           continue;
         }
-        case 25: {
-          if (tag !== 202) {
-            break;
-          }
-
-          message.Packet = {
-            $case: "getInstanceDetails",
-            getInstanceDetails: GetInstanceDetails.decode(reader, reader.uint32()),
-          };
-          continue;
-        }
-        case 26: {
-          if (tag !== 210) {
-            break;
-          }
-
-          message.Packet = {
-            $case: "getInstanceDetailsResult",
-            getInstanceDetailsResult: GetInstanceDetailsResult.decode(reader, reader.uint32()),
-          };
-          continue;
-        }
         case 27: {
           if (tag !== 218) {
             break;
@@ -3530,13 +3194,6 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           $case: "getInstanceValuesResult",
           getInstanceValuesResult: GetInstanceValuesResult.fromJSON(object.getInstanceValuesResult),
         }
-        : isSet(object.getInstanceDetails)
-        ? { $case: "getInstanceDetails", getInstanceDetails: GetInstanceDetails.fromJSON(object.getInstanceDetails) }
-        : isSet(object.getInstanceDetailsResult)
-        ? {
-          $case: "getInstanceDetailsResult",
-          getInstanceDetailsResult: GetInstanceDetailsResult.fromJSON(object.getInstanceDetailsResult),
-        }
         : isSet(object.createGameObject)
         ? { $case: "createGameObject", createGameObject: CreateGameObject.fromJSON(object.createGameObject) }
         : isSet(object.createGameObjectResult)
@@ -3620,10 +3277,6 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
       obj.getInstanceValues = GetInstanceValues.toJSON(message.Packet.getInstanceValues);
     } else if (message.Packet?.$case === "getInstanceValuesResult") {
       obj.getInstanceValuesResult = GetInstanceValuesResult.toJSON(message.Packet.getInstanceValuesResult);
-    } else if (message.Packet?.$case === "getInstanceDetails") {
-      obj.getInstanceDetails = GetInstanceDetails.toJSON(message.Packet.getInstanceDetails);
-    } else if (message.Packet?.$case === "getInstanceDetailsResult") {
-      obj.getInstanceDetailsResult = GetInstanceDetailsResult.toJSON(message.Packet.getInstanceDetailsResult);
     } else if (message.Packet?.$case === "createGameObject") {
       obj.createGameObject = CreateGameObject.toJSON(message.Packet.createGameObject);
     } else if (message.Packet?.$case === "createGameObjectResult") {
@@ -3842,24 +3495,6 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           message.Packet = {
             $case: "getInstanceValuesResult",
             getInstanceValuesResult: GetInstanceValuesResult.fromPartial(object.Packet.getInstanceValuesResult),
-          };
-        }
-        break;
-      }
-      case "getInstanceDetails": {
-        if (object.Packet?.getInstanceDetails !== undefined && object.Packet?.getInstanceDetails !== null) {
-          message.Packet = {
-            $case: "getInstanceDetails",
-            getInstanceDetails: GetInstanceDetails.fromPartial(object.Packet.getInstanceDetails),
-          };
-        }
-        break;
-      }
-      case "getInstanceDetailsResult": {
-        if (object.Packet?.getInstanceDetailsResult !== undefined && object.Packet?.getInstanceDetailsResult !== null) {
-          message.Packet = {
-            $case: "getInstanceDetailsResult",
-            getInstanceDetailsResult: GetInstanceDetailsResult.fromPartial(object.Packet.getInstanceDetailsResult),
           };
         }
         break;
