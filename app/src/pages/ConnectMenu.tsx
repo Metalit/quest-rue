@@ -1,4 +1,4 @@
-import { star } from "solid-heroicons/outline";
+import { arrowPath, star } from "solid-heroicons/outline";
 import { star as starFilled } from "solid-heroicons/solid";
 import {
   createEffect,
@@ -138,7 +138,7 @@ export default function ConnectMenu() {
               </For>
               <span class="grow -mb-3" />
               <ActionButton
-                img="refresh"
+                img={arrowPath}
                 class="btn btn-xs btn-square self-start"
                 loading={devicesLoading()}
                 onClick={updateDevices}
