@@ -49,6 +49,12 @@ message ProtoTypeInfo {
         VOID = 11;
         UNKNOWN = 12;
     }
+    enum Byref {
+        NONE = 0;
+        REF = 1;
+        IN = 2;
+        OUT = 3;
+    }
     oneof Info {
         Primitive primitiveInfo = 1;
         ProtoArrayInfo arrayInfo = 2;
@@ -58,7 +64,7 @@ message ProtoTypeInfo {
         ProtoEnumInfo enumInfo = 6;
     }
     int32 size = 7;
-    bool isByref = 8;
+    Byref byref_ = 8; // conflicts with bshook byref macro
 }
 
 // --- Class Details ---

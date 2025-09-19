@@ -2,6 +2,7 @@ import { UnionOmit, setCase, stringToBig } from "../global/utils";
 import {
   ProtoDataSegment,
   ProtoTypeInfo,
+  ProtoTypeInfo_Byref,
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
 import { protoTypeToString, stringToProtoType } from "./format";
@@ -15,12 +16,12 @@ export function setDataCase(data: DataTypes): ProtoDataSegment {
 
 export function setTypeCase(
   data: TypeTypes,
-  info: { isByref?: boolean; size?: number } = {},
+  info: { byref?: ProtoTypeInfo_Byref; size?: number } = {},
 ): ProtoTypeInfo {
   const Info = setCase<ProtoTypeInfo["Info"]>(data);
   return {
     Info,
-    isByref: info.isByref ?? false,
+    byref: info.byref ?? ProtoTypeInfo_Byref.NONE,
     size: info.size ?? typeInfoSize(Info),
   };
 }
@@ -187,6 +188,53 @@ export function stringToDataSegment(
       if (input in typeInfo.Info.enumInfo.values)
         input = typeInfo.Info.enumInfo.values[input].toString();
       return primitiveToDataSegment(input, typeInfo.Info.enumInfo.valueType);
+  }
+  return {};
+}
+
+function defaultPrimitiveSegment(
+  primitive: ProtoTypeInfo_Primitive,
+): ProtoDataSegment {
+  switch (primitive) {
+    case ProtoTypeInfo_Primitive.BOOLEAN:
+    case ProtoTypeInfo_Primitive.BYTE:
+    case ProtoTypeInfo_Primitive.SHORT:
+    case ProtoTypeInfo_Primitive.INT:
+    case ProtoTypeInfo_Primitive.LONG:
+    case ProtoTypeInfo_Primitive.FLOAT:
+    case ProtoTypeInfo_Primitive.DOUBLE:
+    case ProtoTypeInfo_Primitive.PTR:
+      return primitiveToDataSegment("0", primitive);
+    case ProtoTypeInfo_Primitive.TYPE:
+      return primitiveToDataSegment("System::Object", primitive);
+    case ProtoTypeInfo_Primitive.CHAR:
+      return primitiveToDataSegment("\0", primitive);
+    case ProtoTypeInfo_Primitive.STRING:
+    case ProtoTypeInfo_Primitive.UNKNOWN:
+    case ProtoTypeInfo_Primitive.VOID:
+      return primitiveToDataSegment("", primitive);
+  }
+  return {};
+}
+
+export function defaultDataSegment(typeInfo: ProtoTypeInfo): ProtoDataSegment {
+  switch (typeInfo.Info?.$case) {
+    case "classInfo":
+      return setDataCase({ classData: 0n });
+    case "structInfo": {
+      const data = Object.fromEntries(
+        Object.entries(typeInfo.Info.structInfo.fieldOffsets!).map(
+          ([offset, { type }]) => [Number(offset), defaultDataSegment(type!)],
+        ),
+      );
+      return setDataCase({ structData: { data } });
+    }
+    case "arrayInfo":
+      return setDataCase({ arrayData: { data: [] } });
+    case "primitiveInfo":
+      return defaultPrimitiveSegment(typeInfo.Info.primitiveInfo);
+    case "enumInfo":
+      return defaultPrimitiveSegment(typeInfo.Info.enumInfo.valueType);
   }
   return {};
 }

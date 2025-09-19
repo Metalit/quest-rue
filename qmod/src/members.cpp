@@ -127,8 +127,11 @@ void* HandleType(ProtoTypeInfo const& typeInfo, ProtoDataSegment const& arg) {
 }
 
 void FillList(std::vector<ProtoDataPayload> const& args, void** dest) {
-    for (int i = 0; i < args.size(); i++)
+    for (int i = 0; i < args.size(); i++) {
         dest[i] = HandleType(args[i].typeinfo(), args[i].data());
+        if (!dest[i])
+            LOG_ERROR("Argument {} had null data!", i);
+    }
 }
 
 ProtoDataPayload VoidDataPayload() {
@@ -136,7 +139,7 @@ ProtoDataPayload VoidDataPayload() {
     ProtoTypeInfo info;
     info.set_primitiveinfo(ProtoTypeInfo::VOID);
     info.set_size(0);
-    info.set_isbyref(false);
+    info.set_byref_(ProtoTypeInfo_Byref_NONE);
     *ret.mutable_typeinfo() = info;
     return ret;
 }
@@ -251,7 +254,7 @@ std::map<int, ProtoDataPayload> GetByrefOutputs(std::vector<ProtoDataPayload> co
     std::map<int, ProtoDataPayload> ret;
     for (int i = 0; i < args.size(); i++) {
         auto& typeInfo = args[i].typeinfo();
-        if (!typeInfo.isbyref())
+        if (typeInfo.byref_() == ProtoTypeInfo_Byref_NONE || typeInfo.byref_() == ProtoTypeInfo_Byref_IN)
             continue;
         auto& data = ret[i];
         *data.mutable_data() = OutputType(typeInfo, filledList[i]);
@@ -316,8 +319,7 @@ namespace MethodUtils {
         }
 
         LOG_DEBUG("Returning");
-        auto byrefs = GetByrefOutputs(args, il2cppArgs);
-        return {HandleReturn(method, ret), byrefs, ""};
+        return {HandleReturn(method, ret), GetByrefOutputs(args, il2cppArgs), ""};
     }
 
     ProtoPropertyInfo GetPropertyInfo(PropertyInfo const* property) {
@@ -359,7 +361,7 @@ namespace MethodUtils {
 #endif
             ProtoMethodInfo_Argument arg;
             arg.set_name(paramName);
-            *arg.mutable_type() = ClassUtils::GetTypeInfo(paramType);
+            *arg.mutable_type() = ClassUtils::GetTypeInfo(paramType, true);
             *info.add_args() = arg;
         }
         *info.mutable_returntype() = ClassUtils::GetTypeInfo(method->return_type);

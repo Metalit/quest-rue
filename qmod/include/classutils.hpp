@@ -34,9 +34,9 @@ namespace ClassUtils {
         return GetIsCustom(typeofclass(clazz));
     }
 
-    ProtoTypeInfo GetTypeInfo(Il2CppType const* type);
-    inline ProtoTypeInfo GetTypeInfo(Il2CppClass const* clazz) {
-        return GetTypeInfo(typeofclass(clazz));
+    ProtoTypeInfo GetTypeInfo(Il2CppType const* type, bool param = false);
+    inline ProtoTypeInfo GetTypeInfo(Il2CppClass const* clazz, bool param = false) {
+        return GetTypeInfo(typeofclass(clazz), param);
     }
     ProtoTypeInfo::Primitive GetPrimitive(Il2CppType const* primitiveType);
     ProtoClassInfo GetClassInfo(Il2CppType const* classType);

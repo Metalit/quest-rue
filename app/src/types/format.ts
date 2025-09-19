@@ -4,6 +4,7 @@ import {
   ProtoDataPayload,
   ProtoDataSegment,
   ProtoTypeInfo,
+  ProtoTypeInfo_Byref,
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
 import {
@@ -81,25 +82,36 @@ const primitiveStringMap = new TwoWayMap({
   unknown: ProtoTypeInfo_Primitive.UNKNOWN,
 });
 
+function getByref(input: string): [ProtoTypeInfo_Byref, string] {
+  const lower = input.toLocaleLowerCase();
+  if (lower.startsWith("ref "))
+    return [ProtoTypeInfo_Byref.REF, input.slice(4).trimStart()];
+  if (lower.startsWith("in "))
+    return [ProtoTypeInfo_Byref.IN, input.slice(3).trimStart()];
+  if (lower.startsWith("out "))
+    return [ProtoTypeInfo_Byref.OUT, input.slice(4).trimStart()];
+  return [ProtoTypeInfo_Byref.NONE, input];
+}
+
 // will return classInfo for enum and struct types as well
 export function stringToProtoType(
   input: string,
   requireValid = false,
 ): ProtoTypeInfo | undefined {
   input = input.trim();
-  const isByref = input.toLocaleLowerCase().startsWith("ref ");
-  if (isByref) input = input.slice(4).trim();
+  const [byref, trimmed] = getByref(input);
+  const lower = trimmed.toLocaleLowerCase();
 
-  if (primitiveStringMap.hasStr(input.toLocaleLowerCase())) {
-    const primitiveInfo = primitiveStringMap.get(input.toLocaleLowerCase())!;
-    return setTypeCase({ primitiveInfo }, { isByref });
+  if (primitiveStringMap.hasStr(lower)) {
+    const primitiveInfo = primitiveStringMap.get(lower)!;
+    return setTypeCase({ primitiveInfo }, { byref });
   }
-  if (input.endsWith("[]")) {
-    const memberType = stringToProtoType(input.slice(0, -2));
+  if (trimmed.endsWith("[]")) {
+    const memberType = stringToProtoType(trimmed.slice(0, -2));
     if (memberType)
-      return setTypeCase({ arrayInfo: { memberType } }, { isByref });
-  } else if (input.includes("::")) {
-    let [namespaze, clazz] = input.split("::", 2);
+      return setTypeCase({ arrayInfo: { memberType } }, { byref });
+  } else if (trimmed.includes("::")) {
+    let [namespaze, clazz] = trimmed.split("::", 2);
 
     let generics: (ProtoTypeInfo | undefined)[] = [];
     if (clazz.includes("<") && clazz.endsWith(">")) {
@@ -119,11 +131,10 @@ export function stringToProtoType(
             generics,
           },
         },
-        { isByref },
+        { byref },
       );
   }
-  if (requireValid)
-    throw "Invalid type input: " + (isByref ? "ref " : "") + input;
+  if (requireValid) throw "Invalid type input: " + input;
   return undefined;
 }
 
@@ -138,8 +149,9 @@ export function protoClassToString(classInfo: ProtoClassInfo): string {
 }
 
 export function protoTypeToString(type?: ProtoTypeInfo): string {
+  if (!type) return "";
   let str: string | undefined = undefined;
-  switch (type?.Info?.$case) {
+  switch (type.Info?.$case) {
     case "classInfo":
       str = protoClassToString(type.Info.classInfo);
       break;
@@ -159,8 +171,16 @@ export function protoTypeToString(type?: ProtoTypeInfo): string {
       str = protoClassToString(type.Info.enumInfo.clazz!);
       break;
   }
-  if (str && type?.isByref) return "ref " + str;
-  return str ?? "";
+  str = str ?? "";
+  switch (type.byref) {
+    case ProtoTypeInfo_Byref.REF:
+      return "ref " + str;
+    case ProtoTypeInfo_Byref.IN:
+      return "in " + str;
+    case ProtoTypeInfo_Byref.OUT:
+      return "out " + str;
+  }
+  return str;
 }
 
 export function stringToPrimitive(

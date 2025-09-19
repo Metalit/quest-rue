@@ -55,7 +55,8 @@ export interface ProtoTypeInfo {
     | { $case: "enumInfo"; enumInfo: ProtoEnumInfo }
     | undefined;
   size: number;
-  isByref: boolean;
+  /** conflicts with bshook byref macro */
+  byref: ProtoTypeInfo_Byref;
 }
 
 /** TODO: maybe add more primitives */
@@ -154,6 +155,51 @@ export function protoTypeInfo_PrimitiveToJSON(object: ProtoTypeInfo_Primitive): 
     case ProtoTypeInfo_Primitive.UNKNOWN:
       return "UNKNOWN";
     case ProtoTypeInfo_Primitive.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+export enum ProtoTypeInfo_Byref {
+  NONE = 0,
+  REF = 1,
+  IN = 2,
+  OUT = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function protoTypeInfo_ByrefFromJSON(object: any): ProtoTypeInfo_Byref {
+  switch (object) {
+    case 0:
+    case "NONE":
+      return ProtoTypeInfo_Byref.NONE;
+    case 1:
+    case "REF":
+      return ProtoTypeInfo_Byref.REF;
+    case 2:
+    case "IN":
+      return ProtoTypeInfo_Byref.IN;
+    case 3:
+    case "OUT":
+      return ProtoTypeInfo_Byref.OUT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ProtoTypeInfo_Byref.UNRECOGNIZED;
+  }
+}
+
+export function protoTypeInfo_ByrefToJSON(object: ProtoTypeInfo_Byref): string {
+  switch (object) {
+    case ProtoTypeInfo_Byref.NONE:
+      return "NONE";
+    case ProtoTypeInfo_Byref.REF:
+      return "REF";
+    case ProtoTypeInfo_Byref.IN:
+      return "IN";
+    case ProtoTypeInfo_Byref.OUT:
+      return "OUT";
+    case ProtoTypeInfo_Byref.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
@@ -845,7 +891,7 @@ export const ProtoEnumInfo_ValuesEntry: MessageFns<ProtoEnumInfo_ValuesEntry> = 
 };
 
 function createBaseProtoTypeInfo(): ProtoTypeInfo {
-  return { Info: undefined, size: 0, isByref: false };
+  return { Info: undefined, size: 0, byref: 0 };
 }
 
 export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
@@ -873,8 +919,8 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
     if (message.size !== 0) {
       writer.uint32(56).int32(message.size);
     }
-    if (message.isByref !== false) {
-      writer.uint32(64).bool(message.isByref);
+    if (message.byref !== 0) {
+      writer.uint32(64).int32(message.byref);
     }
     return writer;
   },
@@ -947,7 +993,7 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
             break;
           }
 
-          message.isByref = reader.bool();
+          message.byref = reader.int32() as any;
           continue;
         }
       }
@@ -975,7 +1021,7 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
         ? { $case: "enumInfo", enumInfo: ProtoEnumInfo.fromJSON(object.enumInfo) }
         : undefined,
       size: isSet(object.size) ? globalThis.Number(object.size) : 0,
-      isByref: isSet(object.isByref) ? globalThis.Boolean(object.isByref) : false,
+      byref: isSet(object.byref) ? protoTypeInfo_ByrefFromJSON(object.byref) : 0,
     };
   },
 
@@ -997,8 +1043,8 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
     if (message.size !== 0) {
       obj.size = Math.round(message.size);
     }
-    if (message.isByref !== false) {
-      obj.isByref = message.isByref;
+    if (message.byref !== 0) {
+      obj.byref = protoTypeInfo_ByrefToJSON(message.byref);
     }
     return obj;
   },
@@ -1047,7 +1093,7 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
       }
     }
     message.size = object.size ?? 0;
-    message.isByref = object.isByref ?? false;
+    message.byref = object.byref ?? 0;
     return message;
   },
 };

@@ -187,10 +187,8 @@ bool ClassUtils::GetIsCustom(Il2CppType const* type) {
 
 // from here, use type instead of class, as it is slightly more specific in cases such as byrefs
 
-static std::set<Il2CppTypeEnum> const NonClassReferences = {IL2CPP_TYPE_STRING, IL2CPP_TYPE_SZARRAY, IL2CPP_TYPE_VAR, IL2CPP_TYPE_MVAR};
-
-ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type) {
-    LOG_DEBUG("Getting type info {}", il2cpp_functions::type_get_name(type));
+ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type, bool param) {
+    LOG_DEBUG("Getting type info {} (param: {})", il2cpp_functions::type_get_name(type), param);
     LOG_DEBUG("Type enum {}", (int) type->type);
 
     auto cached = typeInfoCache.find(type);
@@ -203,7 +201,7 @@ ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type) {
     info.set_size(fieldTypeSize(type));
     LOG_DEBUG("Found size {}", info.size());
 
-    if (!type->valuetype && !NonClassReferences.contains(type->type)) {
+    if (type->type == IL2CPP_TYPE_CLASS) {
         if (classoftype(type) == il2cpp_functions::defaults->systemtype_class)
             info.set_primitiveinfo(ProtoTypeInfo::TYPE);
         else
@@ -220,7 +218,15 @@ ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type) {
         info.set_primitiveinfo(primitive);
     else
         LOG_ERROR("Unknown type {}!", (int) type->type);
-    info.set_isbyref(type->byref);
+    if (type->byref) {
+        if (param && type->attrs & PARAM_ATTRIBUTE_IN)
+            info.set_byref_(ProtoTypeInfo_Byref_IN);
+        else if (param && type->attrs & PARAM_ATTRIBUTE_OUT)
+            info.set_byref_(ProtoTypeInfo_Byref_OUT);
+        else
+            info.set_byref_(ProtoTypeInfo_Byref_REF);
+    } else
+        info.set_byref_(ProtoTypeInfo_Byref_NONE);
 
     typeInfoCache[type] = info;
 
@@ -467,7 +473,7 @@ Il2CppType* ClassUtils::GetType(ProtoTypeInfo const& typeInfo) {
     if (!clazz)
         return nullptr;
     // this probably handles byref
-    if (typeInfo.isbyref())
+    if (typeInfo.byref_() != ProtoTypeInfo_Byref_NONE)
         return &clazz->this_arg;
     return &clazz->byval_arg;
 }

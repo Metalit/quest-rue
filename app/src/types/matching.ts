@@ -62,6 +62,7 @@ export function areProtoTypesEqual(
   const info1 = type1?.Info;
   const info2 = type2?.Info;
   if (!info1 || !info2) return false;
+  if (type1.byref != type2.byref) return false;
   return (
     compareBoth(info1, info2, "primitiveInfo", (info) => info.primitiveInfo) ||
     compareBoth(

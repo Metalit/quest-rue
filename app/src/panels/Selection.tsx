@@ -18,10 +18,15 @@ import {
   onCleanup,
   Show,
 } from "solid-js";
-import { createStore, reconcile, SetStoreFunction } from "solid-js/store";
+import {
+  createStore,
+  reconcile,
+  SetStoreFunction,
+  unwrap,
+} from "solid-js/store";
 
 import { FieldCell } from "../components/data/FieldCell";
-import { MethodCell } from "../components/data/MethodCell";
+import { MethodCell, MethodCellMemory } from "../components/data/MethodCell";
 import { PropertyCell } from "../components/data/PropertyCell";
 import { PanelProps } from "../components/Dockview";
 import {
@@ -52,6 +57,8 @@ let reloading = false;
 type Member = ProtoFieldInfo | ProtoPropertyInfo | ProtoMethodInfo;
 
 type ValuesStore = Record<string, ProtoDataSegment | undefined>;
+
+type MethodsStore = Record<string, MethodCellMemory>;
 
 const searchModes = ["Name", "Type"] as const;
 
@@ -227,6 +234,8 @@ function DetailsList(props: {
   details: ProtoClassDetails;
   values: ValuesStore;
   setValues: SetStoreFunction<ValuesStore>;
+  methodsStore: MethodsStore;
+  setMethodsStore: SetStoreFunction<MethodsStore>;
   search: string;
   searchMode: SearchMode;
   filters: FilterMode;
@@ -274,7 +283,7 @@ function DetailsList(props: {
   );
 
   return (
-    <MaxColsGrid class="overflow-auto gap-y-2" maxCols={columnCount()}>
+    <MaxColsGrid class="overflow-auto gap-y-2 p-1" maxCols={columnCount()}>
       <For each={fieldLists()[0]}>
         {(field) => (
           <FieldCell
@@ -302,10 +311,13 @@ function DetailsList(props: {
           <MethodCell
             method={method}
             selection={props.selection}
-            rememberedReturn={props.values[bigToString(method.id)]}
-            setReturn={(value) =>
-              props.setValues(bigToString(method.id), value)
-            }
+            memory={props.methodsStore[bigToString(method.id)]}
+            setMemory={(...rest: unknown[]) => {
+              const key = bigToString(method.id);
+              if (key in unwrap(props.methodsStore) || rest.length == 1)
+                // @ts-expect-error: store setters are way too complicated
+                props.setMethodsStore(key, ...rest);
+            }}
           />
         )}
       </For>
@@ -392,6 +404,8 @@ export function Selection({ api, id }: PanelProps) {
         ),
       ),
   );
+
+  const [methodsStore, setMethodsStore] = createStore<MethodsStore>({});
 
   const [search, setSearch] = createSignal("");
   const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
@@ -499,6 +513,8 @@ export function Selection({ api, id }: PanelProps) {
             details={details()!}
             values={values}
             setValues={setValues}
+            methodsStore={methodsStore}
+            setMethodsStore={setMethodsStore}
             search={search()}
             searchMode={searchMode()}
             filters={filters}

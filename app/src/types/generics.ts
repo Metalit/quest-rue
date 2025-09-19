@@ -1,5 +1,10 @@
 import { bigToString, extractCase } from "../global/utils";
-import { ProtoMethodInfo, ProtoTypeInfo } from "../proto/il2cpp";
+import {
+  ProtoDataPayload,
+  ProtoMethodInfo,
+  ProtoTypeInfo,
+  ProtoTypeInfo_Byref,
+} from "../proto/il2cpp";
 import { areProtoTypesEqual } from "./matching";
 
 export type GenericsMap = Record<
@@ -19,7 +24,7 @@ export function getGenerics(type?: ProtoTypeInfo): ProtoTypeInfo[] {
         []
       );
     case "genericInfo":
-      return [{ ...type, isByref: false }];
+      return [{ ...type, byref: ProtoTypeInfo_Byref.NONE }];
   }
   return [];
 }
@@ -70,8 +75,19 @@ export function getInstantiation(
       return {
         ...(generics[bigToString(info.genericInfo.genericHandle)]?.value ??
           copy),
-        isByref: copy.isByref,
+        byref: copy.byref,
       };
   }
   return areProtoTypesEqual(type, copy) ? type : copy;
+}
+
+export function getNewInstantiationData(
+  current: ProtoDataPayload | undefined,
+  base: ProtoTypeInfo,
+  generics: GenericsMap,
+): [ProtoDataPayload, true] | [ProtoDataPayload | undefined, false] {
+  const instantiation = getInstantiation(base, generics);
+  if (!areProtoTypesEqual(current?.typeInfo, instantiation))
+    return [{ typeInfo: instantiation, data: undefined }, true];
+  else return [current, false];
 }
