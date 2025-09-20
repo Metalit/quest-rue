@@ -1,5 +1,5 @@
 import { arrowPath } from "solid-heroicons/outline";
-import { createEffect } from "solid-js";
+import { createEffect, on } from "solid-js";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
 import {
@@ -46,7 +46,7 @@ export function FieldCell(props: FieldCellProps) {
     });
 
   // automatically whenever a valid input is given
-  createEffect(set);
+  createEffect(on(() => props.value, set, { defer: true }));
 
   return (
     <div class="flex items-center justify-between">
