@@ -176,7 +176,8 @@ export function SelectInput<V = string, O extends V = V>(
           ref={menuElement}
           onFocusIn={focusIn}
           onFocusOut={focusOut}
-          class={`dropdown dropdown-${custom.dropdownPosition ?? "start"} floating-menu flex flex-col p-1 gap-1 empty:transition-none empty:hidden`}
+          class={`dropdown dropdown-${custom.dropdownPosition ?? "start"} floating-menu
+                  flex flex-col p-1 gap-1 max-h-56 empty:transition-none empty:hidden`}
           popover="manual"
           style={`position-anchor:--sel-in-anchor-${id}`}
         >

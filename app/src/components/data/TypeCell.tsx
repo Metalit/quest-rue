@@ -47,7 +47,7 @@ export function TypeCell(props: TypeCellProps) {
   const options = () =>
     (completions()?.options ?? [])
       .sort((s1, s2) => s1.length - s2.length)
-      .slice(0, 5);
+      .slice(0, 50);
 
   createEffect(() =>
     searchTypes({ getTypeComplete: parsePartialInput(input()) }),
