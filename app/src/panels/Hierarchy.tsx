@@ -328,13 +328,13 @@ export function Hierarchy() {
   return (
     <div class="p-2 pt-2.5 gap-1 flex flex-col items-stretch size-full">
       <input
-        class="input input-sm shrink-0 w-full"
+        class="input shrink-0 w-full"
         placeholder="Search"
         use:valueSignal={[search, setSearch]}
       />
       <div class="flex gap-1">
         <SelectInput
-          class="input input-sm"
+          class="input"
           title="Scene"
           placeholder="Scene"
           options={scenes()}
@@ -347,18 +347,13 @@ export function Hierarchy() {
           onChange={setScene}
         />
         <button
-          class="btn btn-sm btn-square"
+          class="btn btn-square"
           title="Focus Selected"
           onClick={focusSeleced}
         >
           <Icon path={viewfinderCircle} />
         </button>
-        <DropdownButton
-          class="btn-sm"
-          title="Visibility"
-          icon={eye}
-          dropdownPosition="end"
-        >
+        <DropdownButton title="Visibility" icon={eye} dropdownPosition="end">
           <ModeOptions
             title="Visibility Mode"
             modes={visibilityModes}
@@ -368,14 +363,14 @@ export function Hierarchy() {
         </DropdownButton>
         <div class="join">
           <button
-            class="btn btn-sm btn-square join-item"
+            class="btn btn-square join-item"
             title="Sort Direction"
             onClick={() => setInverse((val) => !val)}
           >
             <Icon path={inverse() ? barsArrowUp : barsArrowDown} />
           </button>
           <DropdownButton
-            class="btn-sm w-5 px-1 join-item"
+            class="w-5 px-1 join-item"
             title="Sort Mode"
             icon={chevronDown}
             dropdownPosition="end"

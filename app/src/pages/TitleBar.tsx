@@ -28,20 +28,16 @@ function OptionsMenu() {
   return (
     <>
       <button
-        class="btn btn-sm"
+        class="btn"
         disabled={!socket.connected()}
         onClick={() => socket.disconnect()}
       >
         Disconnect
       </button>
       <div class="divider" />
-      <input
-        class="input input-sm"
-        placeholder="Hierarcy Refresh Interval"
-        disabled
-      />
+      <input class="input" placeholder="Hierarcy Refresh Interval" disabled />
       <button
-        class="btn btn-sm"
+        class="btn"
         disabled={!socket.connected()}
         onClick={updateGameObjects}
       >
@@ -53,7 +49,7 @@ function OptionsMenu() {
         Remember Selection
       </label>
       <div class="divider" />
-      <button class="btn btn-sm" disabled>
+      <button class="btn" disabled>
         Reset Member Pins
       </button>
     </>
@@ -73,7 +69,7 @@ function ViewMenu() {
         Dark Mode
       </label>
       <input
-        class="input input-sm"
+        class="input"
         placeholder="Monospace Font"
         use:valueSignal={[monoFont, setMonoFont]}
       />
@@ -91,10 +87,10 @@ function ViewMenu() {
 function LayoutMenu() {
   return (
     <>
-      <button class="btn btn-sm" disabled>
+      <button class="btn" disabled>
         Save Layout
       </button>
-      <button class="btn btn-sm" disabled>
+      <button class="btn" disabled>
         Load Layout
       </button>
     </>
@@ -104,7 +100,7 @@ function LayoutMenu() {
 function MenuDropdown(props: ParentProps<{ title: string; icon: IconPath }>) {
   return (
     <DropdownButton
-      class="btn-ghost btn-sm rounded-none"
+      class="btn-ghost rounded-none"
       icon={props.icon}
       text={props.title}
       title={props.title}
@@ -137,19 +133,19 @@ export function TitleBar() {
       </Show>
       <div data-tauri-drag-region class="grow" />
       <button
-        class="btn btn-square btn-ghost btn-sm rounded-none"
+        class="btn btn-square btn-ghost rounded-none"
         onClick={() => window.minimize()}
       >
         <Icon path={minus} />
       </button>
       <button
-        class="btn btn-square btn-ghost btn-sm rounded-none"
+        class="btn btn-square btn-ghost rounded-none"
         onClick={() => window.toggleMaximize()}
       >
         <Icon path={stop} />
       </button>
       <button
-        class="btn btn-square btn-ghost btn-sm rounded-none"
+        class="btn btn-square btn-ghost rounded-none"
         onClick={() => window.close()}
       >
         <Icon path={xMark} />

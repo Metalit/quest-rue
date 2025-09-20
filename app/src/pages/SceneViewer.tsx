@@ -33,7 +33,7 @@ function RightHeader({ api }: IGroupHeaderProps) {
   return (
     <div class="flex items-center mr-2 h-full">
       <Show when={inGrid()}>
-        <button class="btn btn-square btn-ghost btn-xs" onClick={toggle}>
+        <button class="btn btn-square btn-ghost btn-sm" onClick={toggle}>
           <Icon path={fullscreen() ? arrowsPointingIn : arrowsPointingOut} />
         </button>
       </Show>
@@ -50,7 +50,7 @@ function Tab({ api }: TabPartInitParameters) {
     <div class="flex gap-2 items-center h-full hover:*:visible">
       {title()}
       <button
-        class="invisible btn btn-square btn-ghost btn-xs"
+        class="invisible btn btn-square btn-ghost btn-sm"
         onClick={() => api.close()}
       >
         <Icon path={xMark} />

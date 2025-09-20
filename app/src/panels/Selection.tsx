@@ -87,40 +87,6 @@ const sortModes = ["Default", "Name", "Parameters", "Type"] as const;
 
 type SortMode = (typeof sortModes)[number];
 
-function NoSelection() {
-  const [classInput, setClassInput] = createSignal("");
-  const [addressInput, setAddressInput] = createSignal("");
-
-  return (
-    <div class="absolute-centered floating-menu border-shadow flex flex-col gap-2 p-2">
-      No Selection
-      <div class="join">
-        <input
-          class="input join-item"
-          placeholder="Select Class"
-          use:valueSignal={[classInput, setClassInput]}
-        />
-        <button
-          class="btn btn-square join-item"
-          onClick={() => console.log(classInput())}
-        >
-          <Icon path={chevronDoubleRight} />
-        </button>
-      </div>
-      <div class="join">
-        <input
-          class="input join-item"
-          placeholder="Select Address"
-          use:valueSignal={[addressInput, setAddressInput]}
-        />
-        <button class="btn btn-square join-item">
-          <Icon path={chevronDoubleRight} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function isField(member: Member): member is ProtoFieldInfo {
   const cast = member as ProtoFieldInfo;
   return cast.literal !== undefined;
@@ -391,6 +357,40 @@ function InheritancePanel(props: { details?: ProtoClassDetails }) {
   );
 }
 
+function NoSelection() {
+  const [classInput, setClassInput] = createSignal("");
+  const [addressInput, setAddressInput] = createSignal("");
+
+  return (
+    <div class="absolute-centered floating-menu border-shadow flex flex-col gap-2 p-2">
+      No Selection
+      <div class="join">
+        <input
+          class="input input-lg join-item"
+          placeholder="Select Class"
+          use:valueSignal={[classInput, setClassInput]}
+        />
+        <button
+          class="btn btn-lg btn-square join-item"
+          onClick={() => console.log(classInput())}
+        >
+          <Icon path={chevronDoubleRight} />
+        </button>
+      </div>
+      <div class="join">
+        <input
+          class="input input-lg join-item"
+          placeholder="Select Address"
+          use:valueSignal={[addressInput, setAddressInput]}
+        />
+        <button class="btn btn-lg btn-square join-item">
+          <Icon path={chevronDoubleRight} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // eslint-disable-next-line solid/no-destructure
 export function Selection({ api, id }: PanelProps) {
   setLastPanel(id);
@@ -453,7 +453,7 @@ export function Selection({ api, id }: PanelProps) {
       <div class="size-full flex flex-col p-2">
         <div class="flex flex-wrap items-end gap-1 gap-y-1">
           <DropdownButton
-            class="btn-sm btn-ghost mono text-[16px]"
+            class="btn-ghost mono text-[16px]"
             text={protoTypeToString(getSelection(id).typeInfo!)}
             textFirst
             icon={ellipsisHorizontalCircle}
@@ -465,12 +465,12 @@ export function Selection({ api, id }: PanelProps) {
           <div class="grow basis-0 flex gap-1 items-center justify-end">
             <div class="grow justify-end join">
               <input
-                class="join-item input input-sm"
+                class="join-item input"
                 placeholder="Search"
                 use:valueSignal={[search, setSearch]}
               />
               <DropdownButton
-                class="join-item btn-sm"
+                class="join-item"
                 title="Search Mode"
                 icon={magnifyingGlass}
                 dropdownPosition="end"
@@ -484,7 +484,6 @@ export function Selection({ api, id }: PanelProps) {
               </DropdownButton>
             </div>
             <DropdownButton
-              class="btn-sm"
               title="Member Filter"
               icon={funnel}
               dropdownPosition="end"
@@ -496,7 +495,6 @@ export function Selection({ api, id }: PanelProps) {
               />
             </DropdownButton>
             <DropdownButton
-              class="btn-sm"
               title="Visibility Mode"
               icon={eye}
               dropdownPosition="end"
@@ -510,14 +508,14 @@ export function Selection({ api, id }: PanelProps) {
             </DropdownButton>
             <div class="join">
               <button
-                class="btn btn-sm btn-square join-item"
+                class="btn btn-square join-item"
                 title="Sort Direction"
                 onClick={() => setInverse((val) => !val)}
               >
                 <Icon path={inverse() ? barsArrowUp : barsArrowDown} />
               </button>
               <DropdownButton
-                class="btn-sm w-5 px-1 join-item"
+                class="w-5 px-1 join-item"
                 title="Sort Mode"
                 icon={chevronDown}
                 dropdownPosition="end"

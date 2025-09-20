@@ -72,7 +72,7 @@ export default function ConnectMenu() {
         when={!socket.connecting()}
         // when={false}
         fallback={
-          <button class="btn" onClick={cancel}>
+          <button class="btn btn-lg" onClick={cancel}>
             Cancel connection
           </button>
         }
@@ -80,7 +80,7 @@ export default function ConnectMenu() {
         <form onSubmit={submit} class={"flex flex-col gap-2.5"}>
           <text class="text-center">Enter your Device IP Address</text>
           <input
-            class="input"
+            class="input input-lg"
             placeholder="IP"
             value={ip()}
             onInput={(e) => {
@@ -88,7 +88,7 @@ export default function ConnectMenu() {
             }}
           />
           <input
-            class="input"
+            class="input input-lg"
             type="number"
             min={0}
             max={65535}
@@ -98,7 +98,7 @@ export default function ConnectMenu() {
               setPort(e.currentTarget.value);
             }}
           />
-          <button class="btn" type="submit">
+          <button class="btn btn-lg" type="submit">
             Connect
           </button>
         </form>
@@ -115,7 +115,7 @@ export default function ConnectMenu() {
                   <span class="flex join-horizontal">
                     <button
                       title={id}
-                      class="btn join-item grow"
+                      class="btn btn-lg join-item grow"
                       onClick={() => {
                         selectDevice(id, name);
                       }}
@@ -130,7 +130,7 @@ export default function ConnectMenu() {
                           socket.manualDisconnect = false;
                         setDefaultAdbDevice((old) => (id === old ? "" : id));
                       }}
-                      class="btn px-2 join-item"
+                      class="btn btn-lg btn-square join-item"
                       tooltip="Set as favorite"
                     />
                   </span>
@@ -139,7 +139,7 @@ export default function ConnectMenu() {
               <span class="grow -mb-3" />
               <ActionButton
                 img={arrowPath}
-                class="btn btn-xs btn-square self-start"
+                class="btn btn-sm btn-square self-start"
                 loading={devicesLoading()}
                 onClick={updateDevices}
               />

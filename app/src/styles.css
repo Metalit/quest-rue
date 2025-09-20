@@ -29,6 +29,8 @@
   --color-base-content: black;
   --color-secondary-content: var(--color-gray-600);
   --color-shadow: rgba(0, 0, 0, 0.1);
+
+  --size-field: 0.2rem;
   --divider-m: 0;
   --depth: 0;
 }
@@ -57,6 +59,8 @@
   --color-base-content: white;
   --color-secondary-content: var(--color-gray-400);
   --color-shadow: rgba(0, 0, 0, 0.3);
+
+  --size-field: 0.2rem;
   --divider-m: 0;
   --depth: 0;
 }
@@ -173,14 +177,22 @@
     border-color: transparent;
   }
 
-  --icon-size: 1.5rem;
+  --icon-size: 1.2rem;
+  --fontsize: 0.75rem;
+  &.btn-lg,
+  &.input-lg {
+    --icon-size: 1.5rem;
+    --fontsize: 0.875rem;
+  }
   &.btn-sm,
   &.input-sm {
-    --icon-size: 1.2rem;
+    --icon-size: 1rem;
+    --fontsize: 0.6875rem;
   }
   &.btn-xs,
   &.input-xs {
-    --icon-size: 1rem;
+    --icon-size: 0.8rem;
+    --fontsize: 0.5rem;
   }
 
   .loading,
@@ -198,6 +210,8 @@
 .input {
   min-width: 3rem;
   max-width: 20rem;
+
+  font-size: var(--fontsize);
 
   .loading,
   img,

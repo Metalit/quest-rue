@@ -144,14 +144,14 @@ export function MethodCell(props: MethodCellProps) {
             value={props.memory?.ret?.data}
           />
           <ActionButton
-            class="join-item btn btn-sm btn-square"
+            class="join-item btn btn-square"
             img={arrowLeftOnRectangle}
             tooltip="Run Method"
             loading={resultLoading()}
             onClick={run}
           />
           <ActionButton
-            class="join-item btn btn-sm btn-square"
+            class="join-item btn btn-square"
             img={expanded() ? chevronDown : chevronLeft}
             tooltip="Show Parameters"
             onClick={() => setUserExpanded((val) => !val)}

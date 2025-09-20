@@ -70,7 +70,7 @@ export function PropertyCell(props: PropertyCellProps) {
           value={props.value}
         />
         <ActionButton
-          class="join-item btn btn-sm btn-square"
+          class="join-item btn btn-square"
           img={arrowPath}
           tooltip="Get Value"
           loading={getLoading()}
@@ -78,7 +78,7 @@ export function PropertyCell(props: PropertyCellProps) {
           disabled={!props.property.getterId}
         />
         <ActionButton
-          class="join-item btn btn-sm btn-square"
+          class="join-item btn btn-square"
           img={arrowRightOnRectangle}
           tooltip="Set Value"
           loading={setLoading()}

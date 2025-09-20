@@ -183,7 +183,7 @@ export function SelectInput<V = string, O extends V = V>(
           <For each={options()}>
             {(option) => (
               <button
-                class={`btn btn-sm ${isSelected(option) ? "btn-accent" : ""}`}
+                class={`btn ${isSelected(option) ? "btn-accent" : ""}`}
                 onClick={() => select(option)}
               >
                 {display(option)}

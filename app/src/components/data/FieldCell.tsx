@@ -61,7 +61,7 @@ export function FieldCell(props: FieldCellProps) {
           value={props.value}
         />
         <ActionButton
-          class="join-item btn btn-sm btn-square"
+          class="join-item btn btn-square"
           img={arrowPath}
           tooltip="Refresh Value"
           loading={getLoading() || setLoading()}

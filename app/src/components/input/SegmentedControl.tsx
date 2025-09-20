@@ -27,7 +27,7 @@ export default function SegmentedControl<T>(props: SegmentedControlProps<T>) {
       <div class="join">
         <For each={custom.values}>
           {(item) => (
-            <label class="join-item btn btn-sm has-checked:btn-accent">
+            <label class="join-item btn btn-square has-checked:btn-accent">
               <input
                 type="radio"
                 class="hidden"

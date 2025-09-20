@@ -56,7 +56,7 @@ export function ModeOptions<T extends string>(props: {
       <For each={props.modes}>
         {(mode) => (
           <button
-            class={`btn btn-sm ${mode === props.current ? "btn-accent" : ""}`}
+            class={`btn ${mode === props.current ? "btn-accent" : ""}`}
             onClick={() => props.setCurrent(() => mode)}
           >
             {mode}

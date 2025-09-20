@@ -45,7 +45,7 @@ function FreeInputCell(props: ValueCellProps) {
 
   return (
     <input
-      class={`input input-sm ${valid() ? "" : "focus:input-error"} ${props.class ?? ""}`}
+      class={`input ${valid() ? "" : "focus:input-error"} ${props.class ?? ""}`}
       placeholder={props.placeholder}
       title={props.title}
       use:valueSignal={[input, setInput]}
@@ -67,7 +67,7 @@ function OptionsInputCell(props: ValueCellProps) {
 
   return (
     <SelectInput
-      class={`input input-sm ${props.class ?? ""}`}
+      class={`input ${props.class ?? ""}`}
       placeholder={props.placeholder}
       title={props.title}
       options={options()}
@@ -132,7 +132,7 @@ function VariableInputCell(props: ValueCellProps) {
   // todo: option to create a new variable
   return (
     <SelectInput
-      class={`input input-sm ${props.class ?? ""}`}
+      class={`input ${props.class ?? ""}`}
       placeholder={props.placeholder}
       title={props.title}
       value={match()}
@@ -152,7 +152,7 @@ function VariableInputCell(props: ValueCellProps) {
 function OutputOnlyCell(props: ValueCellProps) {
   return (
     <input
-      class={`input input-sm ${props.class ?? ""}`}
+      class={`input ${props.class ?? ""}`}
       placeholder={props.placeholder}
       title={props.title}
       value={protoDataToString(props.value, props.typeInfo)}
