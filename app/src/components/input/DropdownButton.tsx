@@ -6,14 +6,17 @@ import { Portal } from "solid-js/web";
 
 import { IconPath, uniqueNumber } from "../../global/utils";
 
-export type DropdownPositions =
-  | "start"
-  | "center"
-  | "end"
-  | "bottom"
-  | "top"
-  | "left"
-  | "right";
+const dropdownPositions = {
+  start: "dropdown-start",
+  center: "dropdown-center",
+  end: "dropdown-end",
+  bottom: "dropdown-bottom",
+  top: "dropdown-top",
+  left: "dropdown-left",
+  right: "dropdown-right",
+};
+
+export type DropdownPositions = keyof typeof dropdownPositions;
 
 const Title = (props: { title: string }) => (
   <span class="text-sm text-secondary-content p-1">{props.title}</span>
@@ -76,12 +79,12 @@ export function DropdownButton(
     class?: string;
     disabled?: boolean;
     dropdownClass?: string;
-    dropdownPosition?: DropdownPositions | DropdownPositions[];
+    dropdownPosition?: DropdownPositions;
   }>,
 ) {
   const id = uniqueNumber();
 
-  const pos = () => props.dropdownPosition ?? "start";
+  const pos = () => dropdownPositions[props.dropdownPosition ?? "start"];
 
   return (
     <button
@@ -96,7 +99,7 @@ export function DropdownButton(
       {!props.textFirst ? (props.text ?? "") : ""}
       <Portal mount={document.getElementById("app")!}>
         <div
-          class={`dropdown dropdown-${pos()} floating-menu flex flex-col p-1 gap-1 items-stretch ${props.dropdownClass ?? ""}`}
+          class={`dropdown ${pos()} floating-menu flex flex-col p-1 gap-1 items-stretch ${props.dropdownClass ?? ""}`}
           style={`position-anchor:--drpdn-anchor-${id}`}
           popover
           id={`drpdn-pop-${id}`}
