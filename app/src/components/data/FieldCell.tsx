@@ -55,7 +55,7 @@ export function FieldCell(props: FieldCellProps) {
       </span>
       <div class="join w-3/5 shrink-0 justify-end">
         <ValueCell
-          class="join-item"
+          class="join-item mono"
           typeInfo={props.field.type!}
           onChange={props.setValue}
           value={props.value}

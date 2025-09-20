@@ -294,7 +294,7 @@ function ObjectList(props: {
 
   return (
     <VirtualList
-      class="bg-base-100 rounded m-[-2px] p-1"
+      class="bg-base-50 rounded m-[-2px] p-1"
       items={display()}
       itemHeight={20}
       generator={(address) => (

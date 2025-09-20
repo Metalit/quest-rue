@@ -107,7 +107,7 @@ export default function ConnectMenu() {
             <text class="text-center">Select ADB Device</text>
             <div
               class={
-                "bg-base-100 p-2.5 rounded-lg grow flex flex-col gap-2.5 overflow-auto"
+                "bg-base-50 p-2.5 rounded-lg grow flex flex-col gap-2.5 overflow-auto"
               }
             >
               <For each={devices()}>

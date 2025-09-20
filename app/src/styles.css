@@ -10,21 +10,22 @@
 
   --color-background: var(--color-zinc-50);
   --color-base: var(--color-zinc-200);
-  --color-base-100: color-mix(
+  --color-base-50: color-mix(
     in oklab,
     var(--color-zinc-200) 50%,
     var(--color-zinc-300)
   );
-  --color-base-200: color-mix(
+  --color-base-100: color-mix(
     in oklab,
     var(--color-zinc-300) 70%,
     var(--color-zinc-400)
   );
-  --color-base-300: color-mix(
+  --color-base-200: color-mix(
     in oklab,
     var(--color-zinc-300) 40%,
     var(--color-zinc-400)
   );
+  --color-base-300: var(--color-zinc-400);
   --color-base-content: black;
   --color-secondary-content: var(--color-gray-600);
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -41,17 +42,18 @@
     var(--color-zinc-900)
   );
   --color-base: var(--color-zinc-900);
-  --color-base-100: color-mix(
+  --color-base-50: color-mix(
     in oklab,
     var(--color-zinc-900) 20%,
     var(--color-zinc-800)
   );
-  --color-base-200: color-mix(
+  --color-base-100: color-mix(
     in oklab,
     var(--color-zinc-800) 50%,
     var(--color-zinc-700)
   );
-  --color-base-300: var(--color-zinc-700);
+  --color-base-200: var(--color-zinc-700);
+  --color-base-300: var(--color-zinc-600);
   --color-base-content: white;
   --color-secondary-content: var(--color-gray-400);
   --color-shadow: rgba(0, 0, 0, 0.3);
@@ -62,6 +64,7 @@
 @theme inline {
   --color-background: var(--color-background);
   --color-base: var(--color-base);
+  --color-base-50: var(--color-base-50);
   --color-secondary-content: var(--color-secondary-content);
   --color-shadow: var(--color-shadow);
 }
@@ -73,6 +76,9 @@
 }
 @utility shadow {
   box-shadow: 4px 4px 4px 0 var(--color-shadow);
+}
+@utility mono {
+  font-family: var(--mono-font);
 }
 
 #app {
@@ -95,10 +101,6 @@
 }
 
 /* utility classes */
-.mono {
-  font-family: var(--mono-font);
-}
-
 .absolute-centered {
   position: absolute;
   top: 50%;
@@ -127,7 +129,7 @@
 }
 
 .floating-menu {
-  @apply bg-base-100 border-2 border-shadow shadow rounded-md;
+  @apply bg-base-50 border-2 border-shadow shadow rounded-md;
 }
 
 /* patches */
@@ -164,6 +166,11 @@
   &:focus,
   &:focus-within {
     outline: none;
+  }
+
+  &:not(:focus),
+  &:not(:focus-within) {
+    border: none;
   }
 
   --icon-size: 1.5rem;

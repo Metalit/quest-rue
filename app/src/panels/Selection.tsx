@@ -15,6 +15,7 @@ import {
   createMemo,
   createSignal,
   For,
+  JSX,
   onCleanup,
   Show,
 } from "solid-js";
@@ -229,6 +230,22 @@ function filterMembers<T extends Member>(
   ) as [T[], T[]];
 }
 
+function StyledCellGrid<T>(props: {
+  items: T[];
+  item: (val: T) => JSX.Element;
+}) {
+  return (
+    <Show when={props.items.length > 0}>
+      <MaxColsGrid
+        class="p-2 pl-3 gap-y-2 bg-base-50 rounded"
+        maxCols={columnCount()}
+      >
+        <For each={props.items}>{props.item}</For>
+      </MaxColsGrid>
+    </Show>
+  );
+}
+
 function DetailsList(props: {
   selection: ProtoDataPayload;
   details: ProtoClassDetails;
@@ -242,6 +259,7 @@ function DetailsList(props: {
   visibility: VisibilityMode;
   sort: SortMode;
   inverse: boolean;
+  first: boolean;
 }) {
   const fieldLists = createMemo(() =>
     filterMembers(
@@ -282,46 +300,58 @@ function DetailsList(props: {
     ),
   );
 
+  const fieldCell = (field: ProtoFieldInfo) => (
+    <FieldCell
+      field={field}
+      selection={props.selection}
+      value={props.values[bigToString(field.id)]}
+      setValue={(value) => props.setValues(bigToString(field.id), value)}
+    />
+  );
+
+  const propertyCell = (property: ProtoPropertyInfo) => (
+    <PropertyCell
+      property={property}
+      selection={props.selection}
+      value={props.values[bigToString(property.id)]}
+      setValue={(value) => props.setValues(bigToString(property.id), value)}
+    />
+  );
+
+  const methodCell = (method: ProtoMethodInfo) => (
+    <MethodCell
+      method={method}
+      selection={props.selection}
+      memory={props.methodsStore[bigToString(method.id)]}
+      setMemory={(...rest: unknown[]) => {
+        const key = bigToString(method.id);
+        if (key in unwrap(props.methodsStore) || rest.length == 1)
+          // @ts-expect-error: store setters are way too complicated
+          props.setMethodsStore(key, ...rest);
+      }}
+    />
+  );
+
   return (
-    <MaxColsGrid class="overflow-auto gap-y-2 p-1" maxCols={columnCount()}>
-      <For each={fieldLists()[0]}>
-        {(field) => (
-          <FieldCell
-            field={field}
-            selection={props.selection}
-            value={props.values[bigToString(field.id)]}
-            setValue={(value) => props.setValues(bigToString(field.id), value)}
-          />
-        )}
-      </For>
-      <For each={propertyLists()[0]}>
-        {(property) => (
-          <PropertyCell
-            property={property}
-            selection={props.selection}
-            value={props.values[bigToString(property.id)]}
-            setValue={(value) =>
-              props.setValues(bigToString(property.id), value)
-            }
-          />
-        )}
-      </For>
-      <For each={methodLists()[0]}>
-        {(method) => (
-          <MethodCell
-            method={method}
-            selection={props.selection}
-            memory={props.methodsStore[bigToString(method.id)]}
-            setMemory={(...rest: unknown[]) => {
-              const key = bigToString(method.id);
-              if (key in unwrap(props.methodsStore) || rest.length == 1)
-                // @ts-expect-error: store setters are way too complicated
-                props.setMethodsStore(key, ...rest);
-            }}
-          />
-        )}
-      </For>
-    </MaxColsGrid>
+    <>
+      <Show when={!props.first}>
+        <span class="ml-1 mt-1 mb-[-4px] mono">
+          {protoClassToString(props.details.clazz!)}
+        </span>
+      </Show>
+      <StyledCellGrid items={fieldLists()[0]} item={fieldCell} />
+      <StyledCellGrid items={propertyLists()[0]} item={propertyCell} />
+      <StyledCellGrid items={methodLists()[0]} item={methodCell} />
+      <Show when={props.visibility == "Static Members Last"}>
+        <div class="divider text-sm text-secondary-content my-[-4px]">Static Members</div>
+      </Show>
+      <StyledCellGrid items={fieldLists()[1]} item={fieldCell} />
+      <StyledCellGrid items={propertyLists()[1]} item={propertyCell} />
+      <StyledCellGrid items={methodLists()[1]} item={methodCell} />
+      <Show when={props.details.parent}>
+        <DetailsList {...props} details={props.details.parent!} first={false} />
+      </Show>
+    </>
   );
 }
 
@@ -508,20 +538,23 @@ export function Selection({ api, id }: PanelProps) {
             </div>
           }
         >
-          <DetailsList
-            selection={getSelection(id)}
-            details={details()!}
-            values={values}
-            setValues={setValues}
-            methodsStore={methodsStore}
-            setMethodsStore={setMethodsStore}
-            search={search()}
-            searchMode={searchMode()}
-            filters={filters}
-            visibility={visibility()}
-            sort={sorting()}
-            inverse={inverse()}
-          />
+          <div class="overflow-auto flex flex-col pr-1.5 gap-2">
+            <DetailsList
+              selection={getSelection(id)}
+              details={details()!}
+              values={values}
+              setValues={setValues}
+              methodsStore={methodsStore}
+              setMethodsStore={setMethodsStore}
+              search={search()}
+              searchMode={searchMode()}
+              filters={filters}
+              visibility={visibility()}
+              sort={sorting()}
+              inverse={inverse()}
+              first
+            />
+          </div>
         </Show>
       </div>
     </Show>

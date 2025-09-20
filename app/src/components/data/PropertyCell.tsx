@@ -63,7 +63,7 @@ export function PropertyCell(props: PropertyCellProps) {
       </span>
       <div class="join w-3/5 shrink-0 justify-end">
         <ValueCell
-          class="join-item"
+          class="join-item mono"
           readonly={!props.property.setterId}
           typeInfo={props.property.type!}
           onChange={props.setValue}

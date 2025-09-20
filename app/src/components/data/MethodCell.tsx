@@ -138,7 +138,7 @@ export function MethodCell(props: MethodCellProps) {
         </span>
         <div class="join w-3/5 shrink-0 justify-end">
           <ValueCell
-            class="join-item"
+            class="join-item mono"
             readonly
             typeInfo={props.memory?.ret?.typeInfo ?? props.method.returnType!}
             value={props.memory?.ret?.data}
@@ -194,6 +194,7 @@ export function MethodCell(props: MethodCellProps) {
             <For each={props.memory!.args!}>
               {(arg, i) => (
                 <ValueCell
+                  class="mono"
                   typeInfo={arg.typeInfo!}
                   value={arg.data}
                   onChange={(value) =>
