@@ -67,7 +67,7 @@ export default function ConnectMenu() {
   });
 
   return (
-    <div class={"absolute-centered bg-base flex gap-5 p-2.5 rounded-lg"}>
+    <div class="absolute-centered bg-base flex gap-5 p-2.5 rounded-lg">
       <Show
         when={!socket.connecting()}
         // when={false}

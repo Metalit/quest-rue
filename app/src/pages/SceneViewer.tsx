@@ -70,7 +70,7 @@ export default function SceneViewer() {
   });
 
   return (
-    <div class="size-full p-1 bg">
+    <div class="grow min-h-0 p-1 bg">
       <Dockview
         panels={{
           console: Console,

@@ -87,6 +87,7 @@
 
 #app {
   @apply bg text-base-content fill-base-content
+         flex flex-col items-stretch
          w-screen h-screen overflow-hidden;
 
   font-family: system-ui, sans-serif;
