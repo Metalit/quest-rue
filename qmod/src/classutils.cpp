@@ -66,6 +66,8 @@ handle_enum:
             t = il2cpp_functions::MetadataCache_GetTypeInfoFromTypeDefinitionIndex(type->data.generic_class->typeDefinitionIndex)->byval_arg.type;
 #endif
             goto handle_enum;
+        case IL2CPP_TYPE_VAR:
+        case IL2CPP_TYPE_MVAR:
         case IL2CPP_TYPE_VOID:
             // added myself but I mean it makes sense, probably doesn't actually matter for functionality though
             return 0;
@@ -201,7 +203,7 @@ ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type, bool param) {
     info.set_size(fieldTypeSize(type));
     LOG_DEBUG("Found size {}", info.size());
 
-    if (type->type == IL2CPP_TYPE_CLASS) {
+    if (type->type == IL2CPP_TYPE_CLASS || type->type == IL2CPP_TYPE_OBJECT) {
         if (classoftype(type) == il2cpp_functions::defaults->systemtype_class)
             info.set_primitiveinfo(ProtoTypeInfo::TYPE);
         else
