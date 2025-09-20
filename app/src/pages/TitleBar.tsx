@@ -24,6 +24,27 @@ import {
 import { socket } from "../global/socket";
 import { IconPath } from "../global/utils";
 
+// https://reemus.dev/article/disable-css-transition-color-scheme-change#heading-ultimate-solution-for-changing-color-scheme-without-transitions
+const noTransitions = (
+  <style>{`
+  * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    -ms-transition: none !important;
+    transition: none !important;
+  }
+  `}</style>
+) as HTMLStyleElement;
+
+function changeDarkMode(value: boolean) {
+  document.head.appendChild(noTransitions);
+  setDarkMode(value);
+  // force the styles to be evaluated
+  window.getComputedStyle(noTransitions).color;
+  document.head.removeChild(noTransitions);
+}
+
 function OptionsMenu() {
   return (
     <>
@@ -64,7 +85,7 @@ function ViewMenu() {
           type="checkbox"
           class="toggle toggle-sm"
           checked={darkMode()}
-          use:onCheck={setDarkMode}
+          use:onCheck={changeDarkMode}
         />
         Dark Mode
       </label>

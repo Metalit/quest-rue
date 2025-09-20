@@ -4,7 +4,6 @@ import {
   createEffect,
   createRenderEffect,
   createSignal,
-  Setter,
   Signal,
   SignalOptions,
 } from "solid-js";
@@ -148,7 +147,7 @@ export function createAsyncMemo<T>(
 
 export function onInput(
   element: HTMLInputElement,
-  value: () => Setter<string>,
+  value: () => (value: string) => void,
 ) {
   element.addEventListener("input", (e) =>
     value()((e.target as HTMLInputElement).value),
@@ -157,7 +156,7 @@ export function onInput(
 
 export function valueSignal(
   element: HTMLInputElement,
-  value: () => [Accessor<string>, Setter<string>],
+  value: () => [() => string, (value: string) => void],
 ) {
   createRenderEffect(() => (element.value = value()[0]()));
   onInput(element, () => value()[1]);
@@ -165,7 +164,7 @@ export function valueSignal(
 
 export function onCheck(
   element: HTMLInputElement,
-  value: () => Setter<boolean>,
+  value: () => (value: boolean) => void,
 ) {
   element.addEventListener("change", (e) =>
     value()((e.target as HTMLInputElement).checked),
