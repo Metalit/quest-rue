@@ -4,6 +4,7 @@ import { Toaster } from "solid-toast";
 import { darkMode, monoFont } from "./global/settings";
 import { socket } from "./global/socket";
 import ConnectMenu from "./pages/ConnectMenu";
+import { TitleBar } from "./pages/TitleBar";
 
 const SceneViewer = lazy(() => import("./pages/SceneViewer"));
 
@@ -16,6 +17,7 @@ export default function App() {
 
   return (
     <div id="app" style={{ "--mono-font": monoFont() }}>
+      <TitleBar />
       <Show when={socket.connected()} fallback={<ConnectMenu />}>
         <SceneViewer />
       </Show>

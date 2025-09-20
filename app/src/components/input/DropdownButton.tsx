@@ -71,6 +71,7 @@ export function DropdownButton(
   props: ParentProps<{
     icon: IconPath;
     text?: string;
+    textFirst?: boolean;
     title?: string;
     class?: string;
     dropdownClass?: string;
@@ -88,8 +89,9 @@ export function DropdownButton(
       popovertarget={`drpdn-pop-${id}`}
       title={props.title}
     >
-      {props.text ?? ""}
+      {props.textFirst ? (props.text ?? "") : ""}
       <Icon path={props.icon} />
+      {!props.textFirst ? (props.text ?? "") : ""}
       <Portal mount={document.getElementById("app")!}>
         <div
           class={`dropdown dropdown-${pos()} floating-menu flex flex-col p-1 gap-1 items-stretch ${props.dropdownClass ?? ""}`}

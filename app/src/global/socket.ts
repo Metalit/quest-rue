@@ -41,7 +41,10 @@ export abstract class QuestRUESocket {
       toast.dismiss(this.loadingToast);
       this.loadingToast = undefined;
     }
-    this.setConnecting(false);
+    batch(() => {
+      this.setConnecting(false);
+      this.setConnected(false);
+    });
     this.manualDisconnect = true;
     this.disconnectImpl();
   }

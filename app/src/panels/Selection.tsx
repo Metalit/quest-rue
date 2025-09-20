@@ -335,7 +335,7 @@ function DetailsList(props: {
   return (
     <>
       <Show when={!props.first}>
-        <span class="ml-1 mt-1 mb-[-4px] mono">
+        <span class="ml-1 mt-1 -mb-1 mono">
           {protoClassToString(props.details.clazz!)}
         </span>
       </Show>
@@ -343,7 +343,9 @@ function DetailsList(props: {
       <StyledCellGrid items={propertyLists()[0]} item={propertyCell} />
       <StyledCellGrid items={methodLists()[0]} item={methodCell} />
       <Show when={props.visibility == "Static Members Last"}>
-        <div class="divider text-sm text-secondary-content my-[-4px]">Static Members</div>
+        <div class="divider text-sm text-secondary-content -my-1">
+          Static Members
+        </div>
       </Show>
       <StyledCellGrid items={fieldLists()[1]} item={fieldCell} />
       <StyledCellGrid items={propertyLists()[1]} item={propertyCell} />
@@ -369,7 +371,7 @@ function InheritancePanel(props: { details?: ProtoClassDetails }) {
 
   const Interfaces = (props: { items: ProtoClassInfo[] }) => (
     <div class="flex items-center gap-3">
-      <Icon class="size-5 mr-[-6px]" path={arrowLongRight} />
+      <Icon class="size-5 -mr-1.5" path={arrowLongRight} />
       <For each={props.items}>
         {(item) => <span>{protoClassToString(item)}</span>}
       </For>
@@ -453,6 +455,7 @@ export function Selection({ api, id }: PanelProps) {
           <DropdownButton
             class="btn-sm btn-ghost mono text-[16px]"
             text={protoTypeToString(getSelection(id).typeInfo!)}
+            textFirst
             icon={ellipsisHorizontalCircle}
             dropdownClass="mono p-2 gap-2 max-w-2xl max-h-96 overflow-auto"
           >

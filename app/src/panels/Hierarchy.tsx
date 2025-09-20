@@ -252,10 +252,7 @@ function ObjectListItem(props: {
       }}
     >
       <Show when={info().children > 0}>
-        <button
-          class="btn btn-ghost size-5 p-1 ml-[-4px]"
-          onClick={toggleExpand}
-        >
+        <button class="btn btn-ghost size-5 p-1 -ml-1" onClick={toggleExpand}>
           <Icon path={info().expanded ? chevronDown : chevronRight} />
         </button>
       </Show>
@@ -294,7 +291,7 @@ function ObjectList(props: {
 
   return (
     <VirtualList
-      class="bg-base-50 rounded m-[-2px] p-1"
+      class="bg-base-50 rounded -m-0.5 p-1"
       items={display()}
       itemHeight={20}
       generator={(address) => (

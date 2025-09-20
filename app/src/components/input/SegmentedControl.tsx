@@ -1,44 +1,43 @@
-import { Index, JSX } from "solid-js";
+import { For, JSX, splitProps } from "solid-js";
 
-interface SegmentedControlProps extends JSX.HTMLAttributes<HTMLSpanElement> {
-  values: string[];
-  onValueSelect: (s: string) => void;
-  selectedValue: string;
+interface SegmentedControlProps<T>
+  extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, "onChange"> {
+  value: T;
+  values: T[];
+  onChange: (s: T) => void;
+  display?: (value: T) => string;
 
   disabled?: boolean;
-  title?: string;
-  id?: string;
 }
 
-export default function SegmentedControl(props: SegmentedControlProps) {
-  const radioSelect = (
-    e: Event & {
-      currentTarget: HTMLInputElement;
-      target: HTMLInputElement;
-    },
-  ) => {
-    if (!e.currentTarget.checked) return;
-    props.onValueSelect(e.currentTarget.value);
-  };
+export default function SegmentedControl<T>(props: SegmentedControlProps<T>) {
+  const [custom, normal] = splitProps(props, [
+    "value",
+    "values",
+    "onChange",
+    "display",
+    "disabled",
+  ]);
+
+  const display = (value: T) => custom.display?.(value) ?? `${value}`;
 
   return (
-    <span {...props} class={`flex items-center ${props.class}`}>
-      <label class="flex-1">{props.title ?? props.id}</label>
-      <div class="join flex-none">
-        <Index each={props.values}>
+    <span {...normal} class={`flex items-center gap-2.5 ${normal.class}`}>
+      <label class="label">{normal.title}</label>
+      <div class="join">
+        <For each={custom.values}>
           {(item) => (
-            <input
-              type="radio"
-              tabIndex={0}
-              name={props.id}
-              aria-label={item()}
-              value={item()}
-              class="join-item btn btn-sm"
-              onChange={radioSelect}
-              checked={item() === props.selectedValue}
-            />
+            <label class="join-item btn btn-sm has-checked:btn-accent">
+              <input
+                type="radio"
+                class="hidden"
+                checked={item == custom.value}
+                use:onCheck={(value) => value && custom.onChange(item)}
+              />
+              {display(item)}
+            </label>
           )}
-        </Index>
+        </For>
       </div>
     </span>
   );

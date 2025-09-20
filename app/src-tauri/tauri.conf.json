@@ -18,7 +18,7 @@
   },
   "productName": "quest-rue",
   "mainBinaryName": "quest-rue",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "identifier": "com.github.Fernthedev.questrue",
   "plugins": {},
   "app": {
@@ -26,9 +26,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
-        "visible": false,
         "title": "Quest RUE",
+        "decorations": false,
+        "minWidth": 800,
+        "minHeight": 800,
         "useHttpsScheme": true,
         "dragDropEnabled": false
       }

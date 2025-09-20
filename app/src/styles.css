@@ -12,7 +12,7 @@
   --color-base: var(--color-zinc-200);
   --color-base-50: color-mix(
     in oklab,
-    var(--color-zinc-200) 50%,
+    var(--color-zinc-200) 30%,
     var(--color-zinc-300)
   );
   --color-base-100: color-mix(
@@ -220,9 +220,6 @@
 /* defaults */
 button {
   cursor: pointer;
-}
-div {
-  position: relative;
 }
 
 /* remove number input buttons */
