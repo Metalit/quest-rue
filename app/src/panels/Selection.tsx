@@ -457,6 +457,7 @@ export function Selection({ api, id }: PanelProps) {
             text={protoTypeToString(getSelection(id).typeInfo!)}
             textFirst
             icon={ellipsisHorizontalCircle}
+            disabled={loading()}
             dropdownClass="mono p-2 gap-2 max-w-2xl max-h-96 overflow-auto"
           >
             <InheritancePanel details={details()} />

@@ -74,6 +74,7 @@ export function DropdownButton(
     textFirst?: boolean;
     title?: string;
     class?: string;
+    disabled?: boolean;
     dropdownClass?: string;
     dropdownPosition?: DropdownPositions | DropdownPositions[];
   }>,
@@ -88,6 +89,7 @@ export function DropdownButton(
       style={`anchor-name:--drpdn-anchor-${id}`}
       popovertarget={`drpdn-pop-${id}`}
       title={props.title}
+      disabled={props.disabled}
     >
       {props.textFirst ? (props.text ?? "") : ""}
       <Icon path={props.icon} />
