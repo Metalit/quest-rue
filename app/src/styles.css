@@ -170,7 +170,7 @@
 
   &:not(:focus),
   &:not(:focus-within) {
-    border: none;
+    border-color: transparent;
   }
 
   --icon-size: 1.5rem;
