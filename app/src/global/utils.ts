@@ -64,8 +64,8 @@ export function createUpdatingSignal<T>(
 export function createUpdatingParser<T>(
   value: () => T | undefined,
   setValue: (value: T) => void,
-  equals: (v1: T | undefined, v2: T | undefined) => boolean,
-  toString: (value: T | undefined) => string,
+  equals: (v1?: T, v2?: T) => boolean,
+  toString: (value?: T) => string,
   fromString: (input: string) => T,
   valid?: (input: string) => boolean,
 ) {
@@ -73,7 +73,8 @@ export function createUpdatingParser<T>(
 
   const validInput = () => !valid || valid(input());
 
-  let lastParsedInput: T | undefined = undefined;
+  // eslint-disable-next-line solid/reactivity
+  let lastParsedInput = validInput() ? fromString(input()) : undefined;
 
   // each time a new value is input, parse it and update (if valid)
   createEffect(() => {
