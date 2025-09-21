@@ -4,7 +4,8 @@ import {
   barsArrowDown,
   barsArrowUp,
   chevronDoubleRight,
-  chevronDown,
+  chevronLeft,
+  chevronRight,
   ellipsisHorizontalCircle,
   eye,
   funnel,
@@ -29,16 +30,25 @@ import {
 import { FieldCell } from "../components/data/FieldCell";
 import { MethodCell, MethodCellMemory } from "../components/data/MethodCell";
 import { PropertyCell } from "../components/data/PropertyCell";
-import { PanelProps } from "../components/Dockview";
 import {
   DropdownButton,
   FilterOptions,
   ModeOptions,
+  SideDropdownButton,
 } from "../components/input/DropdownButton";
 import { MaxColsGrid } from "../components/MaxColsGrid";
+import { useDockviewPanel } from "../dockview/api";
 import { getClassDetails } from "../global/cache";
 import { sendPacketResult } from "../global/packets";
-import { getSelection, removePanel, setLastPanel } from "../global/selection";
+import {
+  backSelection,
+  forwardSelection,
+  getSelection,
+  hasBackSelection,
+  hasForwardSelection,
+  removePanel,
+  setLastPanel,
+} from "../global/selection";
 import { columnCount } from "../global/settings";
 import { bigToString, createAsyncMemo } from "../global/utils";
 import {
@@ -391,30 +401,29 @@ function NoSelection() {
   );
 }
 
-// eslint-disable-next-line solid/no-destructure
-export function Selection({ api, id }: PanelProps) {
+export function Selection() {
+  const { id, active, setTitle } = useDockviewPanel();
+
+  // it should be active, but the api says no until you click on it
   setLastPanel(id);
-  const dispose = api.onDidActiveChange((e) => e.isActive && setLastPanel(id));
-  onCleanup(() => {
-    if (!reloading) removePanel(id);
-    dispose.dispose();
-  });
+  createEffect(() => active() && setLastPanel(id));
+  onCleanup(() => !reloading && removePanel(id));
 
   const title = () =>
-    getSelection(id).typeInfo
-      ? protoTypeToString(getSelection(id).typeInfo!)
+    getSelection(id)?.typeInfo
+      ? protoTypeToString(getSelection(id)!.typeInfo!)
       : "No Selection";
-  createEffect(() => api.setTitle(title()));
+  createEffect(() => setTitle(title()));
   // doesn't update when created for some reason
-  requestAnimationFrame(() => api.setTitle(title()));
+  requestAnimationFrame(() => setTitle(title()));
 
   const [details, loading] = createAsyncMemo(async () => {
     const selection = getSelection(id);
     let classInfo: ProtoClassInfo | undefined = undefined;
-    if (selection.typeInfo?.Info?.$case == "classInfo")
-      classInfo = selection.typeInfo.Info.classInfo;
-    else if (selection.typeInfo?.Info?.$case == "structInfo")
-      classInfo = selection.typeInfo.Info.structInfo.clazz;
+    if (selection?.typeInfo?.Info?.$case == "classInfo")
+      classInfo = selection?.typeInfo.Info.classInfo;
+    else if (selection?.typeInfo?.Info?.$case == "structInfo")
+      classInfo = selection?.typeInfo.Info.structInfo.clazz;
     if (classInfo) return await getClassDetails(classInfo);
     else return undefined;
   });
@@ -449,24 +458,39 @@ export function Selection({ api, id }: PanelProps) {
   const [inverse, setInverse] = createSignal(false);
 
   return (
-    <Show when={getSelection(id).typeInfo} fallback={<NoSelection />}>
+    <Show when={getSelection(id)?.typeInfo} fallback={<NoSelection />}>
       <div class="size-full flex flex-col p-2">
-        <div class="flex flex-wrap items-end gap-1 gap-y-1">
-          <DropdownButton
-            class="btn-ghost mono text-[16px]"
-            text={protoTypeToString(getSelection(id).typeInfo!)}
-            textFirst
-            icon={ellipsisHorizontalCircle}
-            disabled={loading()}
-            dropdownClass="mono p-2 gap-2 max-w-2xl max-h-96 overflow-auto"
-          >
-            <InheritancePanel details={details()} />
-          </DropdownButton>
-          <span class="h-8" />
-          <div class="grow basis-0 flex gap-1 items-center justify-end">
-            <div class="grow justify-end join">
+        <div class="flex flex-wrap items-end gap-1 gap-y-1 justify-between">
+          <div class="flex gap-1">
+            <button
+              class="btn btn-square"
+              disabled={!hasBackSelection(id)}
+              onClick={() => backSelection(id)}
+            >
+              <Icon path={chevronLeft} />
+            </button>
+            <button
+              class="btn btn-square"
+              disabled={!hasForwardSelection(id)}
+              onClick={() => forwardSelection(id)}
+            >
+              <Icon path={chevronRight} />
+            </button>
+            <DropdownButton
+              class="btn-ghost mono text-[16px]"
+              text={protoTypeToString(getSelection(id)!.typeInfo!)}
+              textFirst
+              icon={ellipsisHorizontalCircle}
+              disabled={loading()}
+              dropdownClass="mono p-2 gap-2 max-w-2xl max-h-96 overflow-auto"
+            >
+              <InheritancePanel details={details()} />
+            </DropdownButton>
+          </div>
+          <div class="grow max-w-max min-w-0 basis-64 flex gap-1">
+            <div class="shrink min-w-0 join">
               <input
-                class="join-item input"
+                class="join-item input input-exp"
                 placeholder="Search"
                 use:valueSignal={[search, setSearch]}
               />
@@ -507,28 +531,20 @@ export function Selection({ api, id }: PanelProps) {
                 setCurrent={setVisibility}
               />
             </DropdownButton>
-            <div class="join">
-              <button
-                class="btn btn-square join-item"
-                title="Sort Direction"
-                onClick={() => setInverse((val) => !val)}
-              >
-                <Icon path={inverse() ? barsArrowUp : barsArrowDown} />
-              </button>
-              <DropdownButton
-                class="w-5 px-1 join-item"
+            <SideDropdownButton
+              title="Sort Mode"
+              icon={inverse() ? barsArrowUp : barsArrowDown}
+              dropdownPosition="end"
+              mainTitle="Sort Direction"
+              onMainClick={() => setInverse((val) => !val)}
+            >
+              <ModeOptions
                 title="Sort Mode"
-                icon={chevronDown}
-                dropdownPosition="end"
-              >
-                <ModeOptions
-                  title="Sort Mode"
-                  modes={sortModes}
-                  current={sorting()}
-                  setCurrent={setSorting}
-                />
-              </DropdownButton>
-            </div>
+                modes={sortModes}
+                current={sorting()}
+                setCurrent={setSorting}
+              />
+            </SideDropdownButton>
           </div>
         </div>
         <div class="divider" />
@@ -542,7 +558,7 @@ export function Selection({ api, id }: PanelProps) {
         >
           <div class="overflow-auto flex flex-col pr-1.5 gap-2">
             <DetailsList
-              selection={getSelection(id)}
+              selection={getSelection(id)!}
               details={details()!}
               values={values}
               setValues={setValues}

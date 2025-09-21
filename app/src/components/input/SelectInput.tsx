@@ -5,18 +5,16 @@ import {
   createSignal,
   For,
   JSX,
-  Show,
   splitProps,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import {
   createUpdatingSignal,
-  IconPath,
+  instantHidePopover,
   uniqueNumber,
 } from "../../global/utils";
-import { DropdownPositions } from "./DropdownButton";
-import { Icon } from "solid-heroicons";
+import { dropdownPosition, DropdownPositions } from "./DropdownButton";
 
 interface SelectInputProps<V, O>
   extends Omit<
@@ -32,8 +30,7 @@ interface SelectInputProps<V, O>
   search?: ((input: string, value: O) => boolean) | "default";
   onInput?: (value: string) => void;
   onChange?: (value: V) => void;
-  dropdownPosition?: DropdownPositions | DropdownPositions[];
-  preIcon?: IconPath;
+  dropdownPosition?: DropdownPositions;
 }
 
 export function SelectInput<V = string, O extends V = V>(
@@ -44,23 +41,19 @@ export function SelectInput<V = string, O extends V = V>(
 
   const id = uniqueNumber();
 
-  const [label, custom, others] = splitProps(
-    props,
-    ["class"],
-    [
-      "value",
-      "options",
-      "showUndefined",
-      "free",
-      "equals",
-      "display",
-      "search",
-      "onInput",
-      "onChange",
-      "dropdownPosition",
-      "preIcon",
-    ],
-  );
+  const [custom, others] = splitProps(props, [
+    "value",
+    "options",
+    "showUndefined",
+    "free",
+    "equals",
+    "display",
+    "search",
+    "onInput",
+    "onChange",
+    "dropdownPosition",
+    "children",
+  ]);
 
   const [input, setInput] = createSignal("");
   const [selected, setSelected] = createUpdatingSignal(() => custom.value, {
@@ -126,12 +119,7 @@ export function SelectInput<V = string, O extends V = V>(
       document.addEventListener("keydown", onKeyDown);
     });
 
-  const focusOut = (e: FocusEvent) => {
-    if (
-      inputElement.contains(e.relatedTarget as unknown as Node) ||
-      menuElement.contains(e.relatedTarget as unknown as Node)
-    )
-      return;
+  const focusOut = () =>
     batch(() => {
       setFocused(false);
       setTempHide(false);
@@ -139,7 +127,11 @@ export function SelectInput<V = string, O extends V = V>(
       if (!custom.free) setInput(display(selected()));
       document.removeEventListener("keydown", onKeyDown);
     });
-  };
+
+  const checkFocusOut = (e: FocusEvent) =>
+    !inputElement.contains(e.relatedTarget as unknown as Node) &&
+    !menuElement.contains(e.relatedTarget as unknown as Node) &&
+    focusOut();
 
   // need options.source to have correct tab order with a portal
   createEffect(() => {
@@ -151,15 +143,18 @@ export function SelectInput<V = string, O extends V = V>(
   });
 
   return (
-    <label class={label.class} style={`anchor-name:--sel-in-anchor-${id}`}>
-      <Show when={custom.preIcon}>
-        <Icon path={custom.preIcon!} />
-      </Show>
+    <>
       <input
         {...others}
+        style={`anchor-name:--sel-in-anchor-${id}`}
         ref={inputElement}
         onFocus={focusIn}
-        onBlur={focusOut}
+        onBlur={checkFocusOut}
+        use:onHide={() => {
+          instantHidePopover(menuElement);
+          focusOut();
+          inputElement.blur();
+        }}
         use:valueSignal={[input, setInput]}
         use:onEnter={() => {
           if (options().length > 0) select(options()[0]);
@@ -175,8 +170,8 @@ export function SelectInput<V = string, O extends V = V>(
         <div
           ref={menuElement}
           onFocusIn={focusIn}
-          onFocusOut={focusOut}
-          class={`dropdown dropdown-${custom.dropdownPosition ?? "start"} floating-menu
+          onFocusOut={checkFocusOut}
+          class={`dropdown dropdown-${dropdownPosition(custom.dropdownPosition)} floating-menu
                   flex flex-col p-1 gap-1 max-h-56 empty:transition-none empty:hidden`}
           popover="manual"
           style={`position-anchor:--sel-in-anchor-${id}`}
@@ -193,6 +188,6 @@ export function SelectInput<V = string, O extends V = V>(
           </For>
         </div>
       </Portal>
-    </label>
+    </>
   );
 }

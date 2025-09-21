@@ -15,13 +15,14 @@ import {
   unwrap,
 } from "solid-js/store";
 
-import { useDockview } from "../components/Dockview";
 import {
   DropdownButton,
   ModeOptions,
+  SideDropdownButton,
 } from "../components/input/DropdownButton";
 import { SelectInput } from "../components/input/SelectInput";
 import { VirtualList } from "../components/VirtualList";
+import { useDockview } from "../dockview/api";
 import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";
 import { ProtoScene } from "../proto/unity";
@@ -361,28 +362,20 @@ export function Hierarchy() {
             setCurrent={setVisibility}
           />
         </DropdownButton>
-        <div class="join">
-          <button
-            class="btn btn-square join-item"
-            title="Sort Direction"
-            onClick={() => setInverse((val) => !val)}
-          >
-            <Icon path={inverse() ? barsArrowUp : barsArrowDown} />
-          </button>
-          <DropdownButton
-            class="w-5 px-1 join-item"
+        <SideDropdownButton
+          title="Sort Mode"
+          icon={inverse() ? barsArrowUp : barsArrowDown}
+          dropdownPosition="end"
+          mainTitle="Sort Direction"
+          onMainClick={() => setInverse((val) => !val)}
+        >
+          <ModeOptions
             title="Sort Mode"
-            icon={chevronDown}
-            dropdownPosition="end"
-          >
-            <ModeOptions
-              title="Sort Mode"
-              modes={sortModes}
-              current={sorting()}
-              setCurrent={setSorting}
-            />
-          </DropdownButton>
-        </div>
+            modes={sortModes}
+            current={sorting()}
+            setCurrent={setSorting}
+          />
+        </SideDropdownButton>
       </div>
       <div class="divider" />
       <ObjectList

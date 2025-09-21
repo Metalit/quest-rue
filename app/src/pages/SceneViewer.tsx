@@ -1,57 +1,87 @@
-import { IGroupHeaderProps, TabPartInitParameters } from "dockview-core";
 import { Icon } from "solid-heroicons";
 import {
   arrowsPointingIn,
   arrowsPointingOut,
+  plus,
   xMark,
 } from "solid-heroicons/outline";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { For, onCleanup, onMount, Show } from "solid-js";
 
-import { Dockview, DockviewPanel } from "../components/Dockview";
+import { DropdownButton } from "../components/input/DropdownButton";
+import {
+  useDockview,
+  useDockviewGroup,
+  useDockviewPanel,
+} from "../dockview/api";
+import { Dockview } from "../dockview/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { clearSelections } from "../global/selection";
+import { createTrigger } from "../global/utils";
 import { Console } from "../panels/Console";
 import { Hierarchy } from "../panels/Hierarchy";
 import { Selection } from "../panels/Selection";
 import { Variables } from "../panels/Variables";
 
-// eslint-disable-next-line solid/no-destructure
-function RightHeader({ api }: IGroupHeaderProps) {
-  const [fullscreen, setFullscreen] = createSignal(api.isMaximized());
-  const [inGrid, setInGrid] = createSignal(api.location.type == "grid");
-  const { dispose } = api.onDidLocationChange(({ location }) =>
-    setInGrid(location.type == "grid"),
-  );
-  onCleanup(dispose);
-
-  const toggle = () => {
-    api.isMaximized() ? api.exitMaximized() : api.maximize();
-    setFullscreen(api.isMaximized());
-  };
+function RightHeader() {
+  const { maximized, setMaximized, location } = useDockviewGroup();
 
   return (
-    <div class="flex items-center mr-2 h-full">
-      <Show when={inGrid()}>
-        <button class="btn btn-square btn-ghost btn-sm" onClick={toggle}>
-          <Icon path={fullscreen() ? arrowsPointingIn : arrowsPointingOut} />
+    <div class="flex items-center mr-1.5 h-full">
+      <Show when={location() == "grid"}>
+        <button
+          class="btn btn-square btn-ghost btn-sm"
+          onClick={() => setMaximized((val) => !val)}
+        >
+          <Icon path={maximized() ? arrowsPointingIn : arrowsPointingOut} />
         </button>
       </Show>
     </div>
   );
 }
 
-// eslint-disable-next-line solid/no-destructure
-function Tab({ api }: TabPartInitParameters) {
-  const [title, setTitle] = createSignal(api.title ?? api.id);
-  const dispose = api.onDidTitleChange((e) => setTitle(e.title));
-  onCleanup(() => dispose.dispose());
+function LeftHeader() {
+  const { addPanel, templates } = useDockview();
+  const { id } = useDockviewGroup();
+
+  const hide = createTrigger();
+
+  return (
+    <div class="flex items-center ml-1.5 h-full">
+      <DropdownButton icon={plus} class="btn-ghost btn-sm" hideTrigger={hide}>
+        <For each={Object.entries(templates())}>
+          {([component, { title }]) => (
+            <button
+              class="btn"
+              onClick={() => {
+                hide.trigger();
+                addPanel(component, {
+                  title,
+                  position: { referenceGroup: id, direction: "within" },
+                });
+              }}
+            >
+              {title}
+            </button>
+          )}
+        </For>
+      </DropdownButton>
+    </div>
+  );
+}
+
+function Tab() {
+  const { title, close } = useDockviewPanel();
+
   return (
     <div class="flex gap-2 items-center h-full hover:*:visible">
       {title()}
       <button
+        draggable="true"
         class="invisible btn btn-square btn-ghost btn-sm"
-        onClick={() => api.close()}
+        on:dragstart={(e) => e.preventDefault()}
+        on:pointerdown={(e) => e.stopPropagation()}
+        onClick={close}
       >
         <Icon path={xMark} />
       </button>
@@ -72,40 +102,52 @@ export default function SceneViewer() {
   return (
     <div class="grow min-h-0 p-1 bg">
       <Dockview
-        panels={{
-          console: Console,
-          hierarchy: Hierarchy,
-          selection: Selection,
-          variables: Variables,
-        }}
+        leftHeader={LeftHeader}
         rightHeader={RightHeader}
-        tabs={{
-          default: Tab,
-        }}
+        tabs={{ default: Tab }}
         options={{ floatingGroupBounds: "boundedWithinViewport" }}
+        onReady={({ addPanel }) => {
+          addPanel("selection", { id: "selection" });
+          addPanel("variables", {
+            position: { referencePanel: "selection", direction: "left" },
+            width: 200,
+          });
+          addPanel("hierarchy", {
+            position: { referencePanel: "selection", direction: "right" },
+            width: 300,
+          });
+          addPanel("console", {
+            position: { referencePanel: "selection", direction: "below" },
+            height: 300,
+          });
+        }}
       >
-        <DockviewPanel component="selection" id="selection" title="Selection" />
-        <DockviewPanel
-          component="variables"
-          id="variables"
-          title="Variables"
-          position={{ referencePanel: "selection", direction: "left" }}
-          initialWidth={200}
-        />
-        <DockviewPanel
-          component="hierarchy"
-          id="hierarchy"
-          title="Hierarchy"
-          position={{ referencePanel: "selection", direction: "right" }}
-          initialWidth={300}
-        />
-        <DockviewPanel
-          component="console"
-          id="console"
-          title="Console"
-          position={{ referencePanel: "selection", direction: "below" }}
-          initialHeight={300}
-        />
+        {{
+          selection: {
+            create: Selection,
+            title: "Selection",
+            minimumWidth: 550,
+            minimumHeight: 300,
+          },
+          variables: {
+            create: Variables,
+            title: "Variables",
+            minimumWidth: 200,
+            minimumHeight: 200,
+          },
+          hierarchy: {
+            create: Hierarchy,
+            title: "Hierarchy",
+            minimumWidth: 200,
+            minimumHeight: 200,
+          },
+          console: {
+            create: Console,
+            title: "Console",
+            minimumWidth: 300,
+            minimumHeight: 200,
+          },
+        }}
       </Dockview>
     </div>
   );

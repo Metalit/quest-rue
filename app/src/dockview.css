@@ -50,6 +50,9 @@
   /* tab radius and overflow container */
   .dv-tab {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
+    &:last-child {
+      margin: 0;
+    }
   }
   .dv-groupview {
     border-radius: var(--border-radius);

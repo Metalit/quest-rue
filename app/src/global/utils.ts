@@ -1,3 +1,4 @@
+import { createResizeObserver } from "@solid-primitives/resize-observer";
 import { Icon } from "solid-heroicons";
 import {
   Accessor,
@@ -145,6 +146,25 @@ export function createAsyncMemo<T>(
   return [valAccessor, loading, fetch];
 }
 
+export type Trigger<T extends unknown[] = []> = {
+  trigger: (...params: T) => void;
+};
+
+/**
+ * Create an object that can be passed to a component and will cause an action
+ *
+ */
+export function createTrigger<T extends unknown[] = []>(): Trigger<T> {
+  return { trigger: () => {} };
+}
+
+export function setTrigger<T extends unknown[]>(
+  trigger: () => Trigger<T> | undefined,
+  call: Trigger<T>["trigger"],
+) {
+  createRenderEffect(() => trigger() && (trigger()!.trigger = call));
+}
+
 export function onInput(
   element: HTMLInputElement,
   value: () => (value: string) => void,
@@ -175,6 +195,13 @@ export function onEnter(element: HTMLElement, value: () => () => void) {
   element.addEventListener("keypress", (e) => e.key == "Enter" && value()());
 }
 
+export function onHide(element: HTMLElement, value: () => () => void) {
+  createResizeObserver(
+    element,
+    ({ width, height }) => width == 0 && height == 0 && value()(),
+  );
+}
+
 type DirectiveFn = (element: never, accessor: () => never) => void;
 type DirectiveArg<T extends DirectiveFn> = ReturnType<Parameters<T>[1]>;
 
@@ -186,6 +213,7 @@ declare module "solid-js" {
       valueSignal: DirectiveArg<typeof valueSignal>;
       onCheck: DirectiveArg<typeof onCheck>;
       onEnter: DirectiveArg<typeof onEnter>;
+      onHide: DirectiveArg<typeof onHide>;
     }
   }
 }
@@ -221,4 +249,11 @@ export function isTauri(): boolean {
   return (
     (unsafeWindow.isTauri || unsafeWindow.__TAURI_INTERNALS__) != undefined
   );
+}
+
+export function instantHidePopover(popover: HTMLDivElement) {
+  popover.style.transition = "none";
+  popover.hidePopover();
+  window.getComputedStyle(popover).transition;
+  popover.style.transition = "";
 }

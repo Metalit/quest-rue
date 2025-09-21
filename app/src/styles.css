@@ -81,9 +81,6 @@
 @utility shadow {
   box-shadow: 4px 4px 4px 0 var(--color-shadow);
 }
-@utility mono {
-  font-family: var(--mono-font);
-}
 
 #app {
   @apply bg text-base-content fill-base-content
@@ -106,11 +103,31 @@
 }
 
 /* utility classes */
-.absolute-centered {
+@utility mono {
+  font-family: var(--mono-font);
+}
+
+@utility w-input {
+  width: max(3rem, min(20rem, 100%));
+}
+
+@utility input-exp {
+  width: 20rem;
+}
+
+@utility absolute-centered {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+@utility light-invert {
+  @apply invert dark:filter-none;
+}
+
+@utility floating-menu {
+  @apply bg-base-50 border-2 border-shadow shadow rounded-md;
 }
 
 /* https://css-tricks.com/an-auto-filling-css-grid-with-max-columns/ */
@@ -129,107 +146,156 @@
   grid-column-gap: var(--grid-column-gap);
 }
 
-.light-invert {
-  @apply invert dark:filter-none;
-}
-
-.floating-menu {
-  @apply bg-base-50 border-2 border-shadow shadow rounded-md;
-}
-
 /* patches */
-.btn:not(.btn-ghost) {
-  &:focus,
-  &:focus-within {
-    @apply border-black dark:border-white;
+@layer utilities {
+  .btn:not(.btn-ghost) {
+    &:focus,
+    &:focus-within {
+      border-color: var(--btn-fg);
+    }
+
+    &.disabled,
+    &.btn-disabled,
+    &[disabled] {
+      --btn-bg: color-mix(
+        in oklab,
+        var(--btn-color, var(--color-base-200)),
+        #000 7%
+      );
+      background-color: var(--btn-bg);
+    }
   }
 
-  &.disabled,
-  &.btn-disabled,
-  &[disabled] {
-    --btn-bg: color-mix(
-      in oklab,
-      var(--btn-color, var(--color-base-200)),
-      #000 7%
-    );
-    background-color: var(--btn-bg);
-  }
-}
+  .btn.btn-ghost {
+    --btn-shadow: "";
+    --btn-bg: #0000;
+    --btn-border: #0000;
+    --btn-noise: none;
+    border: none;
 
-.btn.btn-ghost {
-  --btn-shadow: "";
-  --btn-bg: #0000;
-  --btn-border: #0000;
-  --btn-noise: none;
-  border: none;
-
-  @apply hover:bg-shadow;
-}
-
-.btn,
-.input {
-  &:focus,
-  &:focus-within {
-    outline: none;
+    @apply hover:bg-shadow active:bg-shadow;
   }
 
-  &:not(:focus),
-  &:not(:focus-within) {
-    border-color: transparent;
+  .btn,
+  .input {
+    &:focus,
+    &:focus-within {
+      outline: none;
+    }
+
+    &:not(:focus),
+    &:not(:focus-within) {
+      border-color: transparent;
+    }
+
+    &.disabled,
+    &.btn-disabled,
+    &[disabled] {
+      cursor: default;
+      &:active:not(.btn-active) {
+        translate: 0;
+      }
+    }
+
+    --icon-size: 1.2rem;
+    --fontsize: 0.75rem;
+    &.btn-lg,
+    &.input-lg {
+      --icon-size: 1.5rem;
+      --fontsize: 0.875rem;
+    }
+    &.btn-sm,
+    &.input-sm {
+      --icon-size: 1rem;
+      --fontsize: 0.6875rem;
+    }
+    &.btn-xs,
+    &.input-xs {
+      --icon-size: 0.8rem;
+      --fontsize: 0.5rem;
+    }
+
+    .loading,
+    img,
+    svg {
+      width: var(--icon-size);
+      height: var(--icon-size);
+    }
+
+    .loading {
+      scale: 75%;
+    }
   }
 
-  --icon-size: 1.2rem;
-  --fontsize: 0.75rem;
-  &.btn-lg,
-  &.input-lg {
-    --icon-size: 1.5rem;
-    --fontsize: 0.875rem;
-  }
-  &.btn-sm,
-  &.input-sm {
-    --icon-size: 1rem;
-    --fontsize: 0.6875rem;
-  }
-  &.btn-xs,
-  &.input-xs {
-    --icon-size: 0.8rem;
-    --fontsize: 0.5rem;
+  .input {
+    min-width: 3rem;
+    max-width: 20rem;
+
+    font-size: var(--fontsize);
+
+    &:focus,
+    &:focus-within {
+      border-color: var(--input-color);
+    }
   }
 
-  .loading,
-  img,
-  svg {
-    width: var(--icon-size);
-    height: var(--icon-size);
+  .divider {
+    flex-grow: 0;
+    flex-shrink: 0;
   }
 
-  .loading {
-    scale: 75%;
+  .join {
+    > .join-item {
+      margin-inline-start: 0;
+    }
+
+    .join:first-child {
+      > .join-item:first-child {
+        --join-ss: var(--radius-field);
+        --join-se: 0;
+        --join-es: var(--radius-field);
+        --join-ee: 0;
+      }
+
+      > .join-item:not(:first-child) {
+        --join-ss: 0;
+        --join-se: 0;
+        --join-es: 0;
+        --join-ee: 0;
+      }
+    }
+
+    .join:last-child {
+      > .join-item:last-child {
+        --join-ss: 0;
+        --join-se: var(--radius-field);
+        --join-es: 0;
+        --join-ee: var(--radius-field);
+      }
+
+      > .join-item:not(:last-child) {
+        --join-ss: 0;
+        --join-se: 0;
+        --join-es: 0;
+        --join-ee: 0;
+      }
+    }
+
+    .join:only-child {
+      > .join-item:only-child {
+        --join-ss: var(--radius-field);
+        --join-se: var(--radius-field);
+        --join-es: var(--radius-field);
+        --join-ee: var(--radius-field);
+      }
+    }
   }
-}
 
-.input {
-  min-width: 3rem;
-  max-width: 20rem;
-
-  font-size: var(--fontsize);
-
-  .loading,
-  img,
-  svg {
-    margin-left: -6px;
+  .dropdown {
+    /* why doesn't this work on scroll? */
+    position-try: flip-block, flip-inline;
+    position-visibility: anchors-visible;
   }
-}
-
-.divider {
-  flex-grow: 0;
-  flex-shrink: 0;
-}
-
-.dropdown {
-  /* why doesn't this work on scroll? */
-  position-try: flip-block, flip-inline;
-  position-visibility: anchors-visible;
 }
 
 /* defaults */
