@@ -22,7 +22,7 @@ import {
   setMonoFont,
 } from "../global/settings";
 import { socket } from "../global/socket";
-import { IconPath } from "../global/utils";
+import { IconPath } from "../utils/typing";
 
 // https://reemus.dev/article/disable-css-transition-color-scheme-change#heading-ultimate-solution-for-changing-color-scheme-without-transitions
 const noTransitions = (

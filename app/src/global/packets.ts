@@ -2,8 +2,9 @@ import { Accessor, batch, createSignal, onCleanup, untrack } from "solid-js";
 import toast from "solid-toast";
 
 import { PacketWrapper } from "../proto/qrue";
+import { uniqueBigNumber } from "../utils/misc";
+import { UnionOmit, setCase } from "../utils/typing";
 import { Callback, socket } from "./socket";
-import { UnionOmit, setCase, uniqueBigNumber } from "./utils";
 
 type PacketTypesFull = NonNullable<PacketWrapper["Packet"]>;
 type PacketTypes = UnionOmit<PacketTypesFull, "$case">;

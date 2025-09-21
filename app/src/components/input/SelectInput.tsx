@@ -9,11 +9,8 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
-import {
-  createUpdatingSignal,
-  instantHidePopover,
-  uniqueNumber,
-} from "../../global/utils";
+import { instantHidePopover, uniqueNumber } from "../../utils/misc";
+import { createUpdatingSignal } from "../../utils/solid";
 import { dropdownPosition, DropdownPositions } from "./DropdownButton";
 
 interface SelectInputProps<V, O>

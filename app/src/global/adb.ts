@@ -1,5 +1,6 @@
 import { Command } from "@tauri-apps/plugin-shell";
-import { isTauri } from "./utils";
+
+import { isTauri } from "../utils/misc";
 
 let forwarded: [string, string] | undefined = undefined;
 

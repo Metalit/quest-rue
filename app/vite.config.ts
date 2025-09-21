@@ -27,7 +27,7 @@ export default defineConfig({
     directive({
       directives: [
         {
-          from: "/src/global/utils",
+          from: "/src/utils/directives",
           imports: ["onInput", "valueSignal", "onCheck", "onEnter", "onHide"],
         },
       ],

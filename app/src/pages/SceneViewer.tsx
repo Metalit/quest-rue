@@ -17,11 +17,11 @@ import { Dockview } from "../dockview/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { clearSelections } from "../global/selection";
-import { createTrigger } from "../global/utils";
 import { Console } from "../panels/Console";
 import { Hierarchy } from "../panels/Hierarchy";
 import { Selection } from "../panels/Selection";
 import { Variables } from "../panels/Variables";
+import { createTrigger } from "../utils/solid";
 
 function RightHeader() {
   const { maximized, setMaximized, location } = useDockviewGroup();

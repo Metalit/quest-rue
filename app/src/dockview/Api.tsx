@@ -19,7 +19,7 @@ import {
   useContext,
 } from "solid-js";
 
-import { uniqueNumber } from "../global/utils";
+import { uniqueNumber } from "../utils/misc";
 
 export interface DockviewPanels {
   [component: string]: {

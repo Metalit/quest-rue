@@ -1,4 +1,4 @@
-import { createPersistentSignal } from "./utils";
+import { createPersistentSignal } from "../utils/solid";
 
 export const [darkMode, setDarkMode] = createPersistentSignal(
   "darkMode",

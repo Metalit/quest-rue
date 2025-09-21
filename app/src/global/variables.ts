@@ -7,9 +7,10 @@ import {
   areProtoTypesEqual,
 } from "../types/matching";
 import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
+import { bigToString } from "../utils/misc";
+import { extractCase } from "../utils/typing";
 import { getClassDetails, tryGetCachedClassDetails } from "./cache";
 import { sendPacketResult } from "./packets";
-import { bigToString, extractCase } from "./utils";
 
 const [variables, setVariables] = createStore<{
   [name: string]: ProtoDataPayload;

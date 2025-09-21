@@ -1,17 +1,12 @@
-import { bigToString } from "../global/utils";
 import {
   ProtoClassInfo,
-  ProtoDataPayload,
   ProtoDataSegment,
   ProtoTypeInfo,
   ProtoTypeInfo_Byref,
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
-import {
-  protoDataToRealValue,
-  setTypeCase,
-  stringToDataSegment,
-} from "./serialization";
+import { bigToString } from "../utils/misc";
+import { protoDataToRealValue, setTypeCase } from "./serialization";
 
 export function protoDataToString(
   data?: ProtoDataSegment,
@@ -193,14 +188,4 @@ export function primitiveToString(
   primitive: ProtoTypeInfo_Primitive,
 ): string | undefined {
   return primitiveStringMap.getStr(primitive);
-}
-
-export function stringToProtoData(
-  input: string,
-  typeInfo: ProtoTypeInfo,
-): ProtoDataPayload {
-  return {
-    typeInfo: typeInfo,
-    data: stringToDataSegment(input, typeInfo),
-  };
 }

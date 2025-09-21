@@ -1,5 +1,3 @@
-import { createSignal, Match, Show, Switch } from "solid-js";
-
 import { Icon } from "solid-heroicons";
 import {
   arrowTopRightOnSquare,
@@ -8,9 +6,10 @@ import {
   chevronDoubleRight,
   plus,
 } from "solid-heroicons/outline";
+import { createSignal, Match, Show, Switch } from "solid-js";
+
 import { useDockview } from "../../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../../global/selection";
-import { createUpdatingParser, extractCase } from "../../global/utils";
 import {
   constVariables,
   findVariablesForType,
@@ -29,6 +28,8 @@ import {
   stringToDataSegment,
   validString,
 } from "../../types/serialization";
+import { createUpdatingParser } from "../../utils/solid";
+import { extractCase } from "../../utils/typing";
 import { DropdownButton } from "../input/DropdownButton";
 import { SelectInput } from "../input/SelectInput";
 import { TypeCell } from "./TypeCell";

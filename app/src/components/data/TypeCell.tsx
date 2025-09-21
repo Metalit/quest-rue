@@ -1,11 +1,11 @@
 import { createEffect } from "solid-js";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
-import { createUpdatingParser } from "../../global/utils";
 import { ProtoTypeInfo } from "../../proto/il2cpp";
 import { GetTypeComplete, GetTypeCompleteResult } from "../../proto/qrue";
 import { protoTypeToString, stringToProtoType } from "../../types/format";
 import { areProtoTypesEqual } from "../../types/matching";
+import { createUpdatingParser } from "../../utils/solid";
 import { SelectInput } from "../input/SelectInput";
 
 interface TypeCellProps {

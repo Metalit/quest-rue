@@ -11,7 +11,7 @@ import {
 import { ActionButton } from "../components/input/ActionButton";
 import { adbDevices, adbForward, hasAdb } from "../global/adb";
 import { socket } from "../global/socket";
-import { createAsyncMemo, createPersistentSignal } from "../global/utils";
+import { createAsyncMemo, createPersistentSignal } from "../utils/solid";
 
 export default function ConnectMenu() {
   const [ip, setIp] = createPersistentSignal(

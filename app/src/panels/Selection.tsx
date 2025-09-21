@@ -50,7 +50,6 @@ import {
   setLastPanel,
 } from "../global/selection";
 import { columnCount } from "../global/settings";
-import { bigToString, createAsyncMemo } from "../global/utils";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
@@ -62,6 +61,8 @@ import {
 } from "../proto/il2cpp";
 import { GetInstanceValuesResult } from "../proto/qrue";
 import { protoClassToString, protoTypeToString } from "../types/format";
+import { bigToString } from "../utils/misc";
+import { createAsyncMemo } from "../utils/solid";
 
 let reloading = false;
 

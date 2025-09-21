@@ -1,17 +1,13 @@
 /* eslint-disable solid/style-prop */
 import { Icon } from "solid-heroicons";
+import { chevronDown } from "solid-heroicons/outline";
 import { For, ParentProps, Setter, splitProps } from "solid-js";
 import { SetStoreFunction } from "solid-js/store";
 import { Portal } from "solid-js/web";
 
-import { chevronDown } from "solid-heroicons/outline";
-import {
-  IconPath,
-  instantHidePopover,
-  setTrigger,
-  Trigger,
-  uniqueNumber,
-} from "../../global/utils";
+import { instantHidePopover, uniqueNumber } from "../../utils/misc";
+import { Trigger, setTrigger } from "../../utils/solid";
+import { IconPath } from "../../utils/typing";
 
 const dropdownPositions = {
   start: "dropdown-start",

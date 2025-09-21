@@ -1,7 +1,7 @@
 import { Icon } from "solid-heroicons";
 import { Show } from "solid-js";
-
-import { errorHandle, IconPath } from "../../global/utils";
+import { errorHandle } from "../../utils/misc";
+import { IconPath } from "../../utils/typing";
 
 interface ActionButtonProps {
   img: IconPath | "save";

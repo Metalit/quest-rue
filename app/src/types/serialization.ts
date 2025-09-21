@@ -1,10 +1,12 @@
-import { UnionOmit, setCase, stringToBig } from "../global/utils";
 import {
+  ProtoDataPayload,
   ProtoDataSegment,
   ProtoTypeInfo,
   ProtoTypeInfo_Byref,
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
+import { stringToBig } from "../utils/misc";
+import { UnionOmit, setCase } from "../utils/typing";
 import { protoTypeToString, stringToProtoType } from "./format";
 
 type DataTypes = UnionOmit<NonNullable<ProtoDataSegment["Data"]>, "$case">;
@@ -190,6 +192,16 @@ export function stringToDataSegment(
       return primitiveToDataSegment(input, typeInfo.Info.enumInfo.valueType);
   }
   return {};
+}
+
+export function stringToProtoData(
+  input: string,
+  typeInfo: ProtoTypeInfo,
+): ProtoDataPayload {
+  return {
+    typeInfo: typeInfo,
+    data: stringToDataSegment(input, typeInfo),
+  };
 }
 
 function defaultPrimitiveSegment(

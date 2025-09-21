@@ -1,10 +1,11 @@
-import { bigToString, extractCase } from "../global/utils";
 import {
   ProtoDataPayload,
   ProtoMethodInfo,
   ProtoTypeInfo,
   ProtoTypeInfo_Byref,
 } from "../proto/il2cpp";
+import { bigToString } from "../utils/misc";
+import { extractCase } from "../utils/typing";
 import { areProtoTypesEqual } from "./matching";
 
 export type GenericsMap = Record<

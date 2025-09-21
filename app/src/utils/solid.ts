@@ -1,5 +1,3 @@
-import { createResizeObserver } from "@solid-primitives/resize-observer";
-import { Icon } from "solid-heroicons";
 import {
   Accessor,
   createEffect,
@@ -8,38 +6,6 @@ import {
   Signal,
   SignalOptions,
 } from "solid-js";
-import toast from "solid-toast";
-
-export type IconPath = Parameters<typeof Icon>[0]["path"];
-
-export type WithCase<
-  T extends { $case: string } | undefined,
-  C extends NonNullable<T>["$case"],
-> = Extract<NonNullable<T>, { $case: C }>;
-
-type CaseValue<T, C extends string> = T extends { [k in C]: infer V }
-  ? V
-  : never;
-
-// there is probably a better way to do this, typescript-wise
-export function extractCase<
-  T extends { $case: string } | undefined,
-  C extends NonNullable<T>["$case"],
->(value: T, $case: C): CaseValue<T, C> | undefined {
-  return (value as { [k in C]: CaseValue<T, C> } | undefined)?.[$case];
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UnionOmit<T, K extends keyof any> = T extends any
-  ? Omit<T, K>
-  : never;
-
-export function setCase<TResult>(object: UnionOmit<TResult, "$case">): TResult {
-  return {
-    ...object,
-    $case: Object.keys(object)[0],
-  } as TResult; // could probably be done without the cast with some typescript magic but idc
-}
 
 /**
  * A signal that resets its value when its dependencies change
@@ -164,97 +130,4 @@ export function setTrigger<T extends unknown[]>(
   call: Trigger<T>["trigger"],
 ) {
   createRenderEffect(() => trigger() && (trigger()!.trigger = call));
-}
-
-export function onInput(
-  element: HTMLInputElement,
-  value: () => (value: string) => void,
-) {
-  element.addEventListener("input", (e) =>
-    value()((e.target as HTMLInputElement).value),
-  );
-}
-
-export function valueSignal(
-  element: HTMLInputElement,
-  value: () => [() => string, (value: string) => void],
-) {
-  createRenderEffect(() => (element.value = value()[0]()));
-  onInput(element, () => value()[1]);
-}
-
-export function onCheck(
-  element: HTMLInputElement,
-  value: () => (value: boolean) => void,
-) {
-  element.addEventListener("change", (e) =>
-    value()((e.target as HTMLInputElement).checked),
-  );
-}
-
-export function onEnter(element: HTMLElement, value: () => () => void) {
-  element.addEventListener("keypress", (e) => e.key == "Enter" && value()());
-}
-
-export function onHide(element: HTMLElement, value: () => () => void) {
-  createResizeObserver(
-    element,
-    ({ width, height }) => width == 0 && height == 0 && value()(),
-  );
-}
-
-type DirectiveFn = (element: never, accessor: () => never) => void;
-type DirectiveArg<T extends DirectiveFn> = ReturnType<Parameters<T>[1]>;
-
-// for now, directives have to be added here AND vite.config.ts
-declare module "solid-js" {
-  namespace JSX {
-    interface Directives {
-      onInput: DirectiveArg<typeof onInput>;
-      valueSignal: DirectiveArg<typeof valueSignal>;
-      onCheck: DirectiveArg<typeof onCheck>;
-      onEnter: DirectiveArg<typeof onEnter>;
-      onHide: DirectiveArg<typeof onHide>;
-    }
-  }
-}
-
-export function uniqueNumber(min = 0, max = Number.MAX_SAFE_INTEGER) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
-
-export function uniqueBigNumber(min = 0, max = Number.MAX_SAFE_INTEGER) {
-  return BigInt(uniqueNumber(min, max));
-}
-
-export function bigToString(num: bigint) {
-  return `0x${num.toString(16)}`;
-}
-
-export function stringToBig(num: string) {
-  return BigInt(num);
-}
-
-export function errorHandle<R, T extends () => R>(func: T) {
-  try {
-    return func();
-  } catch (e) {
-    toast.error(`Suffered from error: ${e}`);
-    throw e;
-  }
-}
-
-export function isTauri(): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const unsafeWindow = window as any;
-  return (
-    (unsafeWindow.isTauri || unsafeWindow.__TAURI_INTERNALS__) != undefined
-  );
-}
-
-export function instantHidePopover(popover: HTMLDivElement) {
-  popover.style.transition = "none";
-  popover.hidePopover();
-  window.getComputedStyle(popover).transition;
-  popover.style.transition = "";
 }
