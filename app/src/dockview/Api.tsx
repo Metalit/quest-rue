@@ -1,3 +1,4 @@
+/* @refresh reload */
 import {
   AddPanelOptions,
   AddPanelPositionOptions,
@@ -14,6 +15,7 @@ import {
   createEffect,
   createSignal,
   onCleanup,
+  ParentProps,
   useContext,
 } from "solid-js";
 
@@ -104,7 +106,19 @@ export function makeDockviewInterface(
 }
 
 export type DockviewInterface = ReturnType<typeof makeDockviewInterface>;
-export const DockviewContext = createContext<DockviewInterface>();
+
+const DockviewContext = createContext<DockviewInterface>();
+export function DockviewProvider(
+  props: ParentProps<{ staticValue: Parameters<typeof makeDockviewInterface> }>,
+) {
+  return (
+    <DockviewContext.Provider
+      value={makeDockviewInterface(...props.staticValue)}
+    >
+      {props.children}
+    </DockviewContext.Provider>
+  );
+}
 export const useDockview = () => useContext(DockviewContext)!;
 
 export function makeDockviewPanelInterface(api: DockviewPanelApi) {
@@ -123,7 +137,21 @@ export function makeDockviewPanelInterface(api: DockviewPanelApi) {
 export type DockviewPanelInterface = ReturnType<
   typeof makeDockviewPanelInterface
 >;
-export const DockviewPanelContext = createContext<DockviewPanelInterface>();
+
+const DockviewPanelContext = createContext<DockviewPanelInterface>();
+export function DockviewPanelProvider(
+  props: ParentProps<{
+    staticValue: Parameters<typeof makeDockviewPanelInterface>;
+  }>,
+) {
+  return (
+    <DockviewPanelContext.Provider
+      value={makeDockviewPanelInterface(...props.staticValue)}
+    >
+      {props.children}
+    </DockviewPanelContext.Provider>
+  );
+}
 export const useDockviewPanel = () => useContext(DockviewPanelContext)!;
 
 export function makeDockviewGroupInterface(api: DockviewGroupPanelApi) {
@@ -143,5 +171,19 @@ export function makeDockviewGroupInterface(api: DockviewGroupPanelApi) {
 export type DockviewGroupInterface = ReturnType<
   typeof makeDockviewGroupInterface
 >;
-export const DockviewGroupContext = createContext<DockviewGroupInterface>();
+
+const DockviewGroupContext = createContext<DockviewGroupInterface>();
+export function DockviewGroupProvider(
+  props: ParentProps<{
+    staticValue: Parameters<typeof makeDockviewGroupInterface>;
+  }>,
+) {
+  return (
+    <DockviewGroupContext.Provider
+      value={makeDockviewGroupInterface(...props.staticValue)}
+    >
+      {props.children}
+    </DockviewGroupContext.Provider>
+  );
+}
 export const useDockviewGroup = () => useContext(DockviewGroupContext)!;

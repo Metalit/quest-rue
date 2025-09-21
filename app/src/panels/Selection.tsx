@@ -37,7 +37,7 @@ import {
   SideDropdownButton,
 } from "../components/input/DropdownButton";
 import { MaxColsGrid } from "../components/MaxColsGrid";
-import { useDockviewPanel } from "../dockview/api";
+import { useDockviewPanel } from "../dockview/Api";
 import { getClassDetails } from "../global/cache";
 import { sendPacketResult } from "../global/packets";
 import {

@@ -1,6 +1,6 @@
 import { createStore, produce, reconcile } from "solid-js/store";
 
-import { DockviewInterface, getPanelId } from "../dockview/api";
+import { DockviewInterface, getPanelId } from "../dockview/Api";
 import { ProtoDataPayload } from "../proto/il2cpp";
 
 const [selections, setSelections] = createStore<{

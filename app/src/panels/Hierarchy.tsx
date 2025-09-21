@@ -22,7 +22,7 @@ import {
 } from "../components/input/DropdownButton";
 import { SelectInput } from "../components/input/SelectInput";
 import { VirtualList } from "../components/VirtualList";
-import { useDockview } from "../dockview/api";
+import { useDockview } from "../dockview/Api";
 import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";
 import { ProtoScene } from "../proto/unity";

@@ -12,7 +12,7 @@ import {
   useDockview,
   useDockviewGroup,
   useDockviewPanel,
-} from "../dockview/api";
+} from "../dockview/Api";
 import { Dockview } from "../dockview/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";

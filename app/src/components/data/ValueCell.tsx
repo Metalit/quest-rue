@@ -8,7 +8,7 @@ import {
   chevronDoubleRight,
   plus,
 } from "solid-heroicons/outline";
-import { useDockview } from "../../dockview/api";
+import { useDockview } from "../../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../../global/selection";
 import { createUpdatingParser, extractCase } from "../../global/utils";
 import {

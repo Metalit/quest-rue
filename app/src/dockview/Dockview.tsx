@@ -2,7 +2,6 @@ import { createElementSize } from "@solid-primitives/resize-observer";
 import {
   CreateComponentOptions,
   createDockview,
-  DockviewApi,
   DockviewOptions,
 } from "dockview-core";
 import {
@@ -16,11 +15,11 @@ import {
 } from "solid-js";
 
 import {
-  DockviewContext,
   DockviewInterface,
   DockviewPanels,
-  makeDockviewInterface,
-} from "./api";
+  DockviewProvider,
+  useDockview,
+} from "./Api";
 import {
   CustomHeader,
   CustomPanel,
@@ -39,8 +38,12 @@ interface DockviewProps {
 }
 
 function DockviewInitializer(
-  props: DockviewProps & { api: DockviewApi; panels: DockviewPanels },
+  props: DockviewProps & {
+    panels: DockviewPanels;
+    staticRef: HTMLDivElement;
+  },
 ) {
+  const api = useDockview();
   const owner = getOwner()!;
 
   const createComponent = (options: CreateComponentOptions) =>
@@ -58,7 +61,7 @@ function DockviewInitializer(
 
   // call immediately
   createRenderEffect(() =>
-    props.api.updateOptions({
+    api.rawApi.updateOptions({
       createComponent,
       ...(props.leftHeader ? { createLeftHeaderActionComponent } : {}),
       ...(props.rightHeader ? { createRightHeaderActionComponent } : {}),
@@ -69,6 +72,12 @@ function DockviewInitializer(
       defaultTabComponent: Object.keys(props.tabs ?? {}).find(() => true),
     }),
   );
+
+  const size = createElementSize(props.staticRef);
+  createEffect(() => {
+    api.rawApi.layout(size.width, size.height);
+    if (size.width > 0 || size.height > 0) props.onReady?.(api);
+  });
 
   return <></>;
 }
@@ -104,20 +113,15 @@ export function Dockview(
   });
   onCleanup(() => api.dispose());
 
-  // eslint-disable-next-line solid/reactivity
-  const iface = makeDockviewInterface(api, panels);
-
-  const size = createElementSize(main as HTMLDivElement);
-  createEffect(() => {
-    api.layout(size.width, size.height);
-    if (size.width > 0 || size.height > 0) custom.onReady?.(iface);
-  });
-
   return (
-    <DockviewContext.Provider value={iface}>
+    <DockviewProvider staticValue={[api, panels]}>
       {main}
       {/* we want the provider to be available in our getOwner call */}
-      <DockviewInitializer {...custom} api={api} panels={panels()} />
-    </DockviewContext.Provider>
+      <DockviewInitializer
+        {...custom}
+        staticRef={main as HTMLDivElement}
+        panels={panels()}
+      />
+    </DockviewProvider>
   );
 }

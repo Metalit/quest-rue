@@ -10,12 +10,7 @@ import {
 } from "dockview-core";
 import { Component, createRoot, JSX, Owner } from "solid-js";
 
-import {
-  DockviewGroupContext,
-  DockviewPanelContext,
-  makeDockviewGroupInterface,
-  makeDockviewPanelInterface,
-} from "./api";
+import { DockviewGroupProvider, DockviewPanelProvider } from "./Api";
 
 abstract class CustomRenderer<T> {
   _element: HTMLElement | undefined;
@@ -55,11 +50,9 @@ export class CustomPanel
   implements IContentRenderer
 {
   provide: typeof this._provide = (_params) => (
-    <DockviewPanelContext.Provider
-      value={makeDockviewPanelInterface(_params.api)}
-    >
+    <DockviewPanelProvider staticValue={[_params.api]}>
       <this._create />
-    </DockviewPanelContext.Provider>
+    </DockviewPanelProvider>
   );
 }
 
@@ -68,11 +61,9 @@ export class CustomTab
   implements ITabRenderer
 {
   provide: typeof this._provide = (_params) => (
-    <DockviewPanelContext.Provider
-      value={makeDockviewPanelInterface(_params.api)}
-    >
+    <DockviewPanelProvider staticValue={[_params.api]}>
       <this._create />
-    </DockviewPanelContext.Provider>
+    </DockviewPanelProvider>
   );
 }
 
@@ -81,11 +72,9 @@ export class CustomWatermark
   implements IWatermarkRenderer
 {
   provide: typeof this._provide = (_params) => (
-    <DockviewGroupContext.Provider
-      value={makeDockviewGroupInterface(_params.group!.api)}
-    >
+    <DockviewGroupProvider staticValue={[_params.group!.api]}>
       <this._create />
-    </DockviewGroupContext.Provider>
+    </DockviewGroupProvider>
   );
 }
 
@@ -94,10 +83,8 @@ export class CustomHeader
   implements IHeaderActionsRenderer
 {
   provide: typeof this._provide = (_params) => (
-    <DockviewGroupContext.Provider
-      value={makeDockviewGroupInterface(_params.api)}
-    >
+    <DockviewGroupProvider staticValue={[_params.api]}>
       <this._create />
-    </DockviewGroupContext.Provider>
+    </DockviewGroupProvider>
   );
 }
