@@ -292,7 +292,6 @@ function ObjectList(props: {
 
   return (
     <VirtualList
-      class="grow bg-base-50 rounded -m-0.5 mt-0 p-1"
       items={display()}
       itemHeight={20}
       generator={(address) => (
@@ -377,13 +376,15 @@ export function Hierarchy() {
         </div>
       </div>
       <div class="divider" />
-      <ObjectList
-        search={search()}
-        scene={scene()?.handle}
-        visibility={visibility()}
-        sorting={sorting()}
-        inverse={inverse()}
-      />
+      <div class="grow min-h-0 -m-0.5 mt-0 p-1 rounded bg-base-50">
+        <ObjectList
+          search={search()}
+          scene={scene()?.handle}
+          visibility={visibility()}
+          sorting={sorting()}
+          inverse={inverse()}
+        />
+      </div>
     </div>
   );
 }

@@ -130,6 +130,10 @@
   @apply bg-base-50 border-2 border-shadow shadow rounded-md;
 }
 
+@utility gutter {
+  scrollbar-gutter: stable;
+}
+
 /* https://css-tricks.com/an-auto-filling-css-grid-with-max-columns/ */
 .max-cols-grid {
   --gap-count: calc(var(--grid-column-count) - 1);

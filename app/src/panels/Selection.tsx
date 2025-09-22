@@ -309,6 +309,12 @@ function DetailsList(props: {
     />
   );
 
+  const hasStaticsSection = () =>
+    props.visibility == "Static Members Last" &&
+    (fieldLists()[1].length > 0 ||
+      propertyLists()[1].length > 0 ||
+      methodLists()[1].length > 0);
+
   return (
     <>
       <Show when={!props.first}>
@@ -319,8 +325,8 @@ function DetailsList(props: {
       <StyledCellGrid items={fieldLists()[0]} item={fieldCell} />
       <StyledCellGrid items={propertyLists()[0]} item={propertyCell} />
       <StyledCellGrid items={methodLists()[0]} item={methodCell} />
-      <Show when={props.visibility == "Static Members Last"}>
-        <div class="divider text-sm text-secondary-content -my-1">
+      <Show when={hasStaticsSection()}>
+        <div class="divider text-xs text-secondary-content -my-1">
           Static Members
         </div>
       </Show>
@@ -557,7 +563,7 @@ export function Selection() {
             </div>
           }
         >
-          <div class="overflow-auto flex flex-col pr-1.5 gap-2">
+          <div class="grow gutter overflow-auto flex flex-col pr-1.5 gap-2">
             <DetailsList
               selection={getSelection(id)!}
               details={details()!}
