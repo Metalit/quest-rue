@@ -52,12 +52,12 @@ export interface ProtoScene {
 }
 
 function createBaseProtoObject(): ProtoObject {
-  return { address: 0n, name: "", classInfo: undefined };
+  return { address: BigInt("0"), name: "", classInfo: undefined };
 }
 
 export const ProtoObject: MessageFns<ProtoObject> = {
   encode(message: ProtoObject, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -114,7 +114,7 @@ export const ProtoObject: MessageFns<ProtoObject> = {
 
   fromJSON(object: any): ProtoObject {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       classInfo: isSet(object.classInfo) ? ProtoClassInfo.fromJSON(object.classInfo) : undefined,
     };
@@ -122,7 +122,7 @@ export const ProtoObject: MessageFns<ProtoObject> = {
 
   toJSON(message: ProtoObject): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.name !== "") {
@@ -139,7 +139,7 @@ export const ProtoObject: MessageFns<ProtoObject> = {
   },
   fromPartial<I extends Exact<DeepPartial<ProtoObject>, I>>(object: I): ProtoObject {
     const message = createBaseProtoObject();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.name = object.name ?? "";
     message.classInfo = (object.classInfo !== undefined && object.classInfo !== null)
       ? ProtoClassInfo.fromPartial(object.classInfo)
@@ -149,12 +149,12 @@ export const ProtoObject: MessageFns<ProtoObject> = {
 };
 
 function createBaseProtoComponent(): ProtoComponent {
-  return { address: 0n, name: "", gameObject: 0n, classInfo: undefined };
+  return { address: BigInt("0"), name: "", gameObject: BigInt("0"), classInfo: undefined };
 }
 
 export const ProtoComponent: MessageFns<ProtoComponent> = {
   encode(message: ProtoComponent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -163,7 +163,7 @@ export const ProtoComponent: MessageFns<ProtoComponent> = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
-    if (message.gameObject !== 0n) {
+    if (message.gameObject !== BigInt("0")) {
       if (BigInt.asUintN(64, message.gameObject) !== message.gameObject) {
         throw new globalThis.Error("value provided for field message.gameObject of type uint64 too large");
       }
@@ -225,22 +225,22 @@ export const ProtoComponent: MessageFns<ProtoComponent> = {
 
   fromJSON(object: any): ProtoComponent {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      gameObject: isSet(object.gameObject) ? BigInt(object.gameObject) : 0n,
+      gameObject: isSet(object.gameObject) ? BigInt(object.gameObject) : BigInt("0"),
       classInfo: isSet(object.classInfo) ? ProtoClassInfo.fromJSON(object.classInfo) : undefined,
     };
   },
 
   toJSON(message: ProtoComponent): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.gameObject !== 0n) {
+    if (message.gameObject !== BigInt("0")) {
       obj.gameObject = message.gameObject.toString();
     }
     if (message.classInfo !== undefined) {
@@ -254,9 +254,9 @@ export const ProtoComponent: MessageFns<ProtoComponent> = {
   },
   fromPartial<I extends Exact<DeepPartial<ProtoComponent>, I>>(object: I): ProtoComponent {
     const message = createBaseProtoComponent();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.name = object.name ?? "";
-    message.gameObject = object.gameObject ?? 0n;
+    message.gameObject = object.gameObject ?? BigInt("0");
     message.classInfo = (object.classInfo !== undefined && object.classInfo !== null)
       ? ProtoClassInfo.fromPartial(object.classInfo)
       : undefined;
@@ -265,12 +265,12 @@ export const ProtoComponent: MessageFns<ProtoComponent> = {
 };
 
 function createBaseProtoTransform(): ProtoTransform {
-  return { address: 0n, childCount: 0, siblingIdx: 0, parent: 0n };
+  return { address: BigInt("0"), childCount: 0, siblingIdx: 0, parent: BigInt("0") };
 }
 
 export const ProtoTransform: MessageFns<ProtoTransform> = {
   encode(message: ProtoTransform, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -282,7 +282,7 @@ export const ProtoTransform: MessageFns<ProtoTransform> = {
     if (message.siblingIdx !== 0) {
       writer.uint32(24).int32(message.siblingIdx);
     }
-    if (message.parent !== 0n) {
+    if (message.parent !== BigInt("0")) {
       if (BigInt.asUintN(64, message.parent) !== message.parent) {
         throw new globalThis.Error("value provided for field message.parent of type uint64 too large");
       }
@@ -341,16 +341,16 @@ export const ProtoTransform: MessageFns<ProtoTransform> = {
 
   fromJSON(object: any): ProtoTransform {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       childCount: isSet(object.childCount) ? globalThis.Number(object.childCount) : 0,
       siblingIdx: isSet(object.siblingIdx) ? globalThis.Number(object.siblingIdx) : 0,
-      parent: isSet(object.parent) ? BigInt(object.parent) : 0n,
+      parent: isSet(object.parent) ? BigInt(object.parent) : BigInt("0"),
     };
   },
 
   toJSON(message: ProtoTransform): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.childCount !== 0) {
@@ -359,7 +359,7 @@ export const ProtoTransform: MessageFns<ProtoTransform> = {
     if (message.siblingIdx !== 0) {
       obj.siblingIdx = Math.round(message.siblingIdx);
     }
-    if (message.parent !== 0n) {
+    if (message.parent !== BigInt("0")) {
       obj.parent = message.parent.toString();
     }
     return obj;
@@ -370,21 +370,30 @@ export const ProtoTransform: MessageFns<ProtoTransform> = {
   },
   fromPartial<I extends Exact<DeepPartial<ProtoTransform>, I>>(object: I): ProtoTransform {
     const message = createBaseProtoTransform();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.childCount = object.childCount ?? 0;
     message.siblingIdx = object.siblingIdx ?? 0;
-    message.parent = object.parent ?? 0n;
+    message.parent = object.parent ?? BigInt("0");
     return message;
   },
 };
 
 function createBaseProtoGameObject(): ProtoGameObject {
-  return { address: 0n, name: "", transform: undefined, active: false, layer: 0, scene: 0, instanceId: 0, tag: "" };
+  return {
+    address: BigInt("0"),
+    name: "",
+    transform: undefined,
+    active: false,
+    layer: 0,
+    scene: 0,
+    instanceId: 0,
+    tag: "",
+  };
 }
 
 export const ProtoGameObject: MessageFns<ProtoGameObject> = {
   encode(message: ProtoGameObject, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -496,7 +505,7 @@ export const ProtoGameObject: MessageFns<ProtoGameObject> = {
 
   fromJSON(object: any): ProtoGameObject {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       transform: isSet(object.transform) ? ProtoTransform.fromJSON(object.transform) : undefined,
       active: isSet(object.active) ? globalThis.Boolean(object.active) : false,
@@ -509,7 +518,7 @@ export const ProtoGameObject: MessageFns<ProtoGameObject> = {
 
   toJSON(message: ProtoGameObject): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.name !== "") {
@@ -541,7 +550,7 @@ export const ProtoGameObject: MessageFns<ProtoGameObject> = {
   },
   fromPartial<I extends Exact<DeepPartial<ProtoGameObject>, I>>(object: I): ProtoGameObject {
     const message = createBaseProtoGameObject();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.name = object.name ?? "";
     message.transform = (object.transform !== undefined && object.transform !== null)
       ? ProtoTransform.fromPartial(object.transform)

@@ -620,12 +620,12 @@ export const ProtoArrayInfo: MessageFns<ProtoArrayInfo> = {
 };
 
 function createBaseProtoGenericInfo(): ProtoGenericInfo {
-  return { genericHandle: 0n, name: "" };
+  return { genericHandle: BigInt("0"), name: "" };
 }
 
 export const ProtoGenericInfo: MessageFns<ProtoGenericInfo> = {
   encode(message: ProtoGenericInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.genericHandle !== 0n) {
+    if (message.genericHandle !== BigInt("0")) {
       if (BigInt.asUintN(64, message.genericHandle) !== message.genericHandle) {
         throw new globalThis.Error("value provided for field message.genericHandle of type uint64 too large");
       }
@@ -671,14 +671,14 @@ export const ProtoGenericInfo: MessageFns<ProtoGenericInfo> = {
 
   fromJSON(object: any): ProtoGenericInfo {
     return {
-      genericHandle: isSet(object.genericHandle) ? BigInt(object.genericHandle) : 0n,
+      genericHandle: isSet(object.genericHandle) ? BigInt(object.genericHandle) : BigInt("0"),
       name: isSet(object.name) ? globalThis.String(object.name) : "",
     };
   },
 
   toJSON(message: ProtoGenericInfo): unknown {
     const obj: any = {};
-    if (message.genericHandle !== 0n) {
+    if (message.genericHandle !== BigInt("0")) {
       obj.genericHandle = message.genericHandle.toString();
     }
     if (message.name !== "") {
@@ -692,7 +692,7 @@ export const ProtoGenericInfo: MessageFns<ProtoGenericInfo> = {
   },
   fromPartial<I extends Exact<DeepPartial<ProtoGenericInfo>, I>>(object: I): ProtoGenericInfo {
     const message = createBaseProtoGenericInfo();
-    message.genericHandle = object.genericHandle ?? 0n;
+    message.genericHandle = object.genericHandle ?? BigInt("0");
     message.name = object.name ?? "";
     return message;
   },
@@ -812,7 +812,7 @@ export const ProtoEnumInfo: MessageFns<ProtoEnumInfo> = {
 };
 
 function createBaseProtoEnumInfo_ValuesEntry(): ProtoEnumInfo_ValuesEntry {
-  return { key: "", value: 0n };
+  return { key: "", value: BigInt("0") };
 }
 
 export const ProtoEnumInfo_ValuesEntry: MessageFns<ProtoEnumInfo_ValuesEntry> = {
@@ -820,7 +820,7 @@ export const ProtoEnumInfo_ValuesEntry: MessageFns<ProtoEnumInfo_ValuesEntry> = 
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
-    if (message.value !== 0n) {
+    if (message.value !== BigInt("0")) {
       if (BigInt.asIntN(64, message.value) !== message.value) {
         throw new globalThis.Error("value provided for field message.value of type int64 too large");
       }
@@ -864,7 +864,7 @@ export const ProtoEnumInfo_ValuesEntry: MessageFns<ProtoEnumInfo_ValuesEntry> = 
   fromJSON(object: any): ProtoEnumInfo_ValuesEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
-      value: isSet(object.value) ? BigInt(object.value) : 0n,
+      value: isSet(object.value) ? BigInt(object.value) : BigInt("0"),
     };
   },
 
@@ -873,7 +873,7 @@ export const ProtoEnumInfo_ValuesEntry: MessageFns<ProtoEnumInfo_ValuesEntry> = 
     if (message.key !== "") {
       obj.key = message.key;
     }
-    if (message.value !== 0n) {
+    if (message.value !== BigInt("0")) {
       obj.value = message.value.toString();
     }
     return obj;
@@ -885,7 +885,7 @@ export const ProtoEnumInfo_ValuesEntry: MessageFns<ProtoEnumInfo_ValuesEntry> = 
   fromPartial<I extends Exact<DeepPartial<ProtoEnumInfo_ValuesEntry>, I>>(object: I): ProtoEnumInfo_ValuesEntry {
     const message = createBaseProtoEnumInfo_ValuesEntry();
     message.key = object.key ?? "";
-    message.value = object.value ?? 0n;
+    message.value = object.value ?? BigInt("0");
     return message;
   },
 };
@@ -1099,7 +1099,7 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
 };
 
 function createBaseProtoFieldInfo(): ProtoFieldInfo {
-  return { name: "", id: 0n, type: undefined, literal: false };
+  return { name: "", id: BigInt("0"), type: undefined, literal: false };
 }
 
 export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
@@ -1107,7 +1107,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       if (BigInt.asUintN(64, message.id) !== message.id) {
         throw new globalThis.Error("value provided for field message.id of type uint64 too large");
       }
@@ -1173,7 +1173,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
   fromJSON(object: any): ProtoFieldInfo {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? BigInt(object.id) : BigInt("0"),
       type: isSet(object.type) ? ProtoTypeInfo.fromJSON(object.type) : undefined,
       literal: isSet(object.literal) ? globalThis.Boolean(object.literal) : false,
     };
@@ -1184,7 +1184,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       obj.id = message.id.toString();
     }
     if (message.type !== undefined) {
@@ -1202,7 +1202,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
   fromPartial<I extends Exact<DeepPartial<ProtoFieldInfo>, I>>(object: I): ProtoFieldInfo {
     const message = createBaseProtoFieldInfo();
     message.name = object.name ?? "";
-    message.id = object.id ?? 0n;
+    message.id = object.id ?? BigInt("0");
     message.type = (object.type !== undefined && object.type !== null)
       ? ProtoTypeInfo.fromPartial(object.type)
       : undefined;
@@ -1212,7 +1212,14 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
 };
 
 function createBaseProtoPropertyInfo(): ProtoPropertyInfo {
-  return { name: "", id: 0n, type: undefined, getterId: undefined, setterId: undefined, backingFieldId: undefined };
+  return {
+    name: "",
+    id: BigInt("0"),
+    type: undefined,
+    getterId: undefined,
+    setterId: undefined,
+    backingFieldId: undefined,
+  };
 }
 
 export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
@@ -1220,7 +1227,7 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       if (BigInt.asUintN(64, message.id) !== message.id) {
         throw new globalThis.Error("value provided for field message.id of type uint64 too large");
       }
@@ -1317,7 +1324,7 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
   fromJSON(object: any): ProtoPropertyInfo {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? BigInt(object.id) : BigInt("0"),
       type: isSet(object.type) ? ProtoTypeInfo.fromJSON(object.type) : undefined,
       getterId: isSet(object.getterId) ? BigInt(object.getterId) : undefined,
       setterId: isSet(object.setterId) ? BigInt(object.setterId) : undefined,
@@ -1330,7 +1337,7 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       obj.id = message.id.toString();
     }
     if (message.type !== undefined) {
@@ -1354,7 +1361,7 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
   fromPartial<I extends Exact<DeepPartial<ProtoPropertyInfo>, I>>(object: I): ProtoPropertyInfo {
     const message = createBaseProtoPropertyInfo();
     message.name = object.name ?? "";
-    message.id = object.id ?? 0n;
+    message.id = object.id ?? BigInt("0");
     message.type = (object.type !== undefined && object.type !== null)
       ? ProtoTypeInfo.fromPartial(object.type)
       : undefined;
@@ -1366,7 +1373,7 @@ export const ProtoPropertyInfo: MessageFns<ProtoPropertyInfo> = {
 };
 
 function createBaseProtoMethodInfo(): ProtoMethodInfo {
-  return { name: "", id: 0n, args: [], returnType: undefined };
+  return { name: "", id: BigInt("0"), args: [], returnType: undefined };
 }
 
 export const ProtoMethodInfo: MessageFns<ProtoMethodInfo> = {
@@ -1374,7 +1381,7 @@ export const ProtoMethodInfo: MessageFns<ProtoMethodInfo> = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       if (BigInt.asUintN(64, message.id) !== message.id) {
         throw new globalThis.Error("value provided for field message.id of type uint64 too large");
       }
@@ -1440,7 +1447,7 @@ export const ProtoMethodInfo: MessageFns<ProtoMethodInfo> = {
   fromJSON(object: any): ProtoMethodInfo {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? BigInt(object.id) : BigInt("0"),
       args: globalThis.Array.isArray(object?.args)
         ? object.args.map((e: any) => ProtoMethodInfo_Argument.fromJSON(e))
         : [],
@@ -1453,7 +1460,7 @@ export const ProtoMethodInfo: MessageFns<ProtoMethodInfo> = {
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       obj.id = message.id.toString();
     }
     if (message.args?.length) {
@@ -1471,7 +1478,7 @@ export const ProtoMethodInfo: MessageFns<ProtoMethodInfo> = {
   fromPartial<I extends Exact<DeepPartial<ProtoMethodInfo>, I>>(object: I): ProtoMethodInfo {
     const message = createBaseProtoMethodInfo();
     message.name = object.name ?? "";
-    message.id = object.id ?? 0n;
+    message.id = object.id ?? BigInt("0");
     message.args = object.args?.map((e) => ProtoMethodInfo_Argument.fromPartial(e)) || [];
     message.returnType = (object.returnType !== undefined && object.returnType !== null)
       ? ProtoTypeInfo.fromPartial(object.returnType)

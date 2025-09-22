@@ -232,7 +232,7 @@ function defaultPrimitiveSegment(
 export function defaultDataSegment(typeInfo: ProtoTypeInfo): ProtoDataSegment {
   switch (typeInfo.Info?.$case) {
     case "classInfo":
-      return setDataCase({ classData: 0n });
+      return setDataCase({ classData: BigInt(0) });
     case "structInfo": {
       const data = Object.fromEntries(
         Object.entries(typeInfo.Info.structInfo.fieldOffsets!).map(
@@ -257,8 +257,8 @@ function validPrimitiveString(
 ): boolean {
   const checkBytes = (bytes: number) =>
     !!input.match(/^[0-9]+$/) &&
-    BigInt(input) < 2n ** BigInt(bytes * 8 - 1) &&
-    BigInt(input) >= -(2n ** BigInt(bytes * 8 - 1));
+    BigInt(input) < BigInt(2) ** BigInt(bytes * 8 - 1) &&
+    BigInt(input) >= -(BigInt(2) ** BigInt(bytes * 8 - 1));
   switch (primitive) {
     case ProtoTypeInfo_Primitive.BOOLEAN:
       return !!input.match(/^(?:true|false)$/i);
@@ -374,7 +374,7 @@ export function protoDataToRealValue(
 ) {
   switch (typeInfo.Info?.$case) {
     case "classInfo":
-      if (data?.Data?.$case != "classData") return 0n;
+      if (data?.Data?.$case != "classData") return BigInt(0);
       return data?.Data.classData;
     case "structInfo": {
       if (data?.Data?.$case != "structData") return "null";
@@ -390,7 +390,7 @@ export function protoDataToRealValue(
       return struct;
     }
     case "arrayInfo": {
-      if (data?.Data?.$case != "arrayData") return 0n;
+      if (data?.Data?.$case != "arrayData") return BigInt(0);
       const arr: unknown[] = [];
       const memberType = typeInfo.Info.arrayInfo.memberType!;
       for (let i = 0; i < data.Data.arrayData.data.length; i++)

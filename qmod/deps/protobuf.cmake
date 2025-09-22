@@ -103,6 +103,7 @@ if(EXISTS ${TS_PROTO_PLUGIN})
         "protoc-gen-ts_proto=${TS_PROTO_PLUGIN}"
         PROTOC_OPTIONS
         "--ts_proto_opt=forceLong=bigint"
+        "--ts_proto_opt=bigIntLiteral=false"
         "--ts_proto_opt=oneof=unions"
         "--ts_proto_opt=esModuleInterop=true"
         PROTOC_OUT_DIR

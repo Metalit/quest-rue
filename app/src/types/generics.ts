@@ -37,7 +37,7 @@ export function getArgGenericsMap(method: ProtoMethodInfo): GenericsMap {
       .concat(getGenerics(method.returnType))
       .map((generic) => [
         bigToString(
-          extractCase(generic.Info, "genericInfo")?.genericHandle ?? -1n,
+          extractCase(generic.Info, "genericInfo")?.genericHandle ?? BigInt(-1),
         ),
         { generic },
       ]),

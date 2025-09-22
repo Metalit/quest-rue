@@ -307,12 +307,12 @@ export interface PacketWrapper {
 }
 
 function createBaseSetField(): SetField {
-  return { fieldId: 0n, inst: undefined, value: undefined };
+  return { fieldId: BigInt("0"), inst: undefined, value: undefined };
 }
 
 export const SetField: MessageFns<SetField> = {
   encode(message: SetField, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.fieldId) !== message.fieldId) {
         throw new globalThis.Error("value provided for field message.fieldId of type uint64 too large");
       }
@@ -369,7 +369,7 @@ export const SetField: MessageFns<SetField> = {
 
   fromJSON(object: any): SetField {
     return {
-      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : 0n,
+      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : BigInt("0"),
       inst: isSet(object.inst) ? ProtoDataPayload.fromJSON(object.inst) : undefined,
       value: isSet(object.value) ? ProtoDataPayload.fromJSON(object.value) : undefined,
     };
@@ -377,7 +377,7 @@ export const SetField: MessageFns<SetField> = {
 
   toJSON(message: SetField): unknown {
     const obj: any = {};
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       obj.fieldId = message.fieldId.toString();
     }
     if (message.inst !== undefined) {
@@ -394,7 +394,7 @@ export const SetField: MessageFns<SetField> = {
   },
   fromPartial<I extends Exact<DeepPartial<SetField>, I>>(object: I): SetField {
     const message = createBaseSetField();
-    message.fieldId = object.fieldId ?? 0n;
+    message.fieldId = object.fieldId ?? BigInt("0");
     message.inst = (object.inst !== undefined && object.inst !== null)
       ? ProtoDataPayload.fromPartial(object.inst)
       : undefined;
@@ -406,12 +406,12 @@ export const SetField: MessageFns<SetField> = {
 };
 
 function createBaseSetFieldResult(): SetFieldResult {
-  return { fieldId: 0n };
+  return { fieldId: BigInt("0") };
 }
 
 export const SetFieldResult: MessageFns<SetFieldResult> = {
   encode(message: SetFieldResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.fieldId) !== message.fieldId) {
         throw new globalThis.Error("value provided for field message.fieldId of type uint64 too large");
       }
@@ -445,12 +445,12 @@ export const SetFieldResult: MessageFns<SetFieldResult> = {
   },
 
   fromJSON(object: any): SetFieldResult {
-    return { fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : 0n };
+    return { fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : BigInt("0") };
   },
 
   toJSON(message: SetFieldResult): unknown {
     const obj: any = {};
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       obj.fieldId = message.fieldId.toString();
     }
     return obj;
@@ -461,18 +461,18 @@ export const SetFieldResult: MessageFns<SetFieldResult> = {
   },
   fromPartial<I extends Exact<DeepPartial<SetFieldResult>, I>>(object: I): SetFieldResult {
     const message = createBaseSetFieldResult();
-    message.fieldId = object.fieldId ?? 0n;
+    message.fieldId = object.fieldId ?? BigInt("0");
     return message;
   },
 };
 
 function createBaseGetField(): GetField {
-  return { fieldId: 0n, inst: undefined };
+  return { fieldId: BigInt("0"), inst: undefined };
 }
 
 export const GetField: MessageFns<GetField> = {
   encode(message: GetField, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.fieldId) !== message.fieldId) {
         throw new globalThis.Error("value provided for field message.fieldId of type uint64 too large");
       }
@@ -518,14 +518,14 @@ export const GetField: MessageFns<GetField> = {
 
   fromJSON(object: any): GetField {
     return {
-      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : 0n,
+      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : BigInt("0"),
       inst: isSet(object.inst) ? ProtoDataPayload.fromJSON(object.inst) : undefined,
     };
   },
 
   toJSON(message: GetField): unknown {
     const obj: any = {};
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       obj.fieldId = message.fieldId.toString();
     }
     if (message.inst !== undefined) {
@@ -539,7 +539,7 @@ export const GetField: MessageFns<GetField> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetField>, I>>(object: I): GetField {
     const message = createBaseGetField();
-    message.fieldId = object.fieldId ?? 0n;
+    message.fieldId = object.fieldId ?? BigInt("0");
     message.inst = (object.inst !== undefined && object.inst !== null)
       ? ProtoDataPayload.fromPartial(object.inst)
       : undefined;
@@ -548,12 +548,12 @@ export const GetField: MessageFns<GetField> = {
 };
 
 function createBaseGetFieldResult(): GetFieldResult {
-  return { fieldId: 0n, value: undefined };
+  return { fieldId: BigInt("0"), value: undefined };
 }
 
 export const GetFieldResult: MessageFns<GetFieldResult> = {
   encode(message: GetFieldResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.fieldId) !== message.fieldId) {
         throw new globalThis.Error("value provided for field message.fieldId of type uint64 too large");
       }
@@ -599,14 +599,14 @@ export const GetFieldResult: MessageFns<GetFieldResult> = {
 
   fromJSON(object: any): GetFieldResult {
     return {
-      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : 0n,
+      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : BigInt("0"),
       value: isSet(object.value) ? ProtoDataPayload.fromJSON(object.value) : undefined,
     };
   },
 
   toJSON(message: GetFieldResult): unknown {
     const obj: any = {};
-    if (message.fieldId !== 0n) {
+    if (message.fieldId !== BigInt("0")) {
       obj.fieldId = message.fieldId.toString();
     }
     if (message.value !== undefined) {
@@ -620,7 +620,7 @@ export const GetFieldResult: MessageFns<GetFieldResult> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetFieldResult>, I>>(object: I): GetFieldResult {
     const message = createBaseGetFieldResult();
-    message.fieldId = object.fieldId ?? 0n;
+    message.fieldId = object.fieldId ?? BigInt("0");
     message.value = (object.value !== undefined && object.value !== null)
       ? ProtoDataPayload.fromPartial(object.value)
       : undefined;
@@ -629,12 +629,12 @@ export const GetFieldResult: MessageFns<GetFieldResult> = {
 };
 
 function createBaseInvokeMethod(): InvokeMethod {
-  return { methodId: 0n, inst: undefined, generics: [], args: [] };
+  return { methodId: BigInt("0"), inst: undefined, generics: [], args: [] };
 }
 
 export const InvokeMethod: MessageFns<InvokeMethod> = {
   encode(message: InvokeMethod, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.methodId !== 0n) {
+    if (message.methodId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.methodId) !== message.methodId) {
         throw new globalThis.Error("value provided for field message.methodId of type uint64 too large");
       }
@@ -702,7 +702,7 @@ export const InvokeMethod: MessageFns<InvokeMethod> = {
 
   fromJSON(object: any): InvokeMethod {
     return {
-      methodId: isSet(object.methodId) ? BigInt(object.methodId) : 0n,
+      methodId: isSet(object.methodId) ? BigInt(object.methodId) : BigInt("0"),
       inst: isSet(object.inst) ? ProtoDataPayload.fromJSON(object.inst) : undefined,
       generics: globalThis.Array.isArray(object?.generics)
         ? object.generics.map((e: any) => ProtoTypeInfo.fromJSON(e))
@@ -713,7 +713,7 @@ export const InvokeMethod: MessageFns<InvokeMethod> = {
 
   toJSON(message: InvokeMethod): unknown {
     const obj: any = {};
-    if (message.methodId !== 0n) {
+    if (message.methodId !== BigInt("0")) {
       obj.methodId = message.methodId.toString();
     }
     if (message.inst !== undefined) {
@@ -733,7 +733,7 @@ export const InvokeMethod: MessageFns<InvokeMethod> = {
   },
   fromPartial<I extends Exact<DeepPartial<InvokeMethod>, I>>(object: I): InvokeMethod {
     const message = createBaseInvokeMethod();
-    message.methodId = object.methodId ?? 0n;
+    message.methodId = object.methodId ?? BigInt("0");
     message.inst = (object.inst !== undefined && object.inst !== null)
       ? ProtoDataPayload.fromPartial(object.inst)
       : undefined;
@@ -744,7 +744,7 @@ export const InvokeMethod: MessageFns<InvokeMethod> = {
 };
 
 function createBaseInvokeMethodResult(): InvokeMethodResult {
-  return { status: 0, methodId: 0n, result: undefined, byrefChanges: {}, error: undefined };
+  return { status: 0, methodId: BigInt("0"), result: undefined, byrefChanges: {}, error: undefined };
 }
 
 export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
@@ -752,7 +752,7 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
     if (message.status !== 0) {
       writer.uint32(8).int32(message.status);
     }
-    if (message.methodId !== 0n) {
+    if (message.methodId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.methodId) !== message.methodId) {
         throw new globalThis.Error("value provided for field message.methodId of type uint64 too large");
       }
@@ -832,7 +832,7 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
   fromJSON(object: any): InvokeMethodResult {
     return {
       status: isSet(object.status) ? invokeMethodResult_StatusFromJSON(object.status) : 0,
-      methodId: isSet(object.methodId) ? BigInt(object.methodId) : 0n,
+      methodId: isSet(object.methodId) ? BigInt(object.methodId) : BigInt("0"),
       result: isSet(object.result) ? ProtoDataPayload.fromJSON(object.result) : undefined,
       byrefChanges: isObject(object.byrefChanges)
         ? Object.entries(object.byrefChanges).reduce<{ [key: number]: ProtoDataPayload }>((acc, [key, value]) => {
@@ -849,7 +849,7 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
     if (message.status !== 0) {
       obj.status = invokeMethodResult_StatusToJSON(message.status);
     }
-    if (message.methodId !== 0n) {
+    if (message.methodId !== BigInt("0")) {
       obj.methodId = message.methodId.toString();
     }
     if (message.result !== undefined) {
@@ -876,7 +876,7 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
   fromPartial<I extends Exact<DeepPartial<InvokeMethodResult>, I>>(object: I): InvokeMethodResult {
     const message = createBaseInvokeMethodResult();
     message.status = object.status ?? 0;
-    message.methodId = object.methodId ?? 0n;
+    message.methodId = object.methodId ?? BigInt("0");
     message.result = (object.result !== undefined && object.result !== null)
       ? ProtoDataPayload.fromPartial(object.result)
       : undefined;
@@ -1236,12 +1236,12 @@ export const GetAllGameObjectsResult: MessageFns<GetAllGameObjectsResult> = {
 };
 
 function createBaseGetGameObjectComponents(): GetGameObjectComponents {
-  return { address: 0n };
+  return { address: BigInt("0") };
 }
 
 export const GetGameObjectComponents: MessageFns<GetGameObjectComponents> = {
   encode(message: GetGameObjectComponents, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -1275,12 +1275,12 @@ export const GetGameObjectComponents: MessageFns<GetGameObjectComponents> = {
   },
 
   fromJSON(object: any): GetGameObjectComponents {
-    return { address: isSet(object.address) ? BigInt(object.address) : 0n };
+    return { address: isSet(object.address) ? BigInt(object.address) : BigInt("0") };
   },
 
   toJSON(message: GetGameObjectComponents): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     return obj;
@@ -1291,7 +1291,7 @@ export const GetGameObjectComponents: MessageFns<GetGameObjectComponents> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetGameObjectComponents>, I>>(object: I): GetGameObjectComponents {
     const message = createBaseGetGameObjectComponents();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     return message;
   },
 };
@@ -1361,18 +1361,18 @@ export const GetGameObjectComponentsResult: MessageFns<GetGameObjectComponentsRe
 };
 
 function createBaseReadMemory(): ReadMemory {
-  return { address: 0n, size: 0n };
+  return { address: BigInt("0"), size: BigInt("0") };
 }
 
 export const ReadMemory: MessageFns<ReadMemory> = {
   encode(message: ReadMemory, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
       writer.uint32(8).uint64(message.address);
     }
-    if (message.size !== 0n) {
+    if (message.size !== BigInt("0")) {
       if (BigInt.asUintN(64, message.size) !== message.size) {
         throw new globalThis.Error("value provided for field message.size of type uint64 too large");
       }
@@ -1415,17 +1415,17 @@ export const ReadMemory: MessageFns<ReadMemory> = {
 
   fromJSON(object: any): ReadMemory {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
-      size: isSet(object.size) ? BigInt(object.size) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
+      size: isSet(object.size) ? BigInt(object.size) : BigInt("0"),
     };
   },
 
   toJSON(message: ReadMemory): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
-    if (message.size !== 0n) {
+    if (message.size !== BigInt("0")) {
       obj.size = message.size.toString();
     }
     return obj;
@@ -1436,14 +1436,14 @@ export const ReadMemory: MessageFns<ReadMemory> = {
   },
   fromPartial<I extends Exact<DeepPartial<ReadMemory>, I>>(object: I): ReadMemory {
     const message = createBaseReadMemory();
-    message.address = object.address ?? 0n;
-    message.size = object.size ?? 0n;
+    message.address = object.address ?? BigInt("0");
+    message.size = object.size ?? BigInt("0");
     return message;
   },
 };
 
 function createBaseReadMemoryResult(): ReadMemoryResult {
-  return { status: 0, address: 0n, data: new Uint8Array(0) };
+  return { status: 0, address: BigInt("0"), data: new Uint8Array(0) };
 }
 
 export const ReadMemoryResult: MessageFns<ReadMemoryResult> = {
@@ -1451,7 +1451,7 @@ export const ReadMemoryResult: MessageFns<ReadMemoryResult> = {
     if (message.status !== 0) {
       writer.uint32(8).int32(message.status);
     }
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -1506,7 +1506,7 @@ export const ReadMemoryResult: MessageFns<ReadMemoryResult> = {
   fromJSON(object: any): ReadMemoryResult {
     return {
       status: isSet(object.status) ? readMemoryResult_StatusFromJSON(object.status) : 0,
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
     };
   },
@@ -1516,7 +1516,7 @@ export const ReadMemoryResult: MessageFns<ReadMemoryResult> = {
     if (message.status !== 0) {
       obj.status = readMemoryResult_StatusToJSON(message.status);
     }
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.data.length !== 0) {
@@ -1531,19 +1531,19 @@ export const ReadMemoryResult: MessageFns<ReadMemoryResult> = {
   fromPartial<I extends Exact<DeepPartial<ReadMemoryResult>, I>>(object: I): ReadMemoryResult {
     const message = createBaseReadMemoryResult();
     message.status = object.status ?? 0;
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.data = object.data ?? new Uint8Array(0);
     return message;
   },
 };
 
 function createBaseWriteMemory(): WriteMemory {
-  return { address: 0n, data: new Uint8Array(0) };
+  return { address: BigInt("0"), data: new Uint8Array(0) };
 }
 
 export const WriteMemory: MessageFns<WriteMemory> = {
   encode(message: WriteMemory, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -1589,14 +1589,14 @@ export const WriteMemory: MessageFns<WriteMemory> = {
 
   fromJSON(object: any): WriteMemory {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
     };
   },
 
   toJSON(message: WriteMemory): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.data.length !== 0) {
@@ -1610,14 +1610,14 @@ export const WriteMemory: MessageFns<WriteMemory> = {
   },
   fromPartial<I extends Exact<DeepPartial<WriteMemory>, I>>(object: I): WriteMemory {
     const message = createBaseWriteMemory();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.data = object.data ?? new Uint8Array(0);
     return message;
   },
 };
 
 function createBaseWriteMemoryResult(): WriteMemoryResult {
-  return { status: 0, address: 0n, size: 0n };
+  return { status: 0, address: BigInt("0"), size: BigInt("0") };
 }
 
 export const WriteMemoryResult: MessageFns<WriteMemoryResult> = {
@@ -1625,13 +1625,13 @@ export const WriteMemoryResult: MessageFns<WriteMemoryResult> = {
     if (message.status !== 0) {
       writer.uint32(8).int32(message.status);
     }
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
       writer.uint32(16).uint64(message.address);
     }
-    if (message.size !== 0n) {
+    if (message.size !== BigInt("0")) {
       if (BigInt.asUintN(64, message.size) !== message.size) {
         throw new globalThis.Error("value provided for field message.size of type uint64 too large");
       }
@@ -1683,8 +1683,8 @@ export const WriteMemoryResult: MessageFns<WriteMemoryResult> = {
   fromJSON(object: any): WriteMemoryResult {
     return {
       status: isSet(object.status) ? writeMemoryResult_StatusFromJSON(object.status) : 0,
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
-      size: isSet(object.size) ? BigInt(object.size) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
+      size: isSet(object.size) ? BigInt(object.size) : BigInt("0"),
     };
   },
 
@@ -1693,10 +1693,10 @@ export const WriteMemoryResult: MessageFns<WriteMemoryResult> = {
     if (message.status !== 0) {
       obj.status = writeMemoryResult_StatusToJSON(message.status);
     }
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
-    if (message.size !== 0n) {
+    if (message.size !== BigInt("0")) {
       obj.size = message.size.toString();
     }
     return obj;
@@ -1708,8 +1708,8 @@ export const WriteMemoryResult: MessageFns<WriteMemoryResult> = {
   fromPartial<I extends Exact<DeepPartial<WriteMemoryResult>, I>>(object: I): WriteMemoryResult {
     const message = createBaseWriteMemoryResult();
     message.status = object.status ?? 0;
-    message.address = object.address ?? 0n;
-    message.size = object.size ?? 0n;
+    message.address = object.address ?? BigInt("0");
+    message.size = object.size ?? BigInt("0");
     return message;
   },
 };
@@ -1835,12 +1835,12 @@ export const GetClassDetailsResult: MessageFns<GetClassDetailsResult> = {
 };
 
 function createBaseGetInstanceClass(): GetInstanceClass {
-  return { address: 0n };
+  return { address: BigInt("0") };
 }
 
 export const GetInstanceClass: MessageFns<GetInstanceClass> = {
   encode(message: GetInstanceClass, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -1874,12 +1874,12 @@ export const GetInstanceClass: MessageFns<GetInstanceClass> = {
   },
 
   fromJSON(object: any): GetInstanceClass {
-    return { address: isSet(object.address) ? BigInt(object.address) : 0n };
+    return { address: isSet(object.address) ? BigInt(object.address) : BigInt("0") };
   },
 
   toJSON(message: GetInstanceClass): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     return obj;
@@ -1890,7 +1890,7 @@ export const GetInstanceClass: MessageFns<GetInstanceClass> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetInstanceClass>, I>>(object: I): GetInstanceClass {
     const message = createBaseGetInstanceClass();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     return message;
   },
 };
@@ -2078,12 +2078,12 @@ export const GetInstanceValuesResult: MessageFns<GetInstanceValuesResult> = {
 };
 
 function createBaseGetInstanceValuesResult_ValuePair(): GetInstanceValuesResult_ValuePair {
-  return { id: 0n, data: undefined };
+  return { id: BigInt("0"), data: undefined };
 }
 
 export const GetInstanceValuesResult_ValuePair: MessageFns<GetInstanceValuesResult_ValuePair> = {
   encode(message: GetInstanceValuesResult_ValuePair, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       if (BigInt.asUintN(64, message.id) !== message.id) {
         throw new globalThis.Error("value provided for field message.id of type uint64 too large");
       }
@@ -2129,14 +2129,14 @@ export const GetInstanceValuesResult_ValuePair: MessageFns<GetInstanceValuesResu
 
   fromJSON(object: any): GetInstanceValuesResult_ValuePair {
     return {
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? BigInt(object.id) : BigInt("0"),
       data: isSet(object.data) ? ProtoDataSegment.fromJSON(object.data) : undefined,
     };
   },
 
   toJSON(message: GetInstanceValuesResult_ValuePair): unknown {
     const obj: any = {};
-    if (message.id !== 0n) {
+    if (message.id !== BigInt("0")) {
       obj.id = message.id.toString();
     }
     if (message.data !== undefined) {
@@ -2154,7 +2154,7 @@ export const GetInstanceValuesResult_ValuePair: MessageFns<GetInstanceValuesResu
     object: I,
   ): GetInstanceValuesResult_ValuePair {
     const message = createBaseGetInstanceValuesResult_ValuePair();
-    message.id = object.id ?? 0n;
+    message.id = object.id ?? BigInt("0");
     message.data = (object.data !== undefined && object.data !== null)
       ? ProtoDataSegment.fromPartial(object.data)
       : undefined;
@@ -2285,12 +2285,12 @@ export const CreateGameObjectResult: MessageFns<CreateGameObjectResult> = {
 };
 
 function createBaseAddSafePtrAddress(): AddSafePtrAddress {
-  return { address: 0n, remove: false };
+  return { address: BigInt("0"), remove: false };
 }
 
 export const AddSafePtrAddress: MessageFns<AddSafePtrAddress> = {
   encode(message: AddSafePtrAddress, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -2336,14 +2336,14 @@ export const AddSafePtrAddress: MessageFns<AddSafePtrAddress> = {
 
   fromJSON(object: any): AddSafePtrAddress {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       remove: isSet(object.remove) ? globalThis.Boolean(object.remove) : false,
     };
   },
 
   toJSON(message: AddSafePtrAddress): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.remove !== false) {
@@ -2357,7 +2357,7 @@ export const AddSafePtrAddress: MessageFns<AddSafePtrAddress> = {
   },
   fromPartial<I extends Exact<DeepPartial<AddSafePtrAddress>, I>>(object: I): AddSafePtrAddress {
     const message = createBaseAddSafePtrAddress();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.remove = object.remove ?? false;
     return message;
   },
@@ -2469,12 +2469,12 @@ export const GetSafePtrAddressesResult: MessageFns<GetSafePtrAddressesResult> = 
 };
 
 function createBaseGetSafePtrAddressesResult_AddressInfo(): GetSafePtrAddressesResult_AddressInfo {
-  return { address: 0n, clazz: undefined };
+  return { address: BigInt("0"), clazz: undefined };
 }
 
 export const GetSafePtrAddressesResult_AddressInfo: MessageFns<GetSafePtrAddressesResult_AddressInfo> = {
   encode(message: GetSafePtrAddressesResult_AddressInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       if (BigInt.asUintN(64, message.address) !== message.address) {
         throw new globalThis.Error("value provided for field message.address of type uint64 too large");
       }
@@ -2520,14 +2520,14 @@ export const GetSafePtrAddressesResult_AddressInfo: MessageFns<GetSafePtrAddress
 
   fromJSON(object: any): GetSafePtrAddressesResult_AddressInfo {
     return {
-      address: isSet(object.address) ? BigInt(object.address) : 0n,
+      address: isSet(object.address) ? BigInt(object.address) : BigInt("0"),
       clazz: isSet(object.clazz) ? ProtoClassInfo.fromJSON(object.clazz) : undefined,
     };
   },
 
   toJSON(message: GetSafePtrAddressesResult_AddressInfo): unknown {
     const obj: any = {};
-    if (message.address !== 0n) {
+    if (message.address !== BigInt("0")) {
       obj.address = message.address.toString();
     }
     if (message.clazz !== undefined) {
@@ -2545,7 +2545,7 @@ export const GetSafePtrAddressesResult_AddressInfo: MessageFns<GetSafePtrAddress
     object: I,
   ): GetSafePtrAddressesResult_AddressInfo {
     const message = createBaseGetSafePtrAddressesResult_AddressInfo();
-    message.address = object.address ?? 0n;
+    message.address = object.address ?? BigInt("0");
     message.clazz = (object.clazz !== undefined && object.clazz !== null)
       ? ProtoClassInfo.fromPartial(object.clazz)
       : undefined;
@@ -2690,12 +2690,12 @@ export const GetTypeCompleteResult: MessageFns<GetTypeCompleteResult> = {
 };
 
 function createBasePacketWrapper(): PacketWrapper {
-  return { queryResultId: 0n, Packet: undefined };
+  return { queryResultId: BigInt("0"), Packet: undefined };
 }
 
 export const PacketWrapper: MessageFns<PacketWrapper> = {
   encode(message: PacketWrapper, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.queryResultId !== 0n) {
+    if (message.queryResultId !== BigInt("0")) {
       if (BigInt.asUintN(64, message.queryResultId) !== message.queryResultId) {
         throw new globalThis.Error("value provided for field message.queryResultId of type uint64 too large");
       }
@@ -3126,7 +3126,7 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
 
   fromJSON(object: any): PacketWrapper {
     return {
-      queryResultId: isSet(object.queryResultId) ? BigInt(object.queryResultId) : 0n,
+      queryResultId: isSet(object.queryResultId) ? BigInt(object.queryResultId) : BigInt("0"),
       Packet: isSet(object.inputError)
         ? { $case: "inputError", inputError: globalThis.String(object.inputError) }
         : isSet(object.setField)
@@ -3226,7 +3226,7 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
 
   toJSON(message: PacketWrapper): unknown {
     const obj: any = {};
-    if (message.queryResultId !== 0n) {
+    if (message.queryResultId !== BigInt("0")) {
       obj.queryResultId = message.queryResultId.toString();
     }
     if (message.Packet?.$case === "inputError") {
@@ -3300,7 +3300,7 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
   },
   fromPartial<I extends Exact<DeepPartial<PacketWrapper>, I>>(object: I): PacketWrapper {
     const message = createBasePacketWrapper();
-    message.queryResultId = object.queryResultId ?? 0n;
+    message.queryResultId = object.queryResultId ?? BigInt("0");
     switch (object.Packet?.$case) {
       case "inputError": {
         if (object.Packet?.inputError !== undefined && object.Packet?.inputError !== null) {

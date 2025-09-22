@@ -32,7 +32,7 @@ export { variables };
 
 export const constVariables: Record<string, ProtoDataPayload> = {
   Null: {
-    data: setDataCase({ classData: 0n }),
+    data: setDataCase({ classData: BigInt(0) }),
     typeInfo: typeForClass("System", "Object"),
   },
   Empty: {
