@@ -123,7 +123,7 @@ function VariableActions(props: {
           <Icon path={check} />
         </button>
       </div>
-      <button class="btn" disabled={props.readonly}>
+      <button class="btn" title="Create Object" disabled>
         Create
         <Icon path={plus} />
       </button>

@@ -172,7 +172,7 @@ export function Variables() {
   return (
     <div class="size-full flex flex-col p-2">
       <div class="flex gap-1">
-        <button class="btn btn-square">
+        <button class="btn btn-square" title="Create Object" disabled>
           <Icon path={plus} />
         </button>
         <div class="grow join max-w-max min-w-0">
