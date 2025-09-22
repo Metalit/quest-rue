@@ -17,7 +17,6 @@ import { Dockview } from "../dockview/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { clearSelections } from "../global/selection";
-import { Console } from "../panels/Console";
 import { Hierarchy } from "../panels/Hierarchy";
 import { Selection } from "../panels/Selection";
 import { Variables } from "../panels/Variables";
@@ -116,10 +115,6 @@ export default function SceneViewer() {
             position: { referencePanel: "selection", direction: "right" },
             width: 300,
           });
-          addPanel("console", {
-            position: { referencePanel: "selection", direction: "below" },
-            height: 300,
-          });
         }}
       >
         {{
@@ -139,12 +134,6 @@ export default function SceneViewer() {
             create: Hierarchy,
             title: "Hierarchy",
             minimumWidth: 200,
-            minimumHeight: 200,
-          },
-          console: {
-            create: Console,
-            title: "Console",
-            minimumWidth: 300,
             minimumHeight: 200,
           },
         }}
