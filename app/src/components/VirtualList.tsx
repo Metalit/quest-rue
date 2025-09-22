@@ -65,7 +65,7 @@ export function VirtualList<T>(props: {
   return (
     <div
       ref={container}
-      class={`overflow-auto h-full ${props.class ?? ""}`}
+      class={`overflow-auto ${props.class ?? ""}`}
       onScroll={onScroll}
     >
       {/* fixed height div to make the scroll bar the correct height */}

@@ -11,10 +11,11 @@ import { createSignal, Match, Show, Switch } from "solid-js";
 import { useDockview } from "../../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../../global/selection";
 import {
+  addVariable,
   constVariables,
   findVariablesForType,
-  isVariableNameFree,
-  validVariableName,
+  canMakeVariable,
+  variables,
 } from "../../global/variables";
 import {
   ProtoDataSegment,
@@ -58,14 +59,18 @@ function VariableActions(props: {
 
   const [nameInput, setNameInput] = createSignal("");
 
-  const validName = () =>
-    validVariableName(nameInput()) && isVariableNameFree(nameInput());
+  const validName = () => canMakeVariable(nameInput());
 
   const validValue = () =>
     props.value &&
     !Object.values(constVariables).some(({ data }) =>
       isProtoDataEqual(props.value, data),
     );
+
+  const saveVariable = () =>
+    validValue() &&
+    validName() &&
+    addVariable(nameInput(), { data: props.value, typeInfo: props.typeInfo });
 
   return (
     <DropdownButton
@@ -108,10 +113,12 @@ function VariableActions(props: {
           placeholder="Save As"
           disabled={!validValue()}
           use:valueSignal={[nameInput, setNameInput]}
+          use:onEnter={() => saveVariable()}
         />
         <button
           class="join-item btn btn-square"
           disabled={!validValue() || !validName()}
+          onClick={saveVariable}
         >
           <Icon path={check} />
         </button>
@@ -216,9 +223,9 @@ function VariableInputCell(props: ValueCellProps) {
   const allowedVariables = () => findVariablesForType(props.typeInfo);
 
   const match = () =>
-    allowedVariables().find(([, { data }]) =>
+    allowedVariables().find(({ value: { data } }) =>
       isProtoDataEqual(data, props.value),
-    ) ?? [undefined, undefined];
+    );
 
   // todo: option to create a new variable
   return (
@@ -230,13 +237,14 @@ function VariableInputCell(props: ValueCellProps) {
         title={props.title}
         value={match()}
         options={allowedVariables()}
-        onChange={([, data]) => data?.data && props.onChange?.(data.data)}
-        equals={([name1], [name2]) => name1 == name2}
-        search={(input, [name]) =>
+        onChange={(variable) =>
+          variable?.value?.data && props.onChange?.(variable?.value?.data)
+        }
+        search={(input, { name }) =>
           name.toLocaleLowerCase().includes(input.toLocaleLowerCase())
         }
-        display={([name]) =>
-          name ?? protoDataToString(props.value, props.typeInfo)
+        display={(variable) =>
+          variable?.name ?? protoDataToString(props.value, props.typeInfo)
         }
       />
     </span>
@@ -244,6 +252,11 @@ function VariableInputCell(props: ValueCellProps) {
 }
 
 function OutputOnlyCell(props: ValueCellProps) {
+  const match = () =>
+    variables.find(({ value: { data } }) =>
+      isProtoDataEqual(data, props.value),
+    );
+
   return (
     <span class={`w-input join ${props.class ?? ""}`}>
       <Show when={variableCases.includes(props.typeInfo.Info?.$case)}>
@@ -257,7 +270,7 @@ function OutputOnlyCell(props: ValueCellProps) {
         class="join-item input"
         placeholder={props.placeholder}
         title={props.title}
-        value={protoDataToString(props.value, props.typeInfo)}
+        value={match()?.name ?? protoDataToString(props.value, props.typeInfo)}
         readonly
       />
     </span>

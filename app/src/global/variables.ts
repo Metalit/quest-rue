@@ -12,13 +12,25 @@ import { extractCase } from "../utils/typing";
 import { getClassDetails, tryGetCachedClassDetails } from "./cache";
 import { sendPacketResult } from "./packets";
 
-const [variables, setVariables] = createStore<{
-  [name: string]: ProtoDataPayload;
-}>({});
+export type Variable = {
+  name: string;
+  value: ProtoDataPayload;
+};
+
+const [variables, setVariables] = createStore<Variable[]>([]);
+
+function getVariableIndex(name: string) {
+  return variables.findIndex(({ name: variableName }) => variableName == name);
+}
+
+export function getVariable(name: string) {
+  const idx = getVariableIndex(name);
+  return idx == -1 ? undefined : variables[idx];
+}
 
 export { variables };
 
-export const constVariables: typeof variables = {
+export const constVariables: Record<string, ProtoDataPayload> = {
   Null: {
     data: setDataCase({ classData: 0n }),
     typeInfo: typeForClass("System", "Object"),
@@ -35,9 +47,9 @@ export const constVariables: typeof variables = {
 
 export async function addVariable(name: string, value: ProtoDataPayload) {
   if (!isVariableNameFree(name) || !validVariableName(name)) return false;
-  setVariables({ [name]: value });
   if (value.typeInfo?.Info?.$case == "classInfo")
     await getClassDetails(value.typeInfo.Info.classInfo);
+  setVariables(variables.length, { name, value });
   if (value.data?.Data?.$case == "classData")
     await sendPacketResult({
       addSafePtrAddress: { address: value.data.Data.classData, remove: false },
@@ -52,17 +64,18 @@ export async function updateVariable(name: string, value: ProtoDataPayload) {
 }
 
 export function renameVariable(oldName: string, newName: string) {
-  if (!(oldName in variables) || !validVariableName(newName)) return false;
+  const idx = getVariableIndex(oldName);
+  if (idx == -1) return false;
   if (oldName == newName) return true;
-  if (!isVariableNameFree(newName)) return false;
-  const value = variables[oldName];
-  setVariables({ [oldName]: undefined, [newName]: value });
+  if (!canMakeVariable(newName)) return false;
+  setVariables(idx, "name", newName);
 }
 
 export async function removeVariable(name: string) {
-  if (!(name in variables)) return;
-  const value = variables[name];
-  setVariables({ [name]: undefined });
+  const idx = getVariableIndex(name);
+  if (idx == -1) return;
+  const { value } = variables[idx];
+  setVariables(produce((vars) => vars.splice(idx, 1)));
   if (value.data?.Data?.$case == "classData")
     await sendPacketResult({
       addSafePtrAddress: { address: value.data.Data.classData, remove: true },
@@ -88,32 +101,33 @@ export async function updateReferenceVariables() {
     ]),
   );
 
-  setVariables(
-    produce((variables) => {
-      for (const name in variables) {
-        const { data } = variables[name];
-        if (data?.Data?.$case != "classData") continue;
-        const address = bigToString(data.Data.classData);
+  setVariables((vars) =>
+    vars
+      .filter(({ value }) => {
+        if (value.data?.Data?.$case != "classData") return true;
+        const address = bigToString(value.data.Data.classData);
         if (
           address in newVariables &&
-          ProtoTypeInfo.toJSON(variables[name].typeInfo!) ==
-            ProtoTypeInfo.toJSON(newVariables[address].typeInfo!)
+          areProtoTypesEqual(value.typeInfo, newVariables[address].typeInfo)
         ) {
           delete newVariables[address];
-        } else delete variables[name];
-      }
-      for (const [address, value] of Object.entries(newVariables)) {
-        const info = extractCase(value.typeInfo.Info, "classInfo")!;
-        const name = firstFree(`${info.clazz}_0x${address}`);
-        variables[name] = value;
-      }
-    }),
+          return true;
+        } else return false;
+      })
+      .concat(
+        Object.entries(newVariables).map(([address, value]) => ({
+          name: firstFree(
+            `${extractCase(value.typeInfo.Info, "classInfo")!.clazz}_0x${address}`,
+          ),
+          value,
+        })),
+      ),
   );
 }
 
 export function findVariablesForType(typeInfo: ProtoTypeInfo) {
-  return Object.entries(variables)
-    .filter(([, { typeInfo: variableType }]) => {
+  return variables
+    .filter(({ value: { typeInfo: variableType } }) => {
       if (
         typeInfo.Info?.$case == "classInfo" &&
         variableType?.Info?.$case == "classInfo"
@@ -125,18 +139,20 @@ export function findVariablesForType(typeInfo: ProtoTypeInfo) {
       return areProtoTypesEqual(typeInfo, variableType);
     })
     .concat(
-      Object.entries(constVariables).filter(
-        ([, { typeInfo: variableType }]) =>
-          typeInfo.Info?.$case == variableType?.Info?.$case,
-      ),
+      Object.entries(constVariables)
+        .filter(
+          ([, { typeInfo: variableType }]) =>
+            typeInfo.Info?.$case == variableType?.Info?.$case,
+        )
+        .map(([name, value]) => ({ name, value })),
     );
 }
 
 export function findReferenceVariable(address: bigint) {
-  return Object.entries(variables).find(
-    ([, { data }]) =>
+  return variables.find(
+    ({ value: { data } }) =>
       data?.Data?.$case == "classData" && data.Data.classData === address,
-  )?.[0];
+  );
 }
 
 export function firstFree(beginning = "unnamed_variable", ignore?: string) {
@@ -161,7 +177,7 @@ export function firstFree(beginning = "unnamed_variable", ignore?: string) {
 }
 
 export function isVariableNameFree(name: string) {
-  return !(name in constVariables) && !(name in variables);
+  return !(name in constVariables) && getVariableIndex(name) == -1;
 }
 
 // https://github.com/mathiasbynens/mothereff.in/blob/master/js-variables/eff.js
@@ -182,6 +198,10 @@ export function validVariableName(name: string) {
   if (regexES6ReservedWord.test(unicodeReplaced)) return false;
   if (!regexIdentifier.test(unicodeReplaced)) return false;
   return true;
+}
+
+export function canMakeVariable(name: string) {
+  return validVariableName(name) && isVariableNameFree(name);
 }
 
 const regexES6ReservedWord =

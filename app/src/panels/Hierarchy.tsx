@@ -292,7 +292,7 @@ function ObjectList(props: {
 
   return (
     <VirtualList
-      class="bg-base-50 rounded -m-0.5 p-1"
+      class="grow bg-base-50 rounded -m-0.5 mt-0 p-1"
       items={display()}
       itemHeight={20}
       generator={(address) => (
@@ -317,65 +317,64 @@ export function Hierarchy() {
   const [sorting, setSorting] = createSignal<SortMode>(sortModes[0]);
   const [inverse, setInverse] = createSignal(false);
 
-  const focusSeleced = () => {
-    // not implemented
-  };
-
   const scenes = () => [allScene, ...gameObjectsStore.scenes];
 
   const sceneName = (scene?: ProtoScene) =>
     scenes().find(({ handle }) => handle == scene?.handle)?.name ?? "All";
 
   return (
-    <div class="p-2 pt-2.5 gap-1 flex flex-col items-stretch size-full">
-      <input
-        class="input shrink-0 w-full"
-        placeholder="Search"
-        use:valueSignal={[search, setSearch]}
-      />
-      <div class="flex gap-1">
-        <SelectInput
-          class="input"
-          title="Scene"
-          placeholder="Scene"
-          options={scenes()}
-          value={scene()}
-          equals={(s1, s2) => s1?.handle == s2?.handle}
-          display={sceneName}
-          search={(input, { name }) =>
-            name.toLocaleLowerCase().includes(input.toLocaleLowerCase())
-          }
-          onChange={setScene}
+    <div class="p-2 pt-2.5 size-full flex flex-col">
+      <div class="flex flex-col gap-1 items-stretch">
+        <input
+          class="input shrink-0 w-full"
+          placeholder="Search"
+          use:valueSignal={[search, setSearch]}
         />
-        <button
-          class="btn btn-square"
-          title="Focus Selected"
-          onClick={focusSeleced}
-        >
-          <Icon path={viewfinderCircle} />
-        </button>
-        <DropdownButton title="Visibility" icon={eye} dropdownPosition="end">
-          <ModeOptions
-            title="Visibility Mode"
-            modes={visibilityModes}
-            current={visibility()}
-            setCurrent={setVisibility}
+        <div class="flex gap-1">
+          <SelectInput
+            class="input"
+            title="Scene"
+            placeholder="Scene"
+            options={scenes()}
+            value={scene()}
+            equals={(s1, s2) => s1?.handle == s2?.handle}
+            display={sceneName}
+            search={(input, { name }) =>
+              name.toLocaleLowerCase().includes(input.toLocaleLowerCase())
+            }
+            onChange={setScene}
           />
-        </DropdownButton>
-        <SideDropdownButton
-          title="Sort Mode"
-          icon={inverse() ? barsArrowUp : barsArrowDown}
-          dropdownPosition="end"
-          mainTitle="Sort Direction"
-          onMainClick={() => setInverse((val) => !val)}
-        >
-          <ModeOptions
+          <button
+            class="btn btn-square"
+            title="Focus Selected"
+            onClick={() => {}}
+            disabled
+          >
+            <Icon path={viewfinderCircle} />
+          </button>
+          <DropdownButton title="Visibility" icon={eye} dropdownPosition="end">
+            <ModeOptions
+              title="Visibility Mode"
+              modes={visibilityModes}
+              current={visibility()}
+              setCurrent={setVisibility}
+            />
+          </DropdownButton>
+          <SideDropdownButton
             title="Sort Mode"
-            modes={sortModes}
-            current={sorting()}
-            setCurrent={setSorting}
-          />
-        </SideDropdownButton>
+            icon={inverse() ? barsArrowUp : barsArrowDown}
+            dropdownPosition="end"
+            mainTitle="Sort Direction"
+            onMainClick={() => setInverse((val) => !val)}
+          >
+            <ModeOptions
+              title="Sort Mode"
+              modes={sortModes}
+              current={sorting()}
+              setCurrent={setSorting}
+            />
+          </SideDropdownButton>
+        </div>
       </div>
       <div class="divider" />
       <ObjectList

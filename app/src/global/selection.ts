@@ -39,9 +39,15 @@ export function selectInNewPanel(
   api: DockviewInterface,
   data: ProtoDataPayload,
 ) {
+  const lastId = lastPanel();
   const id = getPanelId();
   setSelections(id, { stack: [data] });
-  api.addPanel("selection", { id });
+  api.addPanel("selection", {
+    id,
+    position: lastId
+      ? { referencePanel: lastId, direction: "within" }
+      : undefined,
+  });
 }
 
 export function setSelection(id: string, data: ProtoDataPayload) {
