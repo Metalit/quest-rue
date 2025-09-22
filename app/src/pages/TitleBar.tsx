@@ -3,9 +3,9 @@ import { Icon } from "solid-heroicons";
 import {
   cog_6Tooth,
   minus,
+  paintBrush,
   stop,
   viewColumns,
-  window as windowIcon,
   xMark,
 } from "solid-heroicons/outline";
 import { ParentProps, Show } from "solid-js";
@@ -77,10 +77,10 @@ function OptionsMenu() {
   );
 }
 
-function ViewMenu() {
+function ThemeMenu() {
   return (
     <>
-      <label class="label m-1 text-sm">
+      <label class="label m-1 mb-1.5 text-sm">
         <input
           type="checkbox"
           class="toggle toggle-sm"
@@ -92,14 +92,8 @@ function ViewMenu() {
       <input
         class="input"
         placeholder="Monospace Font"
+        title="Monospace Font"
         use:valueSignal={[monoFont, setMonoFont]}
-      />
-      <SegmentedControl
-        class="ml-1.5 my-1 text-sm"
-        title="Columns"
-        values={[1, 2, 3]}
-        value={columnCount()}
-        onChange={setColumnCount}
       />
     </>
   );
@@ -114,6 +108,13 @@ function LayoutMenu() {
       <button class="btn" disabled>
         Load Layout
       </button>
+      <SegmentedControl
+        class="ml-1.5 text-sm"
+        title="Columns"
+        values={[1, 2, 3]}
+        value={columnCount()}
+        onChange={setColumnCount}
+      />
     </>
   );
 }
@@ -144,11 +145,11 @@ export function TitleBar() {
       <MenuDropdown icon={cog_6Tooth} title="Options">
         <OptionsMenu />
       </MenuDropdown>
-      <MenuDropdown icon={viewColumns} title="View">
-        <ViewMenu />
+      <MenuDropdown icon={paintBrush} title="Theme">
+        <ThemeMenu />
       </MenuDropdown>
       <Show when={socket.connected()}>
-        <MenuDropdown icon={windowIcon} title="Layout">
+        <MenuDropdown icon={viewColumns} title="Layout">
           <LayoutMenu />
         </MenuDropdown>
       </Show>
