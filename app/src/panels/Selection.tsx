@@ -430,7 +430,11 @@ function NoSelection() {
             value={type()}
             onChange={setType}
           />
-          <button class="btn btn-lg btn-square join-item" onClick={selectClass}>
+          <button
+            class="btn btn-lg btn-square join-item"
+            disabled={!validClass()}
+            onClick={selectClass}
+          >
             <Icon path={chevronDoubleRight} />
           </button>
         </div>
@@ -444,6 +448,7 @@ function NoSelection() {
           />
           <button
             class="btn btn-lg btn-square join-item"
+            disabled={!validAddress()}
             onClick={selectAddress}
           >
             <Icon path={chevronDoubleRight} />
