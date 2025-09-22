@@ -1,4 +1,11 @@
-import { Accessor, batch, createSignal, onCleanup, untrack } from "solid-js";
+import {
+  Accessor,
+  batch,
+  createSignal,
+  getOwner,
+  onCleanup,
+  untrack,
+} from "solid-js";
 import toast from "solid-toast";
 
 import { PacketWrapper } from "../proto/qrue";
@@ -31,7 +38,7 @@ function addCallback<TResponse>(
     }
   };
   socket.addOnPacket(callback);
-  onCleanup(() => socket.removeOnPacket(callback));
+  if (getOwner()) onCleanup(() => socket.removeOnPacket(callback));
   return callback;
 }
 
@@ -59,7 +66,10 @@ export function sendPacketResult<TResponse>(
         cancel();
         res(packet);
       },
-      err,
+      (error) => {
+        cancel();
+        err(error);
+      },
       { value: id },
     );
   });

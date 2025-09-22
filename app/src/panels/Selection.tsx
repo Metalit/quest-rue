@@ -37,7 +37,7 @@ import {
   SideDropdownButton,
 } from "../components/input/DropdownButton";
 import { MaxColsGrid } from "../components/MaxColsGrid";
-import { useDockviewPanel } from "../dockview/Api";
+import { useDockview, useDockviewPanel } from "../dockview/Api";
 import { getClassDetails } from "../global/cache";
 import { sendPacketResult } from "../global/packets";
 import {
@@ -47,6 +47,7 @@ import {
   hasBackSelection,
   hasForwardSelection,
   removePanel,
+  selectInLastPanel,
   setLastPanel,
 } from "../global/selection";
 import { columnCount } from "../global/settings";
@@ -59,10 +60,12 @@ import {
   ProtoMethodInfo,
   ProtoPropertyInfo,
 } from "../proto/il2cpp";
-import { GetInstanceValuesResult } from "../proto/qrue";
+import { GetInstanceClassResult, GetInstanceValuesResult } from "../proto/qrue";
 import { protoClassToString, protoTypeToString } from "../types/format";
-import { bigToString } from "../utils/misc";
+import { bigToString, stringToBig } from "../utils/misc";
 import { createAsyncMemo } from "../utils/solid";
+import toast from "solid-toast";
+import { setDataCase, setTypeCase } from "../types/serialization";
 
 let reloading = false;
 
@@ -378,6 +381,27 @@ function NoSelection() {
   const [classInput, setClassInput] = createSignal("");
   const [addressInput, setAddressInput] = createSignal("");
 
+  const api = useDockview();
+
+  const validAddress = () => !!addressInput().match(/^0x[0-9a-f]+$/);
+
+  const selectAddress = async () => {
+    if (!validAddress()) return;
+    const address = stringToBig(addressInput());
+    const details = await sendPacketResult<GetInstanceClassResult>({
+      getInstanceClass: { address },
+    })[0].catch(() => false as const);
+    if (!details || !details.classInfo) {
+      console.error("invalid address", addressInput());
+      toast.error("Invalid address input");
+      return;
+    }
+    selectInLastPanel(api, {
+      data: setDataCase({ classData: address }),
+      typeInfo: setTypeCase({ classInfo: details.classInfo }),
+    });
+  };
+
   return (
     <div class="absolute-centered floating-menu border-shadow flex flex-col gap-2 p-2">
       No Selection
@@ -396,11 +420,12 @@ function NoSelection() {
       </div>
       <div class="join">
         <input
-          class="input input-lg join-item"
+          class={`input input-lg join-item ${validAddress() ? "" : "input-error"}`}
           placeholder="Select Address"
           use:valueSignal={[addressInput, setAddressInput]}
+          use:onEnter={() => selectAddress()}
         />
-        <button class="btn btn-lg btn-square join-item">
+        <button class="btn btn-lg btn-square join-item" onClick={selectAddress}>
           <Icon path={chevronDoubleRight} />
         </button>
       </div>
