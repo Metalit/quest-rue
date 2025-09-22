@@ -55,7 +55,7 @@ export function TypeCell(props: TypeCellProps) {
 
   return (
     <SelectInput
-      class={`input ${valid() ? "" : "focus-within:input-error"} ${props.class ?? ""}`}
+      class={`input ${valid() ? "" : "input-error"} ${props.class ?? ""}`}
       placeholder={props.placeholder}
       title={props.title}
       free

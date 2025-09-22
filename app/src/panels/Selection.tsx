@@ -26,10 +26,12 @@ import {
   SetStoreFunction,
   unwrap,
 } from "solid-js/store";
+import toast from "solid-toast";
 
 import { FieldCell } from "../components/data/FieldCell";
 import { MethodCell, MethodCellMemory } from "../components/data/MethodCell";
 import { PropertyCell } from "../components/data/PropertyCell";
+import { TypeCell } from "../components/data/TypeCell";
 import {
   DropdownButton,
   FilterOptions,
@@ -59,13 +61,13 @@ import {
   ProtoFieldInfo,
   ProtoMethodInfo,
   ProtoPropertyInfo,
+  ProtoTypeInfo,
 } from "../proto/il2cpp";
 import { GetInstanceClassResult, GetInstanceValuesResult } from "../proto/qrue";
 import { protoClassToString, protoTypeToString } from "../types/format";
+import { setDataCase, setTypeCase } from "../types/serialization";
 import { bigToString, stringToBig } from "../utils/misc";
 import { createAsyncMemo } from "../utils/solid";
-import toast from "solid-toast";
-import { setDataCase, setTypeCase } from "../types/serialization";
 
 let reloading = false;
 
@@ -241,6 +243,11 @@ function DetailsList(props: {
   inverse: boolean;
   first: boolean;
 }) {
+  const visibility = () =>
+    props.selection.data
+      ? props.visibility
+      : ("Static Members Only" satisfies VisibilityMode);
+
   const fieldLists = createMemo(() =>
     filterMembers(
       props.details.fields,
@@ -248,7 +255,7 @@ function DetailsList(props: {
       props.search,
       props.searchMode,
       props.filters,
-      props.visibility,
+      visibility(),
       props.sort,
       props.inverse,
     ),
@@ -261,7 +268,7 @@ function DetailsList(props: {
       props.search,
       props.searchMode,
       props.filters,
-      props.visibility,
+      visibility(),
       props.sort,
       props.inverse,
     ),
@@ -274,7 +281,7 @@ function DetailsList(props: {
       props.search,
       props.searchMode,
       props.filters,
-      props.visibility,
+      visibility(),
       props.sort,
       props.inverse,
     ),
@@ -378,10 +385,19 @@ function InheritancePanel(props: { details?: ProtoClassDetails }) {
 }
 
 function NoSelection() {
-  const [classInput, setClassInput] = createSignal("");
+  const [type, setType] = createSignal<ProtoTypeInfo>();
   const [addressInput, setAddressInput] = createSignal("");
 
   const api = useDockview();
+
+  const validClass = () => type()?.Info?.$case == "classInfo";
+
+  const selectClass = () =>
+    validClass() &&
+    selectInLastPanel(api, {
+      data: undefined,
+      typeInfo: type(),
+    });
 
   const validAddress = () => !!addressInput().match(/^0x[0-9a-f]+$/);
 
@@ -403,31 +419,36 @@ function NoSelection() {
   };
 
   return (
-    <div class="absolute-centered floating-menu border-shadow flex flex-col gap-2 p-2">
-      No Selection
-      <div class="join">
-        <input
-          class="input input-lg join-item"
-          placeholder="Select Class"
-          use:valueSignal={[classInput, setClassInput]}
-        />
-        <button
-          class="btn btn-lg btn-square join-item"
-          onClick={() => console.log(classInput())}
-        >
-          <Icon path={chevronDoubleRight} />
-        </button>
-      </div>
-      <div class="join">
-        <input
-          class={`input input-lg join-item ${validAddress() ? "" : "input-error"}`}
-          placeholder="Select Address"
-          use:valueSignal={[addressInput, setAddressInput]}
-          use:onEnter={() => selectAddress()}
-        />
-        <button class="btn btn-lg btn-square join-item" onClick={selectAddress}>
-          <Icon path={chevronDoubleRight} />
-        </button>
+    <div class="center-child">
+      <div class="floating-menu border-shadow flex flex-col gap-2 p-2">
+        No Selection
+        <div class="join">
+          <TypeCell
+            class={`input-lg join-item ${validClass() ? "" : "input-error"}`}
+            placeholder="Select Class"
+            title="Select Class"
+            value={type()}
+            onChange={setType}
+          />
+          <button class="btn btn-lg btn-square join-item" onClick={selectClass}>
+            <Icon path={chevronDoubleRight} />
+          </button>
+        </div>
+        <div class="join">
+          <input
+            class={`input input-lg join-item ${validAddress() ? "" : "input-error"}`}
+            placeholder="Select Address"
+            title="Select Address"
+            use:valueSignal={[addressInput, setAddressInput]}
+            use:onEnter={() => selectAddress()}
+          />
+          <button
+            class="btn btn-lg btn-square join-item"
+            onClick={selectAddress}
+          >
+            <Icon path={chevronDoubleRight} />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -462,23 +483,25 @@ export function Selection() {
 
   const [values, setValues] = createStore<ValuesStore>({});
 
-  createEffect(
-    () =>
-      getSelection(id) &&
-      sendPacketResult<GetInstanceValuesResult>({
-        getInstanceValues: { instance: getSelection(id) },
-      })[0].then((result) =>
-        setValues(
-          reconcile(
-            Object.fromEntries(
-              result.values.map(({ id, data }) => [bigToString(id), data]),
+  createEffect(() =>
+    getSelection(id)?.data
+      ? sendPacketResult<GetInstanceValuesResult>({
+          getInstanceValues: { instance: getSelection(id) },
+        })[0].then((result) =>
+          setValues(
+            reconcile(
+              Object.fromEntries(
+                result.values.map(({ id, data }) => [bigToString(id), data]),
+              ),
             ),
           ),
-        ),
-      ),
+        )
+      : setValues(reconcile({})),
   );
 
   const [methodsStore, setMethodsStore] = createStore<MethodsStore>({});
+
+  createEffect(() => getSelection(id) || setMethodsStore(reconcile({})));
 
   const [search, setSearch] = createSignal("");
   const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
@@ -554,6 +577,7 @@ export function Selection() {
             <DropdownButton
               title="Visibility Mode"
               icon={eye}
+              disabled={!getSelection(id)?.data}
               dropdownPosition="end"
             >
               <ModeOptions
@@ -583,8 +607,8 @@ export function Selection() {
         <Show
           when={!loading() && details()}
           fallback={
-            <div class="size-full">
-              <span class="absolute-centered loading loading-xl" />
+            <div class="center-child">
+              <span class="loading loading-xl" />
             </div>
           }
         >
