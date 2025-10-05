@@ -1,6 +1,6 @@
 .dockview-custom {
   --resize-size: 6px;
-  --border-radius: 5px;
+  --border-radius: 4px;
   --tab-spacing: 5px;
 
   --dv-color-primary-text: var(--color-base-content);
@@ -82,6 +82,12 @@
   .dv-groupview .dv-tabs-and-actions-container {
     border-bottom: 2px solid var(--color-base-200);
     box-sizing: content-box;
+  }
+
+  /* minimum size for floating groups */
+  .dv-resize-container {
+    min-width: 200px;
+    min-height: 200px;
   }
 
   /* increasing size of resize areas */

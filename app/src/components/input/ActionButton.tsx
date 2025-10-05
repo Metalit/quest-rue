@@ -17,7 +17,6 @@ export function ActionButton(props: ActionButtonProps) {
   const icon = () =>
     typeof props.img == "string" ? (
       <img
-        class="light-invert"
         src={`/${props.img}.svg`}
         elementtiming={"Action"}
         fetchpriority={"auto"}

@@ -19,7 +19,7 @@ abstract class CustomRenderer<T> {
   private create(params: T, disposer: () => void) {
     this._dispose = disposer;
     this._element = (
-      <div class="overflow-auto size-full">{this.provide(params)}</div>
+      <div class="size-full">{this.provide(params)}</div>
     ) as HTMLElement;
   }
 

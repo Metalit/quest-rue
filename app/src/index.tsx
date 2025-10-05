@@ -4,11 +4,14 @@ import { render } from "solid-js/web";
 
 import App from "./App";
 import { cleanupForward } from "./global/adb";
+import "./global/theme";
+import "./global/monaco";
 
 // order matters
 import "dockview-core/dist/styles/dockview.css";
-import "./dockview.css";
 import "./styles.css";
+import "./dockview.css";
+import "./monaco.css";
 
 try {
   getCurrentWebviewWindow().onCloseRequested(async () => {

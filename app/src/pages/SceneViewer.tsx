@@ -21,6 +21,7 @@ import { Hierarchy } from "../panels/Hierarchy";
 import { Selection } from "../panels/Selection";
 import { Variables } from "../panels/Variables";
 import { createTrigger } from "../utils/solid";
+import { Editor } from "../panels/Editor";
 
 function RightHeader() {
   const { maximized, setMaximized, location } = useDockviewGroup();
@@ -135,6 +136,12 @@ export default function SceneViewer() {
             title: "Hierarchy",
             minimumWidth: 200,
             minimumHeight: 200,
+          },
+          editor: {
+            create: Editor,
+            title: "Editor",
+            minimumWidth: 300,
+            minimumHeight: 300,
           },
         }}
       </Dockview>
