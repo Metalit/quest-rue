@@ -294,7 +294,10 @@ namespace MethodUtils {
         void* inst = nullptr;
         if (!ClassUtils::GetIsStatic(method))
             inst = HandleType(object.typeinfo(), object.data());
-        return Run(method, inst, args);
+        auto ret = Run(method, inst, args);
+        if (inst && object.typeinfo().Info_case() == ProtoTypeInfo::kStructInfo)
+            ret.self = OutputType(object.typeinfo(), inst);
+        return ret;
     }
     MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args) {
         LOG_DEBUG("Running method {} {}", fmt::ptr(method), method->name);
@@ -319,7 +322,7 @@ namespace MethodUtils {
         }
 
         LOG_DEBUG("Returning");
-        return {HandleReturn(method, ret), GetByrefOutputs(args, il2cppArgs), ""};
+        return {HandleReturn(method, ret), GetByrefOutputs(args, il2cppArgs)};
     }
 
     ProtoPropertyInfo GetPropertyInfo(PropertyInfo const* property) {
@@ -427,6 +430,7 @@ namespace FieldUtils {
         info.set_id(asInt(field));
         *info.mutable_type() = ClassUtils::GetTypeInfo(field->type);
         info.set_literal(ClassUtils::GetIsLiteral(field));
+        info.set_readonly(ClassUtils::GetIsReadonly(field));
         return info;
     }
 }

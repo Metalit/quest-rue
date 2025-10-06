@@ -7,12 +7,13 @@ import {
   areProtoTypesEqual,
 } from "../types/matching";
 import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
-import { bigToString } from "../utils/misc";
+import { bigToString, uniqueNumber } from "../utils/misc";
 import { extractCase } from "../utils/typing";
 import { getClassDetails, tryGetCachedClassDetails } from "./cache";
 import { sendPacketResult } from "./packets";
 
 export type Variable = {
+  id: number;
   name: string;
   value: ProtoDataPayload;
 };
@@ -23,27 +24,32 @@ function getVariableIndex(name: string) {
   return variables.findIndex(({ name: variableName }) => variableName == name);
 }
 
-export function getVariable(name: string) {
-  const idx = getVariableIndex(name);
-  return idx == -1 ? undefined : variables[idx];
+export function getVariable(id: number) {
+  return variables.find(({ id: variableId }) => variableId == id);
 }
 
 export { variables };
 
-export const constVariables: Record<string, ProtoDataPayload> = {
-  Null: {
-    data: setDataCase({ classData: BigInt(0) }),
-    typeInfo: typeForClass("System", "Object"),
-  },
-  Empty: {
-    data: setDataCase({ arrayData: { data: [] } }),
-    typeInfo: setTypeCase({
-      arrayInfo: {
-        memberType: typeForClass("System", "Object"),
-      },
-    }),
-  },
-};
+export const constVariables: [string, ProtoDataPayload][] = [
+  [
+    "Null",
+    {
+      data: setDataCase({ classData: BigInt(0) }),
+      typeInfo: typeForClass("System", "Object"),
+    },
+  ],
+  [
+    "Empty",
+    {
+      data: setDataCase({ arrayData: { data: [] } }),
+      typeInfo: setTypeCase({
+        arrayInfo: {
+          memberType: typeForClass("System", "Object"),
+        },
+      }),
+    },
+  ],
+];
 
 export async function addVariable(name: string, value: ProtoDataPayload) {
   if (!isVariableNameFree(name) || !validVariableName(name)) return false;
@@ -116,6 +122,7 @@ export async function updateReferenceVariables() {
       })
       .concat(
         Object.entries(newVariables).map(([address, value]) => ({
+          id: uniqueNumber(),
           name: firstFree(
             `${extractCase(value.typeInfo.Info, "classInfo")!.clazz}_0x${address}`,
           ),
@@ -139,12 +146,12 @@ export function findVariablesForType(typeInfo: ProtoTypeInfo) {
       return areProtoTypesEqual(typeInfo, variableType);
     })
     .concat(
-      Object.entries(constVariables)
+      constVariables
+        .map(([name, value], i) => ({ id: i, name, value }))
         .filter(
-          ([, { typeInfo: variableType }]) =>
+          ({ value: { typeInfo: variableType } }) =>
             typeInfo.Info?.$case == variableType?.Info?.$case,
-        )
-        .map(([name, value]) => ({ name, value })),
+        ),
     );
 }
 

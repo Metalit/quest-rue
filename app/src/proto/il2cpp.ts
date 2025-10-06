@@ -212,8 +212,9 @@ export interface ProtoFieldInfo {
   type:
     | ProtoTypeInfo
     | undefined;
-  /** means the field cannot be set */
+  /** aka const, I think */
   literal: boolean;
+  readonly: boolean;
 }
 
 export interface ProtoPropertyInfo {
@@ -1099,7 +1100,7 @@ export const ProtoTypeInfo: MessageFns<ProtoTypeInfo> = {
 };
 
 function createBaseProtoFieldInfo(): ProtoFieldInfo {
-  return { name: "", id: BigInt("0"), type: undefined, literal: false };
+  return { name: "", id: BigInt("0"), type: undefined, literal: false, readonly: false };
 }
 
 export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
@@ -1118,6 +1119,9 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
     }
     if (message.literal !== false) {
       writer.uint32(32).bool(message.literal);
+    }
+    if (message.readonly !== false) {
+      writer.uint32(40).bool(message.readonly);
     }
     return writer;
   },
@@ -1161,6 +1165,14 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
           message.literal = reader.bool();
           continue;
         }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.readonly = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1176,6 +1188,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
       id: isSet(object.id) ? BigInt(object.id) : BigInt("0"),
       type: isSet(object.type) ? ProtoTypeInfo.fromJSON(object.type) : undefined,
       literal: isSet(object.literal) ? globalThis.Boolean(object.literal) : false,
+      readonly: isSet(object.readonly) ? globalThis.Boolean(object.readonly) : false,
     };
   },
 
@@ -1193,6 +1206,9 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
     if (message.literal !== false) {
       obj.literal = message.literal;
     }
+    if (message.readonly !== false) {
+      obj.readonly = message.readonly;
+    }
     return obj;
   },
 
@@ -1207,6 +1223,7 @@ export const ProtoFieldInfo: MessageFns<ProtoFieldInfo> = {
       ? ProtoTypeInfo.fromPartial(object.type)
       : undefined;
     message.literal = object.literal ?? false;
+    message.readonly = object.readonly ?? false;
     return message;
   },
 };

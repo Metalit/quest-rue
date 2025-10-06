@@ -63,9 +63,7 @@ function VariableActions(props: {
 
   const validValue = () =>
     props.value &&
-    !Object.values(constVariables).some(({ data }) =>
-      isProtoDataEqual(props.value, data),
-    );
+    !constVariables.some(([, { data }]) => isProtoDataEqual(props.value, data));
 
   const saveVariable = () =>
     validValue() &&

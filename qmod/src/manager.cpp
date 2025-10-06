@@ -50,9 +50,7 @@ static void SetField(SetField const& packet, uint64_t queryId) {
         INPUT_ERROR("literal fields cannot be set")
     else {
         FieldUtils::Set(field, packet.inst(), packet.value());
-
-        SetFieldResult& result = *wrapper.mutable_setfieldresult();
-        result.set_fieldid(asInt(field));
+        wrapper.mutable_setfieldresult();
     }
     Socket::Send(wrapper);
 }
@@ -71,8 +69,6 @@ static void GetField(GetField const& packet, uint64_t queryId) {
         auto res = FieldUtils::Get(field, packet.inst());
 
         GetFieldResult& result = *wrapper.mutable_getfieldresult();
-        result.set_fieldid(asInt(field));
-
         *result.mutable_value() = res;
     }
     Socket::Send(wrapper);
@@ -107,21 +103,22 @@ static void InvokeMethod(InvokeMethod const& packet, uint64_t queryId) {
             for (int i = 0; i < packet.args_size(); i++)
                 args.emplace_back(packet.args(i));
 
-            auto [ret, byrefs, err] = MethodUtils::Run(method, packet.inst(), args);
+            auto ret = MethodUtils::Run(method, packet.inst(), args);
 
             InvokeMethodResult& result = *wrapper.mutable_invokemethodresult();
-            result.set_methodid(asInt(method));
 
-            if (!err.empty()) {
+            if (!ret.error.empty()) {
                 result.set_status(InvokeMethodResult::ERR);
-                result.set_error(err);
+                result.set_error(ret.error);
                 Socket::Send(wrapper);
                 return;
             }
 
             result.set_status(InvokeMethodResult::OK);
-            *result.mutable_result() = ret;
-            result.mutable_byrefchanges()->insert(byrefs.begin(), byrefs.end());
+            if (ret.self)
+                *result.mutable_self() = *ret.self;
+            *result.mutable_result() = ret.result;
+            result.mutable_byrefchanges()->insert(ret.byrefs.begin(), ret.byrefs.end());
         }
     }
     Socket::Send(wrapper);
@@ -354,13 +351,13 @@ static void AddPropertyValue(ProtoDataPayload const& instance, ProtoPropertyInfo
     if (!prop.has_getterid() || !prop.getterid())
         return;
     auto getter = asPtr(MethodInfo, prop.getterid());
-    auto [value, _, err] = MethodUtils::Run(getter, instance, {});
-    if (!err.empty())
-        LOG_ERROR("getting property failed with error: {}", err);
+    auto result = MethodUtils::Run(getter, instance, {});
+    if (!result.error.empty())
+        LOG_ERROR("getting property failed with error: {}", result.error);
     else {
         auto& valuePair = *ret.add_values();
         valuePair.set_id(prop.id());
-        *valuePair.mutable_data() = value.data();
+        *valuePair.mutable_data() = result.result.data();
     }
 }
 

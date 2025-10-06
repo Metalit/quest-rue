@@ -74,8 +74,9 @@ message ProtoFieldInfo {
     string name = 1;
     uint64 id = 2;
     ProtoTypeInfo type = 3;
-    // means the field cannot be set
+    // aka const, I think
     bool literal = 4;
+    bool readonly = 5;
 }
 
 message ProtoPropertyInfo {

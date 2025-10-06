@@ -17,6 +17,7 @@ import toast from "solid-toast";
 import { useRequestAndResponsePacket } from "../../global/packets";
 import {
   ProtoDataPayload,
+  ProtoDataSegment,
   ProtoMethodInfo,
   ProtoTypeInfo_Byref,
 } from "../../proto/il2cpp";
@@ -42,6 +43,7 @@ export interface MethodCellMemory {
 interface MethodCellProps {
   method: ProtoMethodInfo;
   selection: ProtoDataPayload;
+  updateSelection: (data: ProtoDataSegment) => void;
   memory?: MethodCellMemory;
   setMemory: SetStoreFunction<MethodCellMemory>;
   expanded?: boolean;
@@ -63,6 +65,8 @@ export function MethodCell(props: MethodCellProps) {
         Object.entries(res.byrefChanges).forEach(([arg, { data }]) =>
           props.setMemory("args", Number(arg), "data", data),
         );
+        if (result()?.self)
+          if (result()?.self) props.updateSelection(result()!.self!);
       });
   });
 

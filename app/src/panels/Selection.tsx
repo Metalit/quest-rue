@@ -51,8 +51,10 @@ import {
   removePanel,
   selectInLastPanel,
   setLastPanel,
+  updateSelection,
 } from "../global/selection";
 import { columnCount } from "../global/settings";
+import { getVariable } from "../global/variables";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
@@ -230,6 +232,7 @@ function StyledCellGrid<T>(props: {
 
 function DetailsList(props: {
   selection: ProtoDataPayload;
+  updateSelection: (data: ProtoDataSegment) => void;
   details: ProtoClassDetails;
   values: ValuesStore;
   setValues: SetStoreFunction<ValuesStore>;
@@ -291,6 +294,7 @@ function DetailsList(props: {
     <FieldCell
       field={field}
       selection={props.selection}
+      updateSelection={props.updateSelection}
       value={props.values[bigToString(field.id)]}
       setValue={(value) => props.setValues(bigToString(field.id), value)}
     />
@@ -300,6 +304,7 @@ function DetailsList(props: {
     <PropertyCell
       property={property}
       selection={props.selection}
+      updateSelection={props.updateSelection}
       value={props.values[bigToString(property.id)]}
       setValue={(value) => props.setValues(bigToString(property.id), value)}
     />
@@ -309,6 +314,7 @@ function DetailsList(props: {
     <MethodCell
       method={method}
       selection={props.selection}
+      updateSelection={props.updateSelection}
       memory={props.methodsStore[bigToString(method.id)]}
       setMemory={(...rest: unknown[]) => {
         const key = bigToString(method.id);
@@ -467,46 +473,53 @@ export function Selection() {
   createEffect(() => active() && setLastPanel(id));
   onCleanup(() => !reloading && removePanel(id));
 
-  const title = () =>
-    getSelection(id)?.typeInfo
-      ? protoTypeToString(getSelection(id)!.typeInfo!)
-      : "No Selection";
-  createEffect(() => setTitle(title()));
-  // doesn't update when created for some reason
-  requestAnimationFrame(() => setTitle(title()));
-
-  const [details, loading] = createAsyncMemo(async () => {
+  // synchronize changes to everything determined by the selection
+  const [sync, loading] = createAsyncMemo(async () => {
     const selection = getSelection(id);
+
+    let details: ProtoClassDetails | undefined;
+
     let classInfo: ProtoClassInfo | undefined = undefined;
     if (selection?.typeInfo?.Info?.$case == "classInfo")
       classInfo = selection?.typeInfo.Info.classInfo;
     else if (selection?.typeInfo?.Info?.$case == "structInfo")
       classInfo = selection?.typeInfo.Info.structInfo.clazz;
-    if (classInfo) return await getClassDetails(classInfo);
-    else return undefined;
+    if (classInfo) details = await getClassDetails(classInfo);
+
+    const [values, setValues] = createStore<ValuesStore>({});
+
+    if (selection?.data) {
+      const result = await sendPacketResult<GetInstanceValuesResult>({
+        getInstanceValues: { instance: selection },
+      })[0];
+      setValues(
+        reconcile(
+          Object.fromEntries(
+            result.values.map(({ id, data }) => [bigToString(id), data]),
+          ),
+        ),
+      );
+    }
+
+    const [methodsStore, setMethodsStore] = createStore<MethodsStore>({});
+
+    return {
+      selection,
+      details,
+      values,
+      setValues,
+      methodsStore,
+      setMethodsStore,
+    };
   });
 
-  const [values, setValues] = createStore<ValuesStore>({});
-
-  createEffect(() =>
-    getSelection(id)?.data
-      ? sendPacketResult<GetInstanceValuesResult>({
-          getInstanceValues: { instance: getSelection(id) },
-        })[0].then((result) =>
-          setValues(
-            reconcile(
-              Object.fromEntries(
-                result.values.map(({ id, data }) => [bigToString(id), data]),
-              ),
-            ),
-          ),
-        )
-      : setValues(reconcile({})),
-  );
-
-  const [methodsStore, setMethodsStore] = createStore<MethodsStore>({});
-
-  createEffect(() => getSelection(id) || setMethodsStore(reconcile({})));
+  const title = () =>
+    sync()?.selection?.typeInfo
+      ? protoTypeToString(sync()!.selection!.typeInfo!)
+      : "No Selection";
+  createEffect(() => setTitle(title()));
+  // doesn't update when created for some reason
+  requestAnimationFrame(() => setTitle(title()));
 
   const [search, setSearch] = createSignal("");
   const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
@@ -518,7 +531,7 @@ export function Selection() {
   const [inverse, setInverse] = createSignal(false);
 
   return (
-    <Show when={getSelection(id)?.typeInfo} fallback={<NoSelection />}>
+    <Show when={sync()?.selection?.typeInfo} fallback={<NoSelection />}>
       <div class="size-full flex flex-col p-2">
         <div class="flex flex-wrap items-end gap-1 gap-y-1 justify-between">
           <div class="flex gap-1">
@@ -538,13 +551,13 @@ export function Selection() {
             </button>
             <DropdownButton
               class="btn-ghost mono text-[16px]"
-              text={protoTypeToString(getSelection(id)!.typeInfo!)}
+              text={protoTypeToString(sync()!.selection!.typeInfo!)}
               textFirst
               icon={ellipsisHorizontalCircle}
               disabled={loading()}
               dropdownClass="mono p-2 gap-2 max-w-2xl max-h-96 overflow-auto"
             >
-              <InheritancePanel details={details()} />
+              <InheritancePanel details={sync()?.details} />
             </DropdownButton>
           </div>
           <div class="grow max-w-max min-w-0 basis-64 flex gap-1">
@@ -582,7 +595,7 @@ export function Selection() {
             <DropdownButton
               title="Visibility Mode"
               icon={eye}
-              disabled={!getSelection(id)?.data}
+              disabled={!sync()?.selection?.data}
               dropdownPosition="end"
             >
               <ModeOptions
@@ -610,7 +623,7 @@ export function Selection() {
         </div>
         <div class="divider" />
         <Show
-          when={!loading() && details()}
+          when={!loading() && sync()?.details}
           fallback={
             <div class="center-child">
               <span class="loading loading-xl" />
@@ -619,12 +632,13 @@ export function Selection() {
         >
           <div class="grow gutter overflow-auto flex flex-col pr-1.5 gap-2">
             <DetailsList
-              selection={getSelection(id)!}
-              details={details()!}
-              values={values}
-              setValues={setValues}
-              methodsStore={methodsStore}
-              setMethodsStore={setMethodsStore}
+              selection={sync()!.selection!}
+              updateSelection={(data) => updateSelection(id, data)}
+              details={sync()!.details!}
+              values={sync()!.values}
+              setValues={sync()!.setValues}
+              methodsStore={sync()!.methodsStore}
+              setMethodsStore={sync()!.setMethodsStore}
               search={search()}
               searchMode={searchMode()}
               filters={filters}

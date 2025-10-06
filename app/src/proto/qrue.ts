@@ -18,7 +18,6 @@ export interface SetField {
 }
 
 export interface SetFieldResult {
-  fieldId: bigint;
 }
 
 export interface GetField {
@@ -27,7 +26,6 @@ export interface GetField {
 }
 
 export interface GetFieldResult {
-  fieldId: bigint;
   value: ProtoDataPayload | undefined;
 }
 
@@ -40,13 +38,12 @@ export interface InvokeMethod {
 
 export interface InvokeMethodResult {
   status: InvokeMethodResult_Status;
-  methodId: bigint;
+  self?: ProtoDataSegment | undefined;
   result:
     | ProtoDataPayload
     | undefined;
   /** map from parameter index */
   byrefChanges: { [key: number]: ProtoDataPayload };
-  /** nullable */
   error?: string | undefined;
 }
 
@@ -89,10 +86,7 @@ export interface InvokeMethodResult_ByrefChangesEntry {
 }
 
 export interface SearchObjects {
-  componentClass:
-    | ProtoClassInfo
-    | undefined;
-  /** nullable */
+  componentClass: ProtoClassInfo | undefined;
   name?: string | undefined;
 }
 
@@ -406,17 +400,11 @@ export const SetField: MessageFns<SetField> = {
 };
 
 function createBaseSetFieldResult(): SetFieldResult {
-  return { fieldId: BigInt("0") };
+  return {};
 }
 
 export const SetFieldResult: MessageFns<SetFieldResult> = {
-  encode(message: SetFieldResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.fieldId !== BigInt("0")) {
-      if (BigInt.asUintN(64, message.fieldId) !== message.fieldId) {
-        throw new globalThis.Error("value provided for field message.fieldId of type uint64 too large");
-      }
-      writer.uint32(8).uint64(message.fieldId);
-    }
+  encode(_: SetFieldResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     return writer;
   },
 
@@ -427,14 +415,6 @@ export const SetFieldResult: MessageFns<SetFieldResult> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.fieldId = reader.uint64() as bigint;
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -444,24 +424,20 @@ export const SetFieldResult: MessageFns<SetFieldResult> = {
     return message;
   },
 
-  fromJSON(object: any): SetFieldResult {
-    return { fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : BigInt("0") };
+  fromJSON(_: any): SetFieldResult {
+    return {};
   },
 
-  toJSON(message: SetFieldResult): unknown {
+  toJSON(_: SetFieldResult): unknown {
     const obj: any = {};
-    if (message.fieldId !== BigInt("0")) {
-      obj.fieldId = message.fieldId.toString();
-    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<SetFieldResult>, I>>(base?: I): SetFieldResult {
     return SetFieldResult.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SetFieldResult>, I>>(object: I): SetFieldResult {
+  fromPartial<I extends Exact<DeepPartial<SetFieldResult>, I>>(_: I): SetFieldResult {
     const message = createBaseSetFieldResult();
-    message.fieldId = object.fieldId ?? BigInt("0");
     return message;
   },
 };
@@ -548,19 +524,13 @@ export const GetField: MessageFns<GetField> = {
 };
 
 function createBaseGetFieldResult(): GetFieldResult {
-  return { fieldId: BigInt("0"), value: undefined };
+  return { value: undefined };
 }
 
 export const GetFieldResult: MessageFns<GetFieldResult> = {
   encode(message: GetFieldResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.fieldId !== BigInt("0")) {
-      if (BigInt.asUintN(64, message.fieldId) !== message.fieldId) {
-        throw new globalThis.Error("value provided for field message.fieldId of type uint64 too large");
-      }
-      writer.uint32(8).uint64(message.fieldId);
-    }
     if (message.value !== undefined) {
-      ProtoDataPayload.encode(message.value, writer.uint32(18).fork()).join();
+      ProtoDataPayload.encode(message.value, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -573,15 +543,7 @@ export const GetFieldResult: MessageFns<GetFieldResult> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.fieldId = reader.uint64() as bigint;
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
+          if (tag !== 10) {
             break;
           }
 
@@ -598,17 +560,11 @@ export const GetFieldResult: MessageFns<GetFieldResult> = {
   },
 
   fromJSON(object: any): GetFieldResult {
-    return {
-      fieldId: isSet(object.fieldId) ? BigInt(object.fieldId) : BigInt("0"),
-      value: isSet(object.value) ? ProtoDataPayload.fromJSON(object.value) : undefined,
-    };
+    return { value: isSet(object.value) ? ProtoDataPayload.fromJSON(object.value) : undefined };
   },
 
   toJSON(message: GetFieldResult): unknown {
     const obj: any = {};
-    if (message.fieldId !== BigInt("0")) {
-      obj.fieldId = message.fieldId.toString();
-    }
     if (message.value !== undefined) {
       obj.value = ProtoDataPayload.toJSON(message.value);
     }
@@ -620,7 +576,6 @@ export const GetFieldResult: MessageFns<GetFieldResult> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetFieldResult>, I>>(object: I): GetFieldResult {
     const message = createBaseGetFieldResult();
-    message.fieldId = object.fieldId ?? BigInt("0");
     message.value = (object.value !== undefined && object.value !== null)
       ? ProtoDataPayload.fromPartial(object.value)
       : undefined;
@@ -744,7 +699,7 @@ export const InvokeMethod: MessageFns<InvokeMethod> = {
 };
 
 function createBaseInvokeMethodResult(): InvokeMethodResult {
-  return { status: 0, methodId: BigInt("0"), result: undefined, byrefChanges: {}, error: undefined };
+  return { status: 0, self: undefined, result: undefined, byrefChanges: {}, error: undefined };
 }
 
 export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
@@ -752,11 +707,8 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
     if (message.status !== 0) {
       writer.uint32(8).int32(message.status);
     }
-    if (message.methodId !== BigInt("0")) {
-      if (BigInt.asUintN(64, message.methodId) !== message.methodId) {
-        throw new globalThis.Error("value provided for field message.methodId of type uint64 too large");
-      }
-      writer.uint32(16).uint64(message.methodId);
+    if (message.self !== undefined) {
+      ProtoDataSegment.encode(message.self, writer.uint32(18).fork()).join();
     }
     if (message.result !== undefined) {
       ProtoDataPayload.encode(message.result, writer.uint32(26).fork()).join();
@@ -786,11 +738,11 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.methodId = reader.uint64() as bigint;
+          message.self = ProtoDataSegment.decode(reader, reader.uint32());
           continue;
         }
         case 3: {
@@ -832,7 +784,7 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
   fromJSON(object: any): InvokeMethodResult {
     return {
       status: isSet(object.status) ? invokeMethodResult_StatusFromJSON(object.status) : 0,
-      methodId: isSet(object.methodId) ? BigInt(object.methodId) : BigInt("0"),
+      self: isSet(object.self) ? ProtoDataSegment.fromJSON(object.self) : undefined,
       result: isSet(object.result) ? ProtoDataPayload.fromJSON(object.result) : undefined,
       byrefChanges: isObject(object.byrefChanges)
         ? Object.entries(object.byrefChanges).reduce<{ [key: number]: ProtoDataPayload }>((acc, [key, value]) => {
@@ -849,8 +801,8 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
     if (message.status !== 0) {
       obj.status = invokeMethodResult_StatusToJSON(message.status);
     }
-    if (message.methodId !== BigInt("0")) {
-      obj.methodId = message.methodId.toString();
+    if (message.self !== undefined) {
+      obj.self = ProtoDataSegment.toJSON(message.self);
     }
     if (message.result !== undefined) {
       obj.result = ProtoDataPayload.toJSON(message.result);
@@ -876,7 +828,9 @@ export const InvokeMethodResult: MessageFns<InvokeMethodResult> = {
   fromPartial<I extends Exact<DeepPartial<InvokeMethodResult>, I>>(object: I): InvokeMethodResult {
     const message = createBaseInvokeMethodResult();
     message.status = object.status ?? 0;
-    message.methodId = object.methodId ?? BigInt("0");
+    message.self = (object.self !== undefined && object.self !== null)
+      ? ProtoDataSegment.fromPartial(object.self)
+      : undefined;
     message.result = (object.result !== undefined && object.result !== null)
       ? ProtoDataPayload.fromPartial(object.result)
       : undefined;

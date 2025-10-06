@@ -204,45 +204,46 @@
       margin-inline-start: 0;
     }
 
-    .join:first-child {
+    /* order matters */
+    .join:first-child > .join-item:not(:first-child) {
+      --join-ss: 0;
+      --join-se: 0;
+      --join-es: 0;
+      --join-ee: 0;
+    }
+
+    .join:last-child > .join-item:not(:last-child) {
+      --join-ss: 0;
+      --join-se: 0;
+      --join-es: 0;
+      --join-ee: 0;
+    }
+
+    .join:first-child,
+    .join:only-child {
       > .join-item:first-child {
         --join-ss: var(--radius-field);
         --join-se: 0;
         --join-es: var(--radius-field);
         --join-ee: 0;
       }
-
-      > .join-item:not(:first-child) {
-        --join-ss: 0;
-        --join-se: 0;
-        --join-es: 0;
-        --join-ee: 0;
-      }
     }
 
-    .join:last-child {
+    .join:last-child,
+    .join:only-child {
       > .join-item:last-child {
         --join-ss: 0;
         --join-se: var(--radius-field);
         --join-es: 0;
         --join-ee: var(--radius-field);
       }
-
-      > .join-item:not(:last-child) {
-        --join-ss: 0;
-        --join-se: 0;
-        --join-es: 0;
-        --join-ee: 0;
-      }
     }
 
-    .join:only-child {
-      > .join-item:only-child {
-        --join-ss: var(--radius-field);
-        --join-se: var(--radius-field);
-        --join-es: var(--radius-field);
-        --join-ee: var(--radius-field);
-      }
+    .join:only-child > .join-item:only-child {
+      --join-ss: var(--radius-field);
+      --join-se: var(--radius-field);
+      --join-es: var(--radius-field);
+      --join-ee: var(--radius-field);
     }
   }
 

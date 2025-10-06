@@ -24,6 +24,7 @@ namespace ClassUtils {
     Il2CppClass const* GetParent(Il2CppClass const* clazz);
 
     bool GetIsLiteral(FieldInfo const* field);
+    bool GetIsReadonly(FieldInfo const* field);
 
     bool GetIsStatic(FieldInfo const* field);
     bool GetIsStatic(PropertyInfo const* prop);

@@ -152,6 +152,10 @@ bool ClassUtils::GetIsLiteral(FieldInfo const* field) {
     return (field->type->attrs & FIELD_ATTRIBUTE_LITERAL) != 0;
 }
 
+bool ClassUtils::GetIsReadonly(FieldInfo const* field) {
+    return (field->type->attrs & FIELD_ATTRIBUTE_INIT_ONLY) != 0;
+}
+
 bool ClassUtils::GetIsStatic(FieldInfo const* field) {
     return (field->type->attrs & FIELD_ATTRIBUTE_STATIC) != 0;
 }

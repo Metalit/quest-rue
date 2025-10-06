@@ -15,7 +15,6 @@ message SetField {
 }
 
 message SetFieldResult {
-    uint64 fieldId = 1;
 }
 
 message GetField {
@@ -24,8 +23,7 @@ message GetField {
 }
 
 message GetFieldResult {
-    uint64 fieldId = 1;
-    ProtoDataPayload value = 2;
+    ProtoDataPayload value = 1;
 }
 
 message InvokeMethod {
@@ -41,16 +39,16 @@ message InvokeMethodResult {
         OK = 1;
     }
     Status status = 1;
-    uint64 methodId = 2;
+    optional ProtoDataSegment self = 2;
     ProtoDataPayload result = 3;
     // map from parameter index
     map<int32, ProtoDataPayload> byrefChanges = 4;
-    optional string error = 5; /* nullable */
+    optional string error = 5;
 }
 
 message SearchObjects {
     ProtoClassInfo componentClass = 1;
-    optional string name = 2; /* nullable */
+    optional string name = 2;
 }
 
 message SearchObjectsResult {

@@ -4,8 +4,12 @@
 #include "qrue.pb.h"
 
 namespace MethodUtils {
-    // return type, byrefs by parameter index, then error
-    using MethodResult = std::tuple<ProtoDataPayload, std::map<int, ProtoDataPayload>, std::string>;
+    struct MethodResult {
+        ProtoDataPayload result;
+        std::map<int, ProtoDataPayload> byrefs;
+        std::string error = "";
+        std::optional<ProtoDataSegment> self = std::nullopt;
+    };
 
     MethodResult Run(MethodInfo const* method, ProtoDataPayload const& object, std::vector<ProtoDataPayload> const& args);
     MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args);

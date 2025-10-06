@@ -15,6 +15,7 @@ import { ValueCell } from "./ValueCell";
 interface PropertyCellProps {
   property: ProtoPropertyInfo;
   selection: ProtoDataPayload;
+  updateSelection: (data: ProtoDataSegment) => void;
   value?: ProtoDataSegment;
   setValue: (data?: ProtoDataSegment) => void;
 }
@@ -29,9 +30,13 @@ export function PropertyCell(props: PropertyCellProps) {
     result?.error && toast.error(`${type} property error: ${result.error}`);
   createEffect(() => {
     showError("Get", getResult());
+    // while we could update the selection here as well, I don't think we want a getter to modify our selection
     if (getResult()) props.setValue(getResult()?.result?.data);
   });
-  createEffect(() => showError("Set", setResult()));
+  createEffect(() => {
+    showError("Set", setResult());
+    if (setResult()?.self) props.updateSelection(setResult()!.self!);
+  });
 
   const get = () =>
     props.property.getterId &&
