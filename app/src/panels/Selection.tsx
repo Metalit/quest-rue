@@ -54,7 +54,6 @@ import {
   updateSelection,
 } from "../global/selection";
 import { columnCount } from "../global/settings";
-import { getVariable } from "../global/variables";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
@@ -473,24 +472,26 @@ export function Selection() {
   createEffect(() => active() && setLastPanel(id));
   onCleanup(() => !reloading && removePanel(id));
 
+  const selection = () => getSelection(id);
+
   // synchronize changes to everything determined by the selection
   const [sync, loading] = createAsyncMemo(async () => {
-    const selection = getSelection(id);
+    const sel = selection();
 
     let details: ProtoClassDetails | undefined;
 
     let classInfo: ProtoClassInfo | undefined = undefined;
-    if (selection?.typeInfo?.Info?.$case == "classInfo")
-      classInfo = selection?.typeInfo.Info.classInfo;
-    else if (selection?.typeInfo?.Info?.$case == "structInfo")
-      classInfo = selection?.typeInfo.Info.structInfo.clazz;
+    if (sel?.typeInfo?.Info?.$case == "classInfo")
+      classInfo = sel?.typeInfo.Info.classInfo;
+    else if (sel?.typeInfo?.Info?.$case == "structInfo")
+      classInfo = sel?.typeInfo.Info.structInfo.clazz;
     if (classInfo) details = await getClassDetails(classInfo);
 
     const [values, setValues] = createStore<ValuesStore>({});
 
-    if (selection?.data) {
+    if (sel?.data) {
       const result = await sendPacketResult<GetInstanceValuesResult>({
-        getInstanceValues: { instance: selection },
+        getInstanceValues: { instance: sel },
       })[0];
       setValues(
         reconcile(
@@ -504,7 +505,6 @@ export function Selection() {
     const [methodsStore, setMethodsStore] = createStore<MethodsStore>({});
 
     return {
-      selection,
       details,
       values,
       setValues,
@@ -514,8 +514,8 @@ export function Selection() {
   });
 
   const title = () =>
-    sync()?.selection?.typeInfo
-      ? protoTypeToString(sync()!.selection!.typeInfo!)
+    selection()?.typeInfo
+      ? protoTypeToString(selection()!.typeInfo!)
       : "No Selection";
   createEffect(() => setTitle(title()));
   // doesn't update when created for some reason
@@ -531,7 +531,7 @@ export function Selection() {
   const [inverse, setInverse] = createSignal(false);
 
   return (
-    <Show when={sync()?.selection?.typeInfo} fallback={<NoSelection />}>
+    <Show when={selection()} fallback={<NoSelection />}>
       <div class="size-full flex flex-col p-2">
         <div class="flex flex-wrap items-end gap-1 gap-y-1 justify-between">
           <div class="flex gap-1">
@@ -551,7 +551,7 @@ export function Selection() {
             </button>
             <DropdownButton
               class="btn-ghost mono text-[16px]"
-              text={protoTypeToString(sync()!.selection!.typeInfo!)}
+              text={protoTypeToString(selection()!.typeInfo!)}
               textFirst
               icon={ellipsisHorizontalCircle}
               disabled={loading()}
@@ -595,7 +595,7 @@ export function Selection() {
             <DropdownButton
               title="Visibility Mode"
               icon={eye}
-              disabled={!sync()?.selection?.data}
+              disabled={!selection()?.data}
               dropdownPosition="end"
             >
               <ModeOptions
@@ -632,7 +632,7 @@ export function Selection() {
         >
           <div class="grow gutter overflow-auto flex flex-col pr-1.5 gap-2">
             <DetailsList
-              selection={sync()!.selection!}
+              selection={selection()!}
               updateSelection={(data) => updateSelection(id, data)}
               details={sync()!.details!}
               values={sync()!.values}

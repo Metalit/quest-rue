@@ -55,6 +55,7 @@ export async function addVariable(name: string, value: ProtoDataPayload) {
   if (!isVariableNameFree(name) || !validVariableName(name)) return false;
   if (value.typeInfo?.Info?.$case == "classInfo")
     await getClassDetails(value.typeInfo.Info.classInfo);
+  value = ProtoDataPayload.fromPartial(value); // copy
   setVariables(variables.length, { name, value });
   if (value.data?.Data?.$case == "classData")
     await sendPacketResult({

@@ -1,5 +1,6 @@
 import {
   Accessor,
+  batch,
   createEffect,
   createRenderEffect,
   createSignal,
@@ -95,7 +96,7 @@ export function createPersistentSignal<T>(
  */
 export function createAsyncMemo<T>(
   valPromise: () => Promise<T>,
-): [Accessor<T | undefined>, Accessor<boolean>, () => Promise<T>] {
+): [Accessor<T | undefined>, Accessor<boolean>, () => Promise<void>] {
   // TODO: Use createResource or handle errors properly
   const [valAccessor, valSetter] = createSignal<T>();
   const [loading, setLoading] = createSignal(true);
@@ -103,9 +104,10 @@ export function createAsyncMemo<T>(
     setLoading(true);
     // resolve promise before setter
     const v = await valPromise();
-    setLoading(false);
-
-    return valSetter(() => v);
+    batch(() => {
+      setLoading(false);
+      valSetter(() => v);
+    });
   };
   // run even if inital render phase
   // we use effect to listen to changes

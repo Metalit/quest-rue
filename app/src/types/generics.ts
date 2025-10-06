@@ -48,7 +48,7 @@ export function getInstantiation(
   type: ProtoTypeInfo,
   generics: GenericsMap,
 ): ProtoTypeInfo {
-  const copy = ProtoTypeInfo.fromJSON(ProtoTypeInfo.toJSON(type));
+  const copy = ProtoTypeInfo.fromPartial(type);
   const info = copy.Info;
 
   const tryGetGeneric = (generic: ProtoTypeInfo) =>
