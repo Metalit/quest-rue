@@ -47,7 +47,7 @@ function DockviewInitializer(
   const owner = getOwner()!;
 
   const createComponent = (options: CreateComponentOptions) =>
-    new CustomPanel(props.panels[options.name].create, owner);
+    new CustomPanel(props.panels[options.name], owner);
   const createRightHeaderActionComponent = () =>
     new CustomHeader(props.rightHeader!, owner);
   const createLeftHeaderActionComponent = () =>

@@ -21,13 +21,13 @@ import {
 
 import { uniqueNumber } from "../utils/misc";
 
+export type StaticPanelOptions = { create: Component } & Omit<
+  AddPanelOptions,
+  "params" | "id" | "component" | "floating" | "position"
+>;
+
 export interface DockviewPanels {
-  [component: string]: {
-    create: Component;
-  } & Omit<
-    AddPanelOptions,
-    "params" | "id" | "component" | "floating" | "position"
-  >;
+  [component: string]: StaticPanelOptions;
 }
 
 export const getPanelId = (base: string = "panel") =>
@@ -124,7 +124,10 @@ export const useDockview = () => useContext(DockviewContext)!;
 export function makeDockviewPanelInterface(api: DockviewPanelApi) {
   const [title, setTitle] = createSignal(api.title ?? api.id);
   dispose(api.onDidTitleChange((e) => setTitle(e.title)));
-  createEffect(() => api.setTitle(title()));
+  createEffect(() => {
+    api.setTitle(title());
+    requestAnimationFrame(() => api.setTitle(title()));
+  });
 
   const [active, setActive] = createSignal(api.isActive);
   dispose(api.onDidActiveChange((e) => setActive(e.isActive)));

@@ -17,11 +17,11 @@ import { Dockview } from "../dockview/Dockview";
 import { clearDetailsCache } from "../global/cache";
 import { updateGameObjects } from "../global/hierarchy";
 import { clearSelections } from "../global/selection";
+import { Editor } from "../panels/Editor";
 import { Hierarchy } from "../panels/Hierarchy";
 import { Selection } from "../panels/Selection";
 import { Variables } from "../panels/Variables";
 import { createTrigger } from "../utils/solid";
-import { Editor } from "../panels/Editor";
 
 function RightHeader() {
   const { maximized, setMaximized, location } = useDockviewGroup();
@@ -77,11 +77,9 @@ function Tab() {
     <div class="flex gap-2 items-center h-full hover:*:visible">
       {title()}
       <button
-        draggable="true"
         class="invisible btn btn-square btn-ghost btn-sm"
-        on:dragstart={(e) => e.preventDefault()}
-        on:pointerdown={(e) => e.stopPropagation()}
         onClick={close}
+        use:stopDrag
       >
         <Icon path={xMark} />
       </button>

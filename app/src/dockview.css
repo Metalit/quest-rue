@@ -50,9 +50,6 @@
   /* tab radius and overflow container */
   .dv-tab {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
-    &:last-child {
-      margin: 0;
-    }
   }
   .dv-groupview {
     border-radius: var(--border-radius);
@@ -66,6 +63,9 @@
       border-radius: var(--border-radius);
       margin-bottom: var(--tab-spacing);
     }
+  }
+  :not(.dv-tabs-overflow-container) > .dv-tab:last-child {
+    margin-right: 0;
   }
 
   /* seems like a bug in fullscreen mode? might be my fault though */
@@ -86,8 +86,8 @@
 
   /* minimum size for floating groups */
   .dv-resize-container {
-    min-width: 200px;
-    min-height: 200px;
+    min-width: 150px;
+    min-height: 100px;
   }
 
   /* increasing size of resize areas */

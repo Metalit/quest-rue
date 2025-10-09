@@ -513,13 +513,13 @@ export function Selection() {
     };
   });
 
-  const title = () =>
-    selection()?.typeInfo
-      ? protoTypeToString(selection()!.typeInfo!)
-      : "No Selection";
-  createEffect(() => setTitle(title()));
-  // doesn't update when created for some reason
-  requestAnimationFrame(() => setTitle(title()));
+  createEffect(() =>
+    setTitle(
+      selection()?.typeInfo
+        ? protoTypeToString(selection()!.typeInfo!)
+        : "No Selection",
+    ),
+  );
 
   const [search, setSearch] = createSignal("");
   const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
