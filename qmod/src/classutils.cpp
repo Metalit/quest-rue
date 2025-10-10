@@ -207,23 +207,32 @@ ProtoTypeInfo ClassUtils::GetTypeInfo(Il2CppType const* type, bool param) {
     info.set_size(fieldTypeSize(type));
     LOG_DEBUG("Found size {}", info.size());
 
-    if (type->type == IL2CPP_TYPE_CLASS || type->type == IL2CPP_TYPE_OBJECT) {
+    auto baseType = type;
+    auto typeEnum = type->type;
+
+    if (typeEnum == IL2CPP_TYPE_GENERICINST) {
+        baseType = type->data.generic_class->type;
+        typeEnum = baseType->type;
+    }
+
+    if (typeEnum == IL2CPP_TYPE_CLASS || typeEnum == IL2CPP_TYPE_OBJECT) {
         if (classoftype(type) == il2cpp_functions::defaults->systemtype_class)
             info.set_primitiveinfo(ProtoTypeInfo::TYPE);
         else
             *info.mutable_classinfo() = GetClassInfo(type);
-    } else if (type->type == IL2CPP_TYPE_SZARRAY)  // szarray means regular array, array means some fancy multidimensional never used c# thing I think
-        *info.mutable_arrayinfo() = GetArrayInfo(type);
-    else if (type->type == IL2CPP_TYPE_VAR || type->type == IL2CPP_TYPE_MVAR)
-        *info.mutable_genericinfo() = GetGenericInfo(type);
+    } else if (typeEnum == IL2CPP_TYPE_SZARRAY)  // szarray means regular array, array means some fancy multidimensional never used c# thing I think
+        *info.mutable_arrayinfo() = GetArrayInfo(baseType);
+    else if (typeEnum == IL2CPP_TYPE_VAR || typeEnum == IL2CPP_TYPE_MVAR)
+        *info.mutable_genericinfo() = GetGenericInfo(baseType);
     else if (classoftype(type)->enumtype)  // check BEFORE value type - enums are that! (idk what IL2CPP_TYPE_ENUM is for)
         *info.mutable_enuminfo() = GetEnumInfo(type);
-    else if (type->type == IL2CPP_TYPE_VALUETYPE || type->type == IL2CPP_TYPE_GENERICINST)  // genericinst is instance of a generic struct I think
+    else if (typeEnum == IL2CPP_TYPE_VALUETYPE)
         *info.mutable_structinfo() = GetStructInfo(type);
-    else if (auto primitive = GetPrimitive(type); primitive >= 0)
+    else if (auto primitive = GetPrimitive(baseType); primitive >= 0)
         info.set_primitiveinfo(primitive);
     else
-        LOG_ERROR("Unknown type {}!", (int) type->type);
+        LOG_ERROR("Unknown type {}!", (int) typeEnum);
+
     if (type->byref) {
         if (param && type->attrs & PARAM_ATTRIBUTE_IN)
             info.set_byref_(ProtoTypeInfo_Byref_IN);
