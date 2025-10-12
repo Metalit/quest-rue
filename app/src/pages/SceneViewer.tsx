@@ -49,8 +49,8 @@ function LeftHeader() {
   return (
     <div class="flex items-center ml-1.5 h-full">
       <DropdownButton icon={plus} class="btn-ghost btn-sm" hideTrigger={hide}>
-        <For each={Object.entries(templates())}>
-          {([component, { title }]) => (
+        <For each={templates()}>
+          {({ component, title }) => (
             <button
               class="btn"
               onClick={() => {
@@ -126,14 +126,14 @@ export default function SceneViewer() {
           variables: {
             create: Variables,
             title: "Variables",
-            minimumWidth: 200,
-            minimumHeight: 200,
+            minimumWidth: 300,
+            minimumHeight: 400,
           },
           hierarchy: {
             create: Hierarchy,
             title: "Hierarchy",
             minimumWidth: 200,
-            minimumHeight: 200,
+            minimumHeight: 300,
           },
           editor: {
             create: Editor,

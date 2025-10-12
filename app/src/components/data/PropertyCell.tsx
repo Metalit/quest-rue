@@ -1,5 +1,5 @@
 import { arrowPath, arrowRightOnRectangle } from "solid-heroicons/outline";
-import { createEffect } from "solid-js";
+import { createEffect, createSignal, JSX, Show } from "solid-js";
 import toast from "solid-toast";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
@@ -61,36 +61,44 @@ export function PropertyCell(props: PropertyCellProps) {
       },
     });
 
+  const [slot, setSlot] = createSignal<JSX.Element>();
+
   return (
-    <div class="flex items-center justify-between">
-      <span class="mono grow min-w-0" title={props.property.name}>
-        {props.property.name}
-      </span>
-      <div class="join w-3/5 shrink-0 justify-end">
-        <ValueCell
-          class="join-item mono"
-          readonly={!props.property.setterId}
-          typeInfo={props.property.type!}
-          onChange={props.setValue}
-          value={props.value}
-        />
-        <ActionButton
-          class="join-item btn btn-square"
-          img={arrowPath}
-          tooltip="Get Value"
-          loading={getLoading()}
-          onClick={get}
-          disabled={!props.property.getterId}
-        />
-        <ActionButton
-          class="join-item btn btn-square"
-          img={arrowRightOnRectangle}
-          tooltip="Set Value"
-          loading={setLoading()}
-          onClick={set}
-          disabled={!props.property.setterId}
-        />
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center justify-between">
+        <span class="mono grow min-w-0" title={props.property.name}>
+          {props.property.name}
+        </span>
+        <div class="join w-3/5 shrink-0 justify-end">
+          <ValueCell
+            class="join-item mono"
+            readonly={!props.property.setterId}
+            typeInfo={props.property.type!}
+            onChange={props.setValue}
+            value={props.value}
+            setSlot={setSlot}
+          />
+          <ActionButton
+            class="join-item btn btn-square"
+            img={arrowPath}
+            tooltip="Get value"
+            loading={getLoading()}
+            onClick={get}
+            disabled={!props.property.getterId}
+          />
+          <ActionButton
+            class="join-item btn btn-square"
+            img={arrowRightOnRectangle}
+            tooltip="Set value"
+            loading={setLoading()}
+            onClick={set}
+            disabled={!props.property.setterId}
+          />
+        </div>
       </div>
+      <Show when={slot()}>
+        <div class="floating-menu p-1">{slot()}</div>
+      </Show>
     </div>
   );
 }

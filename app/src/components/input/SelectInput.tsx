@@ -28,6 +28,8 @@ interface SelectInputProps<V, O>
   onInput?: (value: string) => void;
   onChange?: (value: V) => void;
   dropdownPosition?: DropdownPositions;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 export function SelectInput<V = string, O extends V = V>(
@@ -50,6 +52,8 @@ export function SelectInput<V = string, O extends V = V>(
     "onChange",
     "dropdownPosition",
     "children",
+    "onFocus",
+    "onBlur",
   ]);
 
   const [input, setInput] = createSignal("");
@@ -111,6 +115,7 @@ export function SelectInput<V = string, O extends V = V>(
       if (!focused()) {
         if (!custom.free) setInput("");
         setFrozenOptions(undefined);
+        custom.onFocus?.();
       }
       setFocused(true);
       document.addEventListener("keydown", onKeyDown);
@@ -123,6 +128,7 @@ export function SelectInput<V = string, O extends V = V>(
       setFrozenOptions(options());
       if (!custom.free) setInput(display(selected()));
       document.removeEventListener("keydown", onKeyDown);
+      custom.onBlur?.();
     });
 
   const checkFocusOut = (e: FocusEvent) =>

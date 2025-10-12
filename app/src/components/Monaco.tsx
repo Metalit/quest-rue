@@ -1,5 +1,6 @@
 import * as monaco from "monaco-editor";
 import { createEffect, onCleanup } from "solid-js";
+
 import { darkMode, monoFont } from "../global/settings";
 
 const sharedOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -19,6 +20,7 @@ const sharedOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
     verticalSliderSize: 10,
     useShadows: false,
   },
+  smoothScrolling: true,
   contextmenu: false,
   codeLens: false,
   formatOnType: true,
@@ -29,7 +31,7 @@ const startingValue = `{
   "key": "value"
 }`;
 
-export function SimpleMonacoEditor(props: { class: string }) {
+export function SimpleMonacoEditor(props: { class?: string }) {
   const div = <div class={`overflow-clip ${props.class}`} />;
 
   const editor = monaco.editor.create(div as HTMLDivElement, {
@@ -39,6 +41,7 @@ export function SimpleMonacoEditor(props: { class: string }) {
     folding: false,
     lineNumbers: "off",
     lineDecorationsWidth: 0,
+    scrollBeyondLastLine: false,
     minimap: { enabled: false },
     hover: { enabled: false },
     links: false,

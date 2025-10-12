@@ -104,9 +104,11 @@ export function Dockview(
   );
   const panels = () => children.children;
 
-  const main = <div {...normal} class={`size-full ${custom.class ?? ""}`} />;
+  const main = (
+    <div {...normal} class={`size-full ${custom.class ?? ""}`} />
+  ) as HTMLDivElement;
 
-  const api = createDockview(main as HTMLDivElement, {
+  const api = createDockview(main, {
     createComponent: undefined!,
     disableAutoResizing: true,
     theme: { name: "custom", className: "dockview-custom", gap: 12 },
@@ -114,14 +116,10 @@ export function Dockview(
   onCleanup(() => api.dispose());
 
   return (
-    <DockviewProvider staticValue={[api, panels]}>
+    <DockviewProvider staticValue={[main, api, panels]}>
       {main}
       {/* we want the provider to be available in our getOwner call */}
-      <DockviewInitializer
-        {...custom}
-        staticRef={main as HTMLDivElement}
-        panels={panels()}
-      />
+      <DockviewInitializer {...custom} staticRef={main} panels={panels()} />
     </DockviewProvider>
   );
 }

@@ -4,6 +4,8 @@ import {
   createEffect,
   createRenderEffect,
   createSignal,
+  getOwner,
+  runWithOwner,
   Signal,
   SignalOptions,
 } from "solid-js";
@@ -62,7 +64,9 @@ export function createUpdatingParser<T>(
     }
   });
 
-  return [input, setInput, validInput] as const;
+  const clearInput = () => setInput(toString(lastParsedInput));
+
+  return [input, setInput, validInput, clearInput] as const;
 }
 
 /**
@@ -113,6 +117,24 @@ export function createAsyncMemo<T>(
   // we use effect to listen to changes
   createRenderEffect(fetch);
   return [valAccessor, loading, fetch];
+}
+
+/**
+ * Create a memo that is lazily computed
+ *
+ */
+export function createLazyMemo<T>(compute: () => T) {
+  let value: T = undefined!;
+  let computed = false;
+  const owner = getOwner();
+
+  return () => {
+    if (computed) return value;
+    computed = true;
+    // not sure why this has a chance of returning undefined, so I'll just ignore it
+    value = runWithOwner(owner, compute)!;
+    return value;
+  };
 }
 
 export type Trigger<T extends unknown[] = []> = {

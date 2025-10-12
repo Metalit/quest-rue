@@ -199,12 +199,21 @@ export function writeMemoryResult_StatusToJSON(object: WriteMemoryResult_Status)
   }
 }
 
+export interface FillTypeInfo {
+  clazz: ProtoClassInfo | undefined;
+}
+
+export interface FillTypeInfoResult {
+  info: ProtoTypeInfo | undefined;
+}
+
 export interface GetClassDetails {
   classInfo: ProtoClassInfo | undefined;
 }
 
 export interface GetClassDetailsResult {
   classDetails: ProtoClassDetails | undefined;
+  struct: boolean;
 }
 
 export interface GetInstanceClass {
@@ -229,15 +238,15 @@ export interface GetInstanceValuesResult_ValuePair {
   data: ProtoDataSegment | undefined;
 }
 
-export interface CreateGameObject {
-  name: string;
-  parent?: bigint | undefined;
+export interface CreateObject {
+  clazz: ProtoClassInfo | undefined;
 }
 
-export interface CreateGameObjectResult {
+export interface CreateObjectResult {
+  address: bigint;
 }
 
-/** Returns GetListSafePtrAddressResult */
+/** Returns GetSafePtrAddressesResult */
 export interface AddSafePtrAddress {
   address: bigint;
   remove: boolean;
@@ -284,14 +293,16 @@ export interface PacketWrapper {
     | { $case: "readMemoryResult"; readMemoryResult: ReadMemoryResult }
     | { $case: "writeMemory"; writeMemory: WriteMemory }
     | { $case: "writeMemoryResult"; writeMemoryResult: WriteMemoryResult }
+    | { $case: "fillTypeInfo"; fillTypeInfo: FillTypeInfo }
+    | { $case: "fillTypeInfoResult"; fillTypeInfoResult: FillTypeInfoResult }
     | { $case: "getClassDetails"; getClassDetails: GetClassDetails }
     | { $case: "getClassDetailsResult"; getClassDetailsResult: GetClassDetailsResult }
     | { $case: "getInstanceClass"; getInstanceClass: GetInstanceClass }
     | { $case: "getInstanceClassResult"; getInstanceClassResult: GetInstanceClassResult }
     | { $case: "getInstanceValues"; getInstanceValues: GetInstanceValues }
     | { $case: "getInstanceValuesResult"; getInstanceValuesResult: GetInstanceValuesResult }
-    | { $case: "createGameObject"; createGameObject: CreateGameObject }
-    | { $case: "createGameObjectResult"; createGameObjectResult: CreateGameObjectResult }
+    | { $case: "createObject"; createObject: CreateObject }
+    | { $case: "createObjectResult"; createObjectResult: CreateObjectResult }
     | { $case: "addSafePtrAddress"; addSafePtrAddress: AddSafePtrAddress }
     | { $case: "getSafePtrAddresses"; getSafePtrAddresses: GetSafePtrAddresses }
     | { $case: "getSafePtrAddressesResult"; getSafePtrAddressesResult: GetSafePtrAddressesResult }
@@ -1668,6 +1679,126 @@ export const WriteMemoryResult: MessageFns<WriteMemoryResult> = {
   },
 };
 
+function createBaseFillTypeInfo(): FillTypeInfo {
+  return { clazz: undefined };
+}
+
+export const FillTypeInfo: MessageFns<FillTypeInfo> = {
+  encode(message: FillTypeInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.clazz !== undefined) {
+      ProtoClassInfo.encode(message.clazz, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FillTypeInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFillTypeInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.clazz = ProtoClassInfo.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FillTypeInfo {
+    return { clazz: isSet(object.clazz) ? ProtoClassInfo.fromJSON(object.clazz) : undefined };
+  },
+
+  toJSON(message: FillTypeInfo): unknown {
+    const obj: any = {};
+    if (message.clazz !== undefined) {
+      obj.clazz = ProtoClassInfo.toJSON(message.clazz);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FillTypeInfo>, I>>(base?: I): FillTypeInfo {
+    return FillTypeInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FillTypeInfo>, I>>(object: I): FillTypeInfo {
+    const message = createBaseFillTypeInfo();
+    message.clazz = (object.clazz !== undefined && object.clazz !== null)
+      ? ProtoClassInfo.fromPartial(object.clazz)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseFillTypeInfoResult(): FillTypeInfoResult {
+  return { info: undefined };
+}
+
+export const FillTypeInfoResult: MessageFns<FillTypeInfoResult> = {
+  encode(message: FillTypeInfoResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.info !== undefined) {
+      ProtoTypeInfo.encode(message.info, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FillTypeInfoResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFillTypeInfoResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.info = ProtoTypeInfo.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FillTypeInfoResult {
+    return { info: isSet(object.info) ? ProtoTypeInfo.fromJSON(object.info) : undefined };
+  },
+
+  toJSON(message: FillTypeInfoResult): unknown {
+    const obj: any = {};
+    if (message.info !== undefined) {
+      obj.info = ProtoTypeInfo.toJSON(message.info);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FillTypeInfoResult>, I>>(base?: I): FillTypeInfoResult {
+    return FillTypeInfoResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FillTypeInfoResult>, I>>(object: I): FillTypeInfoResult {
+    const message = createBaseFillTypeInfoResult();
+    message.info = (object.info !== undefined && object.info !== null)
+      ? ProtoTypeInfo.fromPartial(object.info)
+      : undefined;
+    return message;
+  },
+};
+
 function createBaseGetClassDetails(): GetClassDetails {
   return { classInfo: undefined };
 }
@@ -1729,13 +1860,16 @@ export const GetClassDetails: MessageFns<GetClassDetails> = {
 };
 
 function createBaseGetClassDetailsResult(): GetClassDetailsResult {
-  return { classDetails: undefined };
+  return { classDetails: undefined, struct: false };
 }
 
 export const GetClassDetailsResult: MessageFns<GetClassDetailsResult> = {
   encode(message: GetClassDetailsResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.classDetails !== undefined) {
       ProtoClassDetails.encode(message.classDetails, writer.uint32(10).fork()).join();
+    }
+    if (message.struct !== false) {
+      writer.uint32(16).bool(message.struct);
     }
     return writer;
   },
@@ -1755,6 +1889,14 @@ export const GetClassDetailsResult: MessageFns<GetClassDetailsResult> = {
           message.classDetails = ProtoClassDetails.decode(reader, reader.uint32());
           continue;
         }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.struct = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1765,13 +1907,19 @@ export const GetClassDetailsResult: MessageFns<GetClassDetailsResult> = {
   },
 
   fromJSON(object: any): GetClassDetailsResult {
-    return { classDetails: isSet(object.classDetails) ? ProtoClassDetails.fromJSON(object.classDetails) : undefined };
+    return {
+      classDetails: isSet(object.classDetails) ? ProtoClassDetails.fromJSON(object.classDetails) : undefined,
+      struct: isSet(object.struct) ? globalThis.Boolean(object.struct) : false,
+    };
   },
 
   toJSON(message: GetClassDetailsResult): unknown {
     const obj: any = {};
     if (message.classDetails !== undefined) {
       obj.classDetails = ProtoClassDetails.toJSON(message.classDetails);
+    }
+    if (message.struct !== false) {
+      obj.struct = message.struct;
     }
     return obj;
   },
@@ -1784,6 +1932,7 @@ export const GetClassDetailsResult: MessageFns<GetClassDetailsResult> = {
     message.classDetails = (object.classDetails !== undefined && object.classDetails !== null)
       ? ProtoClassDetails.fromPartial(object.classDetails)
       : undefined;
+    message.struct = object.struct ?? false;
     return message;
   },
 };
@@ -2116,28 +2265,22 @@ export const GetInstanceValuesResult_ValuePair: MessageFns<GetInstanceValuesResu
   },
 };
 
-function createBaseCreateGameObject(): CreateGameObject {
-  return { name: "", parent: undefined };
+function createBaseCreateObject(): CreateObject {
+  return { clazz: undefined };
 }
 
-export const CreateGameObject: MessageFns<CreateGameObject> = {
-  encode(message: CreateGameObject, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.parent !== undefined) {
-      if (BigInt.asUintN(64, message.parent) !== message.parent) {
-        throw new globalThis.Error("value provided for field message.parent of type uint64 too large");
-      }
-      writer.uint32(16).uint64(message.parent);
+export const CreateObject: MessageFns<CreateObject> = {
+  encode(message: CreateObject, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.clazz !== undefined) {
+      ProtoClassInfo.encode(message.clazz, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): CreateGameObject {
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateObject {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreateGameObject();
+    const message = createBaseCreateObject();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2146,15 +2289,7 @@ export const CreateGameObject: MessageFns<CreateGameObject> = {
             break;
           }
 
-          message.name = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.parent = reader.uint64() as bigint;
+          message.clazz = ProtoClassInfo.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -2166,51 +2301,60 @@ export const CreateGameObject: MessageFns<CreateGameObject> = {
     return message;
   },
 
-  fromJSON(object: any): CreateGameObject {
-    return {
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      parent: isSet(object.parent) ? BigInt(object.parent) : undefined,
-    };
+  fromJSON(object: any): CreateObject {
+    return { clazz: isSet(object.clazz) ? ProtoClassInfo.fromJSON(object.clazz) : undefined };
   },
 
-  toJSON(message: CreateGameObject): unknown {
+  toJSON(message: CreateObject): unknown {
     const obj: any = {};
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.parent !== undefined) {
-      obj.parent = message.parent.toString();
+    if (message.clazz !== undefined) {
+      obj.clazz = ProtoClassInfo.toJSON(message.clazz);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreateGameObject>, I>>(base?: I): CreateGameObject {
-    return CreateGameObject.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<CreateObject>, I>>(base?: I): CreateObject {
+    return CreateObject.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreateGameObject>, I>>(object: I): CreateGameObject {
-    const message = createBaseCreateGameObject();
-    message.name = object.name ?? "";
-    message.parent = object.parent ?? undefined;
+  fromPartial<I extends Exact<DeepPartial<CreateObject>, I>>(object: I): CreateObject {
+    const message = createBaseCreateObject();
+    message.clazz = (object.clazz !== undefined && object.clazz !== null)
+      ? ProtoClassInfo.fromPartial(object.clazz)
+      : undefined;
     return message;
   },
 };
 
-function createBaseCreateGameObjectResult(): CreateGameObjectResult {
-  return {};
+function createBaseCreateObjectResult(): CreateObjectResult {
+  return { address: BigInt("0") };
 }
 
-export const CreateGameObjectResult: MessageFns<CreateGameObjectResult> = {
-  encode(_: CreateGameObjectResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const CreateObjectResult: MessageFns<CreateObjectResult> = {
+  encode(message: CreateObjectResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.address !== BigInt("0")) {
+      if (BigInt.asUintN(64, message.address) !== message.address) {
+        throw new globalThis.Error("value provided for field message.address of type uint64 too large");
+      }
+      writer.uint32(8).uint64(message.address);
+    }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): CreateGameObjectResult {
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateObjectResult {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreateGameObjectResult();
+    const message = createBaseCreateObjectResult();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.address = reader.uint64() as bigint;
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2220,20 +2364,24 @@ export const CreateGameObjectResult: MessageFns<CreateGameObjectResult> = {
     return message;
   },
 
-  fromJSON(_: any): CreateGameObjectResult {
-    return {};
+  fromJSON(object: any): CreateObjectResult {
+    return { address: isSet(object.address) ? BigInt(object.address) : BigInt("0") };
   },
 
-  toJSON(_: CreateGameObjectResult): unknown {
+  toJSON(message: CreateObjectResult): unknown {
     const obj: any = {};
+    if (message.address !== BigInt("0")) {
+      obj.address = message.address.toString();
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreateGameObjectResult>, I>>(base?: I): CreateGameObjectResult {
-    return CreateGameObjectResult.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<CreateObjectResult>, I>>(base?: I): CreateObjectResult {
+    return CreateObjectResult.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreateGameObjectResult>, I>>(_: I): CreateGameObjectResult {
-    const message = createBaseCreateGameObjectResult();
+  fromPartial<I extends Exact<DeepPartial<CreateObjectResult>, I>>(object: I): CreateObjectResult {
+    const message = createBaseCreateObjectResult();
+    message.address = object.address ?? BigInt("0");
     return message;
   },
 };
@@ -2708,29 +2856,35 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
       case "writeMemoryResult":
         WriteMemoryResult.encode(message.Packet.writeMemoryResult, writer.uint32(146).fork()).join();
         break;
+      case "fillTypeInfo":
+        FillTypeInfo.encode(message.Packet.fillTypeInfo, writer.uint32(154).fork()).join();
+        break;
+      case "fillTypeInfoResult":
+        FillTypeInfoResult.encode(message.Packet.fillTypeInfoResult, writer.uint32(162).fork()).join();
+        break;
       case "getClassDetails":
-        GetClassDetails.encode(message.Packet.getClassDetails, writer.uint32(154).fork()).join();
+        GetClassDetails.encode(message.Packet.getClassDetails, writer.uint32(170).fork()).join();
         break;
       case "getClassDetailsResult":
-        GetClassDetailsResult.encode(message.Packet.getClassDetailsResult, writer.uint32(162).fork()).join();
+        GetClassDetailsResult.encode(message.Packet.getClassDetailsResult, writer.uint32(178).fork()).join();
         break;
       case "getInstanceClass":
-        GetInstanceClass.encode(message.Packet.getInstanceClass, writer.uint32(170).fork()).join();
+        GetInstanceClass.encode(message.Packet.getInstanceClass, writer.uint32(186).fork()).join();
         break;
       case "getInstanceClassResult":
-        GetInstanceClassResult.encode(message.Packet.getInstanceClassResult, writer.uint32(178).fork()).join();
+        GetInstanceClassResult.encode(message.Packet.getInstanceClassResult, writer.uint32(194).fork()).join();
         break;
       case "getInstanceValues":
-        GetInstanceValues.encode(message.Packet.getInstanceValues, writer.uint32(186).fork()).join();
+        GetInstanceValues.encode(message.Packet.getInstanceValues, writer.uint32(202).fork()).join();
         break;
       case "getInstanceValuesResult":
-        GetInstanceValuesResult.encode(message.Packet.getInstanceValuesResult, writer.uint32(194).fork()).join();
+        GetInstanceValuesResult.encode(message.Packet.getInstanceValuesResult, writer.uint32(210).fork()).join();
         break;
-      case "createGameObject":
-        CreateGameObject.encode(message.Packet.createGameObject, writer.uint32(218).fork()).join();
+      case "createObject":
+        CreateObject.encode(message.Packet.createObject, writer.uint32(218).fork()).join();
         break;
-      case "createGameObjectResult":
-        CreateGameObjectResult.encode(message.Packet.createGameObjectResult, writer.uint32(226).fork()).join();
+      case "createObjectResult":
+        CreateObjectResult.encode(message.Packet.createObjectResult, writer.uint32(226).fork()).join();
         break;
       case "addSafePtrAddress":
         AddSafePtrAddress.encode(message.Packet.addSafePtrAddress, writer.uint32(234).fork()).join();
@@ -2931,10 +3085,7 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
             break;
           }
 
-          message.Packet = {
-            $case: "getClassDetails",
-            getClassDetails: GetClassDetails.decode(reader, reader.uint32()),
-          };
+          message.Packet = { $case: "fillTypeInfo", fillTypeInfo: FillTypeInfo.decode(reader, reader.uint32()) };
           continue;
         }
         case 20: {
@@ -2943,8 +3094,8 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           }
 
           message.Packet = {
-            $case: "getClassDetailsResult",
-            getClassDetailsResult: GetClassDetailsResult.decode(reader, reader.uint32()),
+            $case: "fillTypeInfoResult",
+            fillTypeInfoResult: FillTypeInfoResult.decode(reader, reader.uint32()),
           };
           continue;
         }
@@ -2954,8 +3105,8 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           }
 
           message.Packet = {
-            $case: "getInstanceClass",
-            getInstanceClass: GetInstanceClass.decode(reader, reader.uint32()),
+            $case: "getClassDetails",
+            getClassDetails: GetClassDetails.decode(reader, reader.uint32()),
           };
           continue;
         }
@@ -2965,8 +3116,8 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           }
 
           message.Packet = {
-            $case: "getInstanceClassResult",
-            getInstanceClassResult: GetInstanceClassResult.decode(reader, reader.uint32()),
+            $case: "getClassDetailsResult",
+            getClassDetailsResult: GetClassDetailsResult.decode(reader, reader.uint32()),
           };
           continue;
         }
@@ -2976,13 +3127,35 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           }
 
           message.Packet = {
-            $case: "getInstanceValues",
-            getInstanceValues: GetInstanceValues.decode(reader, reader.uint32()),
+            $case: "getInstanceClass",
+            getInstanceClass: GetInstanceClass.decode(reader, reader.uint32()),
           };
           continue;
         }
         case 24: {
           if (tag !== 194) {
+            break;
+          }
+
+          message.Packet = {
+            $case: "getInstanceClassResult",
+            getInstanceClassResult: GetInstanceClassResult.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
+        case 25: {
+          if (tag !== 202) {
+            break;
+          }
+
+          message.Packet = {
+            $case: "getInstanceValues",
+            getInstanceValues: GetInstanceValues.decode(reader, reader.uint32()),
+          };
+          continue;
+        }
+        case 26: {
+          if (tag !== 210) {
             break;
           }
 
@@ -2997,10 +3170,7 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
             break;
           }
 
-          message.Packet = {
-            $case: "createGameObject",
-            createGameObject: CreateGameObject.decode(reader, reader.uint32()),
-          };
+          message.Packet = { $case: "createObject", createObject: CreateObject.decode(reader, reader.uint32()) };
           continue;
         }
         case 28: {
@@ -3009,8 +3179,8 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           }
 
           message.Packet = {
-            $case: "createGameObjectResult",
-            createGameObjectResult: CreateGameObjectResult.decode(reader, reader.uint32()),
+            $case: "createObjectResult",
+            createObjectResult: CreateObjectResult.decode(reader, reader.uint32()),
           };
           continue;
         }
@@ -3127,6 +3297,10 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
         ? { $case: "writeMemory", writeMemory: WriteMemory.fromJSON(object.writeMemory) }
         : isSet(object.writeMemoryResult)
         ? { $case: "writeMemoryResult", writeMemoryResult: WriteMemoryResult.fromJSON(object.writeMemoryResult) }
+        : isSet(object.fillTypeInfo)
+        ? { $case: "fillTypeInfo", fillTypeInfo: FillTypeInfo.fromJSON(object.fillTypeInfo) }
+        : isSet(object.fillTypeInfoResult)
+        ? { $case: "fillTypeInfoResult", fillTypeInfoResult: FillTypeInfoResult.fromJSON(object.fillTypeInfoResult) }
         : isSet(object.getClassDetails)
         ? { $case: "getClassDetails", getClassDetails: GetClassDetails.fromJSON(object.getClassDetails) }
         : isSet(object.getClassDetailsResult)
@@ -3148,13 +3322,10 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
           $case: "getInstanceValuesResult",
           getInstanceValuesResult: GetInstanceValuesResult.fromJSON(object.getInstanceValuesResult),
         }
-        : isSet(object.createGameObject)
-        ? { $case: "createGameObject", createGameObject: CreateGameObject.fromJSON(object.createGameObject) }
-        : isSet(object.createGameObjectResult)
-        ? {
-          $case: "createGameObjectResult",
-          createGameObjectResult: CreateGameObjectResult.fromJSON(object.createGameObjectResult),
-        }
+        : isSet(object.createObject)
+        ? { $case: "createObject", createObject: CreateObject.fromJSON(object.createObject) }
+        : isSet(object.createObjectResult)
+        ? { $case: "createObjectResult", createObjectResult: CreateObjectResult.fromJSON(object.createObjectResult) }
         : isSet(object.addSafePtrAddress)
         ? { $case: "addSafePtrAddress", addSafePtrAddress: AddSafePtrAddress.fromJSON(object.addSafePtrAddress) }
         : isSet(object.getSafePtrAddresses)
@@ -3219,6 +3390,10 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
       obj.writeMemory = WriteMemory.toJSON(message.Packet.writeMemory);
     } else if (message.Packet?.$case === "writeMemoryResult") {
       obj.writeMemoryResult = WriteMemoryResult.toJSON(message.Packet.writeMemoryResult);
+    } else if (message.Packet?.$case === "fillTypeInfo") {
+      obj.fillTypeInfo = FillTypeInfo.toJSON(message.Packet.fillTypeInfo);
+    } else if (message.Packet?.$case === "fillTypeInfoResult") {
+      obj.fillTypeInfoResult = FillTypeInfoResult.toJSON(message.Packet.fillTypeInfoResult);
     } else if (message.Packet?.$case === "getClassDetails") {
       obj.getClassDetails = GetClassDetails.toJSON(message.Packet.getClassDetails);
     } else if (message.Packet?.$case === "getClassDetailsResult") {
@@ -3231,10 +3406,10 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
       obj.getInstanceValues = GetInstanceValues.toJSON(message.Packet.getInstanceValues);
     } else if (message.Packet?.$case === "getInstanceValuesResult") {
       obj.getInstanceValuesResult = GetInstanceValuesResult.toJSON(message.Packet.getInstanceValuesResult);
-    } else if (message.Packet?.$case === "createGameObject") {
-      obj.createGameObject = CreateGameObject.toJSON(message.Packet.createGameObject);
-    } else if (message.Packet?.$case === "createGameObjectResult") {
-      obj.createGameObjectResult = CreateGameObjectResult.toJSON(message.Packet.createGameObjectResult);
+    } else if (message.Packet?.$case === "createObject") {
+      obj.createObject = CreateObject.toJSON(message.Packet.createObject);
+    } else if (message.Packet?.$case === "createObjectResult") {
+      obj.createObjectResult = CreateObjectResult.toJSON(message.Packet.createObjectResult);
     } else if (message.Packet?.$case === "addSafePtrAddress") {
       obj.addSafePtrAddress = AddSafePtrAddress.toJSON(message.Packet.addSafePtrAddress);
     } else if (message.Packet?.$case === "getSafePtrAddresses") {
@@ -3399,6 +3574,24 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
         }
         break;
       }
+      case "fillTypeInfo": {
+        if (object.Packet?.fillTypeInfo !== undefined && object.Packet?.fillTypeInfo !== null) {
+          message.Packet = {
+            $case: "fillTypeInfo",
+            fillTypeInfo: FillTypeInfo.fromPartial(object.Packet.fillTypeInfo),
+          };
+        }
+        break;
+      }
+      case "fillTypeInfoResult": {
+        if (object.Packet?.fillTypeInfoResult !== undefined && object.Packet?.fillTypeInfoResult !== null) {
+          message.Packet = {
+            $case: "fillTypeInfoResult",
+            fillTypeInfoResult: FillTypeInfoResult.fromPartial(object.Packet.fillTypeInfoResult),
+          };
+        }
+        break;
+      }
       case "getClassDetails": {
         if (object.Packet?.getClassDetails !== undefined && object.Packet?.getClassDetails !== null) {
           message.Packet = {
@@ -3453,20 +3646,20 @@ export const PacketWrapper: MessageFns<PacketWrapper> = {
         }
         break;
       }
-      case "createGameObject": {
-        if (object.Packet?.createGameObject !== undefined && object.Packet?.createGameObject !== null) {
+      case "createObject": {
+        if (object.Packet?.createObject !== undefined && object.Packet?.createObject !== null) {
           message.Packet = {
-            $case: "createGameObject",
-            createGameObject: CreateGameObject.fromPartial(object.Packet.createGameObject),
+            $case: "createObject",
+            createObject: CreateObject.fromPartial(object.Packet.createObject),
           };
         }
         break;
       }
-      case "createGameObjectResult": {
-        if (object.Packet?.createGameObjectResult !== undefined && object.Packet?.createGameObjectResult !== null) {
+      case "createObjectResult": {
+        if (object.Packet?.createObjectResult !== undefined && object.Packet?.createObjectResult !== null) {
           message.Packet = {
-            $case: "createGameObjectResult",
-            createGameObjectResult: CreateGameObjectResult.fromPartial(object.Packet.createGameObjectResult),
+            $case: "createObjectResult",
+            createObjectResult: CreateObjectResult.fromPartial(object.Packet.createObjectResult),
           };
         }
         break;

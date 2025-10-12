@@ -160,7 +160,9 @@ function primitiveToDataSegment(
 export function stringToDataSegment(
   input: string,
   typeInfo: ProtoTypeInfo,
-): ProtoDataSegment {
+): ProtoDataSegment | undefined {
+  if (!validString(input, typeInfo)) return undefined;
+
   switch (typeInfo.Info?.$case) {
     case "classInfo":
       return setDataCase({ classData: stringToBig(input) });
@@ -172,7 +174,7 @@ export function stringToDataSegment(
         Object.entries(typeInfo.Info.structInfo.fieldOffsets!).map(
           ([offset, { name, type }]) => [
             Number(offset),
-            stringToDataSegment(struct[name], type!),
+            stringToDataSegment(struct[name], type!)!,
           ],
         ),
       );
@@ -181,7 +183,7 @@ export function stringToDataSegment(
     case "arrayInfo": {
       const arr = parseShallow(input) as string[];
       const memberType = typeInfo.Info.arrayInfo.memberType!;
-      const data = arr.map((elem) => stringToDataSegment(elem, memberType));
+      const data = arr.map((elem) => stringToDataSegment(elem, memberType)!);
       return setDataCase({ arrayData: { data } });
     }
     case "primitiveInfo":
@@ -191,7 +193,7 @@ export function stringToDataSegment(
         input = typeInfo.Info.enumInfo.values[input].toString();
       return primitiveToDataSegment(input, typeInfo.Info.enumInfo.valueType);
   }
-  return {};
+  return undefined;
 }
 
 export function stringToProtoData(

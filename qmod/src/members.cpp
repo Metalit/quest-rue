@@ -295,7 +295,7 @@ namespace MethodUtils {
         if (!ClassUtils::GetIsStatic(method))
             inst = HandleType(object.typeinfo(), object.data());
         auto ret = Run(method, inst, args);
-        if (inst && object.typeinfo().Info_case() == ProtoTypeInfo::kStructInfo)
+        if (inst)
             ret.self = OutputType(object.typeinfo(), inst);
         return ret;
     }

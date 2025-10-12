@@ -23,7 +23,10 @@
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-namespace": "off",
     "solid/jsx-no-undef": "off",
-    "solid/reactivity": ["warn", { "customReactiveFunctions": ["setTrigger"] }],
+    "solid/reactivity": [
+      "warn",
+      { "customReactiveFunctions": ["setTrigger", "getRunner"] }
+    ],
     "jsx-a11y/label-has-associated-control": "off", // https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/894
     "prefer-const": ["error", { "destructuring": "all" }]
   }

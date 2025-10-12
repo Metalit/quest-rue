@@ -1,5 +1,5 @@
 import { arrowPath } from "solid-heroicons/outline";
-import { createEffect } from "solid-js";
+import { createEffect, createSignal, JSX, Show } from "solid-js";
 
 import { useRequestAndResponsePacket } from "../../global/packets";
 import {
@@ -82,26 +82,34 @@ export function FieldCell(props: FieldCellProps) {
     props.value && ProtoDataSegment.fromPartial(props.value),
   );
 
+  const [slot, setSlot] = createSignal<JSX.Element>();
+
   return (
-    <div class="flex items-center justify-between">
-      <span class="mono grow min-w-0" title={props.field.name}>
-        {props.field.name}
-      </span>
-      <div class="join w-3/5 shrink-0 justify-end">
-        <ValueCell
-          class="join-item mono"
-          typeInfo={props.field.type!}
-          onChange={props.setValue}
-          value={props.value}
-        />
-        <ActionButton
-          class="join-item btn btn-square"
-          img={arrowPath}
-          tooltip="Refresh Value"
-          loading={getLoading() || setLoading()}
-          onClick={get}
-        />
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center justify-between">
+        <span class="mono grow min-w-0" title={props.field.name}>
+          {props.field.name}
+        </span>
+        <div class="join w-3/5 shrink-0 justify-end">
+          <ValueCell
+            class="join-item mono"
+            typeInfo={props.field.type!}
+            onChange={props.setValue}
+            value={props.value}
+            setSlot={setSlot}
+          />
+          <ActionButton
+            class="join-item btn btn-square"
+            img={arrowPath}
+            tooltip="Refresh Value"
+            loading={getLoading() || setLoading()}
+            onClick={get}
+          />
+        </div>
       </div>
+      <Show when={slot()}>
+        <div class="floating-menu p-1">{slot()}</div>
+      </Show>
     </div>
   );
 }

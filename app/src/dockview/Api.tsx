@@ -26,6 +26,8 @@ export type StaticPanelOptions = { create: Component } & Omit<
   "params" | "id" | "component" | "floating" | "position"
 >;
 
+export type PanelTemplate = StaticPanelOptions & { component: string };
+
 export interface DockviewPanels {
   [component: string]: StaticPanelOptions;
 }
@@ -48,7 +50,7 @@ type AddPanelPositionUnion = {
   position: AddPanelPositionOptions;
 };
 type AddPanelPosition = AddPanelFloatingGroupUnion | AddPanelPositionUnion;
-type AddPanelCustom = Partial<
+export type AddPanelCustom = Partial<
   AddPanelPosition & Size & { id: string; title: string }
 >;
 
@@ -67,11 +69,28 @@ type AddGroupPosition =
   | AbsolutePosition
   | AddGroupOptionsWithPanel
   | AddGroupOptionsWithGroup;
-type AddGroupCustom = Partial<
+export type AddGroupCustom = Partial<
   AddGroupPosition & Size & { id: string; floating: FloatingGroupOptions }
 >;
 
+function transformFloatingPosition(
+  parent: HTMLDivElement,
+  floating?: FloatingGroupOptions,
+) {
+  const rect = parent.getBoundingClientRect();
+  if (floating?.x) floating.x -= rect.x;
+  if (floating?.y) floating.y -= rect.y;
+  return floating;
+}
+
+function transformOptions(parent: HTMLDivElement, options?: AddPanelCustom) {
+  if (typeof options?.floating == "object")
+    options.floating = transformFloatingPosition(parent, options.floating);
+  return options;
+}
+
 export function makeDockviewInterface(
+  parent: HTMLDivElement,
   api: DockviewApi,
   panels: () => DockviewPanels,
 ) {
@@ -81,8 +100,8 @@ export function makeDockviewInterface(
       component,
       initialWidth: options?.width,
       initialHeight: options?.height,
-      ...(options ?? {}),
-      ...(panels()[component] ?? {}),
+      ...transformOptions(parent, options),
+      ...panels()[component],
     });
 
   const addGroup = (panelIds: string[], options?: AddGroupCustom) => {
@@ -96,13 +115,22 @@ export function makeDockviewInterface(
     panelIds
       .map((id) => api.getPanel(id))
       .forEach((panel) => panel?.api.moveTo({ group }));
-    if (options?.floating) api.addFloatingGroup(group, options.floating);
+    if (options?.floating)
+      api.addFloatingGroup(
+        group,
+        transformFloatingPosition(parent, options.floating),
+      );
     return group;
   };
 
   const getPanel = (id: string) => api.getPanel(id);
 
-  return { addPanel, addGroup, getPanel, templates: panels, rawApi: api };
+  const templates = () =>
+    Object.entries(panels()).map(
+      (panel) => ({ component: panel[0], ...panel[1] }) satisfies PanelTemplate,
+    );
+
+  return { addPanel, addGroup, getPanel, templates, rawApi: api, parent };
 }
 
 export type DockviewInterface = ReturnType<typeof makeDockviewInterface>;

@@ -102,12 +102,21 @@ message WriteMemoryResult {
     uint64 size = 3;
 }
 
+message FillTypeInfo {
+    ProtoClassInfo clazz = 1;
+}
+
+message FillTypeInfoResult {
+    ProtoTypeInfo info = 1;
+}
+
 message GetClassDetails {
     ProtoClassInfo classInfo = 1;
 }
 
 message GetClassDetailsResult {
     ProtoClassDetails classDetails = 1;
+    bool struct = 2;
 }
 
 message GetInstanceClass {
@@ -131,15 +140,15 @@ message GetInstanceValuesResult {
     repeated ValuePair values = 1;
 }
 
-message CreateGameObject {
-    string name = 1;
-    optional uint64 parent = 2;
+message CreateObject {
+    ProtoClassInfo clazz = 1;
 }
 
-message CreateGameObjectResult {
+message CreateObjectResult {
+    uint64 address = 1;
 }
 
-// Returns GetListSafePtrAddressResult
+// Returns GetSafePtrAddressesResult
 message AddSafePtrAddress {
     uint64 address = 1;
     bool remove = 2;
@@ -185,14 +194,16 @@ message PacketWrapper {
         ReadMemoryResult readMemoryResult = 16;
         WriteMemory writeMemory = 17;
         WriteMemoryResult writeMemoryResult = 18;
-        GetClassDetails getClassDetails = 19;
-        GetClassDetailsResult getClassDetailsResult = 20;
-        GetInstanceClass getInstanceClass = 21;
-        GetInstanceClassResult getInstanceClassResult = 22;
-        GetInstanceValues getInstanceValues = 23;
-        GetInstanceValuesResult getInstanceValuesResult = 24;
-        CreateGameObject createGameObject = 27;
-        CreateGameObjectResult createGameObjectResult = 28;
+        FillTypeInfo fillTypeInfo = 19;
+        FillTypeInfoResult fillTypeInfoResult = 20;
+        GetClassDetails getClassDetails = 21;
+        GetClassDetailsResult getClassDetailsResult = 22;
+        GetInstanceClass getInstanceClass = 23;
+        GetInstanceClassResult getInstanceClassResult = 24;
+        GetInstanceValues getInstanceValues = 25;
+        GetInstanceValuesResult getInstanceValuesResult = 26;
+        CreateObject createObject = 27;
+        CreateObjectResult createObjectResult = 28;
         AddSafePtrAddress addSafePtrAddress = 29;
         GetSafePtrAddresses getSafePtrAddresses = 30;
         GetSafePtrAddressesResult getSafePtrAddressesResult = 31;

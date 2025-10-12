@@ -165,20 +165,18 @@ static void GetGameObjectComponents(GetGameObjectComponents const& packet, uint6
     Socket::Send(wrapper);
 }
 
-static void CreateGameObject(CreateGameObject const& packet, uint64_t id) {
+static void CreateObject(CreateObject const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
 
-    auto go = GameObject::New_ctor(packet.name());
-    auto parent = packet.has_parent() ? asPtr(UnityEngine::GameObject, packet.parent()) : nullptr;
-
-    if (packet.has_parent() && !TryValidatePtr(parent))
-        INPUT_ERROR("parent pointer was invalid")
+    auto clazz = GetClass(packet.clazz());
+    if (!clazz)
+        INPUT_ERROR("class was invalid")
     else {
-        if (packet.has_parent())
-            go->get_transform()->SetParent(parent->get_transform());
-        *wrapper.mutable_creategameobjectresult() = CreateGameObjectResult{};
+        auto object = il2cpp_functions::object_new(clazz);
+        wrapper.mutable_createobjectresult()->set_address(asInt(object));
     }
+
     Socket::Send(wrapper);
 }
 
@@ -306,6 +304,21 @@ ProtoClassDetails GetClassDetailsCached(Il2CppClass* clazz) {
     return ret;
 }
 
+static void FillTypeInfo(FillTypeInfo const& packet, uint64_t id) {
+    PacketWrapper wrapper;
+    wrapper.set_queryresultid(id);
+
+    auto result = wrapper.mutable_filltypeinforesult();
+
+    Il2CppClass* clazz = GetClass(packet.clazz());
+    if (!clazz)
+        INPUT_ERROR("Could not find class {}", packet.clazz().DebugString())
+    else
+        *result->mutable_info() = GetTypeInfo(clazz);
+
+    Socket::Send(wrapper);
+}
+
 static void GetClassDetails(GetClassDetails const& packet, uint64_t id) {
     PacketWrapper wrapper;
     wrapper.set_queryresultid(id);
@@ -313,13 +326,10 @@ static void GetClassDetails(GetClassDetails const& packet, uint64_t id) {
     auto result = wrapper.mutable_getclassdetailsresult();
 
     Il2CppClass* clazz = GetClass(packet.classinfo());
-    if (!clazz) {
+    if (!clazz)
         INPUT_ERROR("Could not find class {}", packet.classinfo().DebugString())
-        Socket::Send(wrapper);
-        return;
-    }
-
-    *result->mutable_classdetails() = GetClassDetailsCached(clazz);
+    else
+        *result->mutable_classdetails() = GetClassDetailsCached(clazz);
 
     Socket::Send(wrapper);
 }
@@ -467,6 +477,9 @@ void Manager::ProcessMessage(PacketWrapper const& packet) {
         case PacketWrapper::kWriteMemory:
             WriteMemory(packet.writememory(), id);
             break;
+        case PacketWrapper::kFillTypeInfo:
+            FillTypeInfo(packet.filltypeinfo(), id);
+            break;
         case PacketWrapper::kGetClassDetails:
             GetClassDetails(packet.getclassdetails(), id);
             break;
@@ -476,8 +489,8 @@ void Manager::ProcessMessage(PacketWrapper const& packet) {
         case PacketWrapper::kGetInstanceValues:
             GetInstanceValues(packet.getinstancevalues(), id);
             break;
-        case PacketWrapper::kCreateGameObject:
-            CreateGameObject(packet.creategameobject(), id);
+        case PacketWrapper::kCreateObject:
+            CreateObject(packet.createobject(), id);
             break;
         case PacketWrapper::kAddSafePtrAddress:
             AddSafePtrAddress(packet.addsafeptraddress(), id);

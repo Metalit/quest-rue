@@ -3,30 +3,38 @@ import {
   arrowTopRightOnSquare,
   barsArrowDown,
   barsArrowUp,
+  check,
   chevronDoubleRight,
   magnifyingGlass,
   pencil,
   plus,
+  square_2Stack,
   xMark,
 } from "solid-heroicons/outline";
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 
+import { Creation } from "../components/Creation";
+import { fillTypeInfo, TypeCell } from "../components/data/TypeCell";
 import {
   DropdownButton,
   ModeOptions,
   SideDropdownButton,
 } from "../components/input/DropdownButton";
+import { SelectInput } from "../components/input/SelectInput";
+import { useDockview } from "../dockview/Api";
+import { selectInLastPanel, selectInNewPanel } from "../global/selection";
 import {
   canMakeVariable,
+  copyVariable,
+  createScopedVariable,
   removeVariable,
   renameVariable,
   Variable,
   variables,
 } from "../global/variables";
+import { ProtoTypeInfo } from "../proto/il2cpp";
 import { protoTypeToString } from "../types/format";
-import { createUpdatingSignal } from "../utils/solid";
-import { selectInLastPanel, selectInNewPanel } from "../global/selection";
-import { useDockview } from "../dockview/Api";
+import { createTrigger, createUpdatingSignal } from "../utils/solid";
 
 const searchModes = ["Name", "Type"] as const;
 
@@ -103,6 +111,7 @@ function VariableCell(props: { index: number }) {
   createEffect(() => renameVariable(name(), input()));
 
   const validInput = () => input() == name() || canMakeVariable(input());
+  const canSelect = () => value().typeInfo?.Info?.$case != "arrayInfo";
 
   const api = useDockview();
 
@@ -120,6 +129,7 @@ function VariableCell(props: { index: number }) {
         icon={chevronDoubleRight}
         mainTitle="Select"
         onMainClick={() => selectInLastPanel(api, value())}
+        mainDisabled={!canSelect()}
         dropdownPosition="end"
         dropdownClass="flex-row"
       >
@@ -134,6 +144,7 @@ function VariableCell(props: { index: number }) {
         <button
           class="btn btn-square"
           onClick={() => selectInNewPanel(api, value())}
+          disabled={!canSelect()}
         >
           <Icon path={arrowTopRightOnSquare} />
         </button>
@@ -169,12 +180,75 @@ export function Variables() {
   const [sorting, setSorting] = createSignal<SortMode>(sortModes[0]);
   const [inverse, setInverse] = createSignal(false);
 
+  const [copyName, setCopyName] = createSignal("");
+  const [typeInput, setTypeInput] = createSignal<ProtoTypeInfo>();
+  const [name, setName] = createSignal("");
+  const [creating, setCreating] = createSignal<ProtoTypeInfo>();
+
+  const variable = createMemo(
+    () => creating() && createScopedVariable(creating()!),
+  );
+
+  const hide = createTrigger();
+
   return (
     <div class="size-full flex flex-col p-2">
       <div class="flex gap-1">
-        <button class="btn btn-square" title="Create Object" disabled>
-          <Icon path={plus} />
-        </button>
+        <DropdownButton
+          icon={plus}
+          title="Create object"
+          hideTrigger={hide}
+          dropdownClass="w-64"
+        >
+          <div class="join">
+            <SelectInput
+              class={`join-item input ${copyName() ? "" : "input-error"}`}
+              placeholder="Copy variable"
+              title="Copy variable"
+              value={copyName()}
+              options={variables.map(({ name }) => name)}
+              onChange={setCopyName}
+              search="default"
+              disabled={variables.length == 0}
+            />
+            <button
+              class="join-item btn btn-square"
+              title="Copy"
+              onClick={() => {
+                hide.trigger();
+                copyVariable(copyName());
+              }}
+              disabled={!copyName()}
+            >
+              <Icon path={square_2Stack} />
+            </button>
+          </div>
+          <div class="join">
+            <TypeCell
+              class="join-item"
+              placeholder="Variable type"
+              title="Variable type"
+              value={typeInput()}
+              onChange={setTypeInput}
+              filter={(type) =>
+                ["classInfo", "structInfo", "arrayInfo"].includes(
+                  type.Info?.$case ?? "",
+                )
+              }
+            />
+            <button
+              class="join-item btn btn-square"
+              title="Use type"
+              onClick={() => {
+                hide.trigger();
+                fillTypeInfo(typeInput()).then(setCreating);
+              }}
+              disabled={!typeInput()}
+            >
+              <Icon path={check} />
+            </button>
+          </div>
+        </DropdownButton>
         <div class="grow join max-w-max min-w-0">
           <input
             class="join-item input input-exp"
@@ -211,6 +285,26 @@ export function Variables() {
           />
         </SideDropdownButton>
       </div>
+      <Show when={creating()}>
+        <div class="rounded bg-base-50 -mx-0.5 mt-1.5 p-1.5 flex flex-col gap-2">
+          <input
+            class="input shrink-0"
+            placeholder="Name"
+            title="Name"
+            use:valueSignal={[name, setName]}
+          />
+          <Creation
+            typeInfo={creating()!}
+            variable={variable()!}
+            cancel={() => setCreating(undefined)}
+            confirm={() => {
+              variable()!
+                .save(name())
+                .then(() => setCreating(undefined));
+            }}
+          />
+        </div>
+      </Show>
       <div class="divider" />
       <VariableList
         search={search()}

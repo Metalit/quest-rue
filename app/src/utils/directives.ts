@@ -38,6 +38,13 @@ export function onHide(element: HTMLElement, value: () => () => void) {
   );
 }
 
+export function stopDrag(element: HTMLElement, value?: () => boolean) {
+  const stop = () => !value || value();
+  createRenderEffect(() => (element.draggable = stop()));
+  element.addEventListener("dragstart", (e) => stop() && e.preventDefault());
+  element.addEventListener("pointerdown", (e) => stop() && e.stopPropagation());
+}
+
 type DirectiveFn = (element: never, accessor: () => never) => void;
 type DirectiveArg<T extends DirectiveFn> = ReturnType<Parameters<T>[1]>;
 
@@ -50,6 +57,7 @@ declare module "solid-js" {
       onCheck: DirectiveArg<typeof onCheck>;
       onEnter: DirectiveArg<typeof onEnter>;
       onHide: DirectiveArg<typeof onHide>;
+      stopDrag: DirectiveArg<typeof stopDrag>;
     }
   }
 }

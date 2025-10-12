@@ -1,10 +1,18 @@
 import { createEffect } from "solid-js";
 
-import { useRequestAndResponsePacket } from "../../global/packets";
-import { ProtoTypeInfo } from "../../proto/il2cpp";
-import { GetTypeComplete, GetTypeCompleteResult } from "../../proto/qrue";
+import {
+  sendPacketResult,
+  useRequestAndResponsePacket,
+} from "../../global/packets";
+import { ProtoClassInfo, ProtoTypeInfo } from "../../proto/il2cpp";
+import {
+  FillTypeInfoResult,
+  GetTypeComplete,
+  GetTypeCompleteResult,
+} from "../../proto/qrue";
 import { protoTypeToString, stringToProtoType } from "../../types/format";
 import { areProtoTypesEqual } from "../../types/matching";
+import { setTypeCase } from "../../types/serialization";
 import { createUpdatingParser } from "../../utils/solid";
 import { SelectInput } from "../input/SelectInput";
 
@@ -15,6 +23,7 @@ interface TypeCellProps {
   placeholder?: string;
   value?: ProtoTypeInfo;
   onChange?: (value: ProtoTypeInfo) => void;
+  filter?: (value: ProtoTypeInfo) => boolean;
 }
 
 function parsePartialInput(input: string): GetTypeComplete {
@@ -31,14 +40,42 @@ function parsePartialInput(input: string): GetTypeComplete {
   else return {};
 }
 
+export async function fillTypeInfo(
+  typeInfo?: ProtoTypeInfo,
+): Promise<ProtoTypeInfo | undefined> {
+  const getInfo = async (clazz?: ProtoClassInfo) =>
+    (await sendPacketResult<FillTypeInfoResult>({ fillTypeInfo: { clazz } })[0])
+      .info;
+
+  switch (typeInfo?.Info?.$case) {
+    case "primitiveInfo":
+    case "genericInfo":
+      return typeInfo;
+    case "enumInfo":
+      return getInfo(typeInfo.Info.enumInfo.clazz);
+    case "classInfo":
+      return getInfo(typeInfo.Info.classInfo);
+    case "structInfo":
+      return getInfo(typeInfo.Info.structInfo.clazz);
+    case "arrayInfo": {
+      if (!typeInfo.Info.arrayInfo.memberType) return undefined;
+      const memberType = await fillTypeInfo(typeInfo.Info.arrayInfo.memberType);
+      return setTypeCase({ arrayInfo: { memberType } });
+    }
+  }
+  return undefined;
+}
+
 export function TypeCell(props: TypeCellProps) {
-  const [input, setInput, valid] = createUpdatingParser(
+  const [input, setInput, valid, clear] = createUpdatingParser(
     () => props.value,
     (value) => props.onChange?.(value),
     areProtoTypesEqual,
     protoTypeToString,
     (input) => stringToProtoType(input)!,
-    (input) => !!stringToProtoType(input),
+    (input) =>
+      !!stringToProtoType(input) &&
+      (!props.filter || props.filter(stringToProtoType(input)!)),
   );
 
   const [completions, , searchTypes] =
@@ -62,6 +99,7 @@ export function TypeCell(props: TypeCellProps) {
       value={input()}
       onInput={setInput}
       options={options()}
+      onBlur={clear}
     />
   );
 }

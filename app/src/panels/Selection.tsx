@@ -12,6 +12,7 @@ import {
   magnifyingGlass,
 } from "solid-heroicons/outline";
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -29,7 +30,7 @@ import {
 import toast from "solid-toast";
 
 import { FieldCell } from "../components/data/FieldCell";
-import { MethodCell, MethodCellMemory } from "../components/data/MethodCell";
+import { MethodCell, MethodCellState } from "../components/data/MethodCell";
 import { PropertyCell } from "../components/data/PropertyCell";
 import { TypeCell } from "../components/data/TypeCell";
 import {
@@ -76,7 +77,7 @@ type Member = ProtoFieldInfo | ProtoPropertyInfo | ProtoMethodInfo;
 
 type ValuesStore = Record<string, ProtoDataSegment | undefined>;
 
-type MethodsStore = Record<string, MethodCellMemory>;
+type MethodsStore = Record<string, MethodCellState>;
 
 const searchModes = ["Name", "Type"] as const;
 
@@ -314,12 +315,15 @@ function DetailsList(props: {
       method={method}
       selection={props.selection}
       updateSelection={props.updateSelection}
-      memory={props.methodsStore[bigToString(method.id)]}
-      setMemory={(...rest: unknown[]) => {
+      state={props.methodsStore[bigToString(method.id)] ?? {}}
+      setState={(...rest: unknown[]) => {
         const key = bigToString(method.id);
-        if (key in unwrap(props.methodsStore) || rest.length == 1)
+        batch(() => {
+          if (!(key in unwrap(props.methodsStore)) && rest.length > 1)
+            props.setMethodsStore(key, {});
           // @ts-expect-error: store setters are way too complicated
           props.setMethodsStore(key, ...rest);
+        });
       }}
     />
   );
@@ -626,7 +630,7 @@ export function Selection() {
           when={!loading() && sync()?.details}
           fallback={
             <div class="center-child">
-              <span class="loading loading-xl" />
+              <span class="loading loading-xl m-2" />
             </div>
           }
         >

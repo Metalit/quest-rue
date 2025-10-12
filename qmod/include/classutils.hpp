@@ -5,9 +5,9 @@
 
 size_t fieldTypeSize(Il2CppType const* type);
 
-#define typeofclass(clazz) &clazz->byval_arg
+#define typeofclass(clazz) (&clazz->byval_arg)
 #define classoftype(type) il2cpp_functions::class_from_il2cpp_type(type)
-#define classofinst(instance) instance->klass
+#define classofinst(instance) (instance->klass)
 #define typeofinst(instance) typeofclass(classofinst(instance))
 
 namespace ClassUtils {

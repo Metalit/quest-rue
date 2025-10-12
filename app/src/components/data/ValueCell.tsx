@@ -4,17 +4,19 @@ import {
   bookmark,
   check,
   chevronDoubleRight,
+  pencil,
   plus,
 } from "solid-heroicons/outline";
-import { createSignal, Match, Show, Switch } from "solid-js";
+import { createMemo, createSignal, JSX, Match, Show, Switch } from "solid-js";
 
 import { useDockview } from "../../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../../global/selection";
 import {
   addVariable,
-  constVariables,
-  findVariablesForType,
   canMakeVariable,
+  constVariables,
+  createScopedVariable,
+  findVariablesForType,
   variables,
 } from "../../global/variables";
 import {
@@ -29,8 +31,13 @@ import {
   stringToDataSegment,
   validString,
 } from "../../types/serialization";
-import { createUpdatingParser } from "../../utils/solid";
+import {
+  createLazyMemo,
+  createTrigger,
+  createUpdatingParser,
+} from "../../utils/solid";
 import { extractCase } from "../../utils/typing";
+import { Creation } from "../Creation";
 import { DropdownButton } from "../input/DropdownButton";
 import { SelectInput } from "../input/SelectInput";
 import { TypeCell } from "./TypeCell";
@@ -48,11 +55,14 @@ interface ValueCellProps {
   placeholder?: string;
   value?: ProtoDataSegment;
   onChange?: (value: ProtoDataSegment) => void;
+  setSlot?: (element: JSX.Element) => void;
 }
 
 function VariableActions(props: {
   typeInfo: ProtoTypeInfo;
   value?: ProtoDataSegment;
+  onChange?: (value: ProtoDataSegment) => void;
+  slot?: (element: JSX.Element) => void;
   readonly?: boolean;
 }) {
   const api = useDockview();
@@ -65,10 +75,32 @@ function VariableActions(props: {
     props.value &&
     !constVariables.some(([, { data }]) => isProtoDataEqual(props.value, data));
 
+  const canSelect = () =>
+    validValue() && props.typeInfo.Info?.$case != "arrayInfo";
+
   const saveVariable = () =>
     validValue() &&
     validName() &&
     addVariable(nameInput(), { data: props.value, typeInfo: props.typeInfo });
+
+  const hide = createTrigger();
+
+  const tempVar = createMemo(() => createScopedVariable(props.typeInfo));
+  const localVar = createMemo(() => createScopedVariable(props.typeInfo));
+
+  const creation = createLazyMemo(() => (
+    <Creation
+      typeInfo={props.typeInfo}
+      variable={tempVar()}
+      cancel={() => props.slot?.(undefined)}
+      confirm={() => {
+        const value = tempVar().get();
+        if (value) props.onChange?.(value);
+        tempVar().transfer(localVar(), true);
+        props.slot?.(undefined);
+      }}
+    />
+  ));
 
   return (
     <DropdownButton
@@ -77,11 +109,13 @@ function VariableActions(props: {
       title="Variable Menu"
       dropdownClass="p-2 gap-2"
       disabled={props.readonly && !validValue()}
+      hideTrigger={hide}
     >
       <div class="flex gap-1">
         <button
           class="grow btn"
-          disabled={!validValue()}
+          title="Select"
+          disabled={!canSelect()}
           onClick={() =>
             selectInLastPanel(api, {
               typeInfo: props.typeInfo,
@@ -94,7 +128,8 @@ function VariableActions(props: {
         </button>
         <button
           class="btn btn-square"
-          disabled={!validValue()}
+          title="Select in new panel"
+          disabled={!canSelect()}
           onClick={() =>
             selectInNewPanel(api, {
               typeInfo: props.typeInfo,
@@ -104,6 +139,25 @@ function VariableActions(props: {
         >
           <Icon path={arrowTopRightOnSquare} />
         </button>
+      </div>
+      <div class="flex gap-1">
+        <button
+          class="grow btn"
+          title="Create object"
+          onClick={() => {
+            hide.trigger();
+            props.slot?.(creation());
+          }}
+          disabled={props.readonly}
+        >
+          Create
+          <Icon path={plus} />
+        </button>
+        <Show when={props.typeInfo.Info?.$case != "classInfo"}>
+          <button class="btn btn-square" title="Edit" disabled>
+            <Icon path={pencil} />
+          </button>
+        </Show>
       </div>
       <div class="join">
         <input
@@ -115,16 +169,13 @@ function VariableActions(props: {
         />
         <button
           class="join-item btn btn-square"
+          title="Save variable"
           disabled={!validValue() || !validName()}
           onClick={saveVariable}
         >
           <Icon path={check} />
         </button>
       </div>
-      <button class="btn" title="Create Object" disabled>
-        Create
-        <Icon path={plus} />
-      </button>
     </DropdownButton>
   );
 }
@@ -135,7 +186,7 @@ function FreeInputCell(props: ValueCellProps) {
     (value) => props.onChange?.(value),
     isProtoDataEqual,
     (value) => protoDataToString(value, props.typeInfo),
-    (input) => stringToDataSegment(input, props.typeInfo),
+    (input) => stringToDataSegment(input, props.typeInfo)!,
     (input) => validString(input, props.typeInfo),
   );
 
@@ -169,7 +220,7 @@ function OptionsInputCell(props: ValueCellProps) {
       options={options()}
       value={protoDataToString(props.value, props.typeInfo)}
       onChange={(value) =>
-        props.onChange?.(stringToDataSegment(value, props.typeInfo))
+        props.onChange?.(stringToDataSegment(value, props.typeInfo)!)
       }
       search="default"
     />
@@ -228,7 +279,12 @@ function VariableInputCell(props: ValueCellProps) {
   // todo: option to create a new variable
   return (
     <span class={`w-input join ${props.class ?? ""}`}>
-      <VariableActions typeInfo={props.typeInfo} value={props.value} />
+      <VariableActions
+        typeInfo={props.typeInfo}
+        value={props.value}
+        onChange={props.onChange}
+        slot={props.setSlot}
+      />
       <SelectInput
         class="join-item input"
         placeholder={props.placeholder}
@@ -261,6 +317,8 @@ function OutputOnlyCell(props: ValueCellProps) {
         <VariableActions
           typeInfo={props.typeInfo}
           value={props.value}
+          onChange={props.onChange}
+          slot={props.setSlot}
           readonly
         />
       </Show>

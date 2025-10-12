@@ -96,9 +96,9 @@
   display: grid;
   grid-template-columns: repeat(
     auto-fill,
-    minmax(max(var(--grid-item-min-width), var(--grid-item-max-width)), 1fr)
+    minmax(max(min(var(--grid-item-min-width), 100%), var(--grid-item-max-width)), 1fr)
   );
-  grid-column-gap: var(--grid-column-gap);
+  column-gap: var(--grid-column-gap);
 }
 
 /* patches */
@@ -114,7 +114,7 @@
     &[disabled] {
       --btn-bg: color-mix(
         in oklab,
-        var(--btn-color, var(--color-base-200)),
+        var(--color-base-200),
         var(--color-base) 15%
       );
       background-color: var(--btn-bg);
@@ -191,6 +191,16 @@
     &:focus,
     &:focus-within {
       border-color: var(--input-color);
+    }
+
+    &.disabled,
+    &.btn-disabled,
+    &[disabled] {
+      background-color: color-mix(
+        in oklab,
+        var(--color-base-100),
+        var(--color-base) 15%
+      );
     }
   }
 

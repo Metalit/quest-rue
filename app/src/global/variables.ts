@@ -1,16 +1,26 @@
+import { batch, createSignal, onCleanup, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
-import { ProtoDataPayload, ProtoTypeInfo } from "../proto/il2cpp";
-import { GetSafePtrAddressesResult } from "../proto/qrue";
+import {
+  ProtoDataPayload,
+  ProtoDataSegment,
+  ProtoTypeInfo,
+} from "../proto/il2cpp";
+import { CreateObjectResult, GetSafePtrAddressesResult } from "../proto/qrue";
 import {
   areProtoClassesConvertible,
   areProtoTypesEqual,
 } from "../types/matching";
-import { setDataCase, setTypeCase, typeForClass } from "../types/serialization";
+import {
+  defaultDataSegment,
+  setDataCase,
+  setTypeCase,
+  typeForClass,
+} from "../types/serialization";
 import { bigToString, uniqueNumber } from "../utils/misc";
 import { extractCase } from "../utils/typing";
 import { getClassDetails, tryGetCachedClassDetails } from "./cache";
-import { sendPacketResult } from "./packets";
+import { sendPacket, sendPacketResult } from "./packets";
 
 export type Variable = {
   id: number;
@@ -83,10 +93,107 @@ export async function removeVariable(name: string) {
   if (idx == -1) return;
   const { value } = variables[idx];
   setVariables(produce((vars) => vars.splice(idx, 1)));
-  if (value.data?.Data?.$case == "classData")
+  if (
+    value.data?.Data?.$case == "classData" &&
+    !findReferenceVariable(value.data.Data.classData)
+  )
     await sendPacketResult({
       addSafePtrAddress: { address: value.data.Data.classData, remove: true },
     })[0];
+}
+
+export async function copyVariable(name: string) {
+  const idx = getVariableIndex(name);
+  if (idx == -1) return;
+  const { value } = variables[idx];
+  addVariable(firstFree(name), ProtoDataPayload.fromPartial(value));
+}
+
+export type ScopedVariable = {
+  get: () => ProtoDataSegment | undefined;
+  set: (value: ProtoDataSegment) => void;
+  make: () => Promise<void>;
+  loading: () => boolean;
+  save: (name: string) => Promise<void>;
+  transfer: (other: ScopedVariable, remake?: boolean) => void;
+};
+
+export function createScopedVariable(typeInfo: ProtoTypeInfo): ScopedVariable {
+  const [get, setData] = createSignal<ProtoDataSegment>();
+  const [loading, setLoading] = createSignal(true);
+
+  let deallocate = () => {};
+
+  const set = (value?: ProtoDataSegment) =>
+    batch(() => {
+      if (
+        extractCase(value?.Data, "classData") !=
+        extractCase(untrack(get)?.Data, "classData")
+      )
+        deallocate();
+      setData(value);
+      setLoading(!value);
+    });
+
+  let make = async () => set(defaultDataSegment(typeInfo));
+
+  const save = async (name: string) => {
+    const data = untrack(get);
+    if (data) await addVariable(firstFree(name), { typeInfo, data });
+  };
+
+  // only need to deal with allocations when dealing with classes
+  if (typeInfo.Info?.$case == "classInfo") {
+    let valid = true;
+    const clazz = typeInfo.Info.classInfo;
+
+    deallocate = () => {
+      const address = extractCase(untrack(get)?.Data, "classData");
+      if (address && !findReferenceVariable(address)) {
+        console.log("deallocate object", address);
+        sendPacket({ addSafePtrAddress: { address, remove: true } });
+      }
+    };
+
+    // the complication is that, since it's async, we may be in the process of allocating it when onCleanup is called
+    onCleanup(() => {
+      // if it's already created and allocated, deallocate it here
+      valid = false;
+      deallocate();
+    });
+
+    make = async () => {
+      set(undefined);
+
+      const { address } = await sendPacketResult<CreateObjectResult>({
+        createObject: { clazz },
+      })[0];
+
+      // if we've already cleaned up, don't bother allocating
+      if (valid) {
+        console.log("allocate object", address);
+        await sendPacketResult({
+          addSafePtrAddress: { address, remove: false },
+        })[0];
+      }
+
+      set(setDataCase({ classData: address }));
+
+      // deallocate if necessary (onCleanup called between allocation and now)
+      if (!valid) deallocate();
+    };
+  }
+
+  const transfer = (other: ScopedVariable, remake?: boolean) => {
+    other.set(untrack(get)!);
+    batch(() => {
+      setData(undefined);
+      if (remake) make();
+      else setLoading(true);
+    });
+  };
+
+  return { get, set, make, loading, save, transfer };
 }
 
 export async function updateReferenceVariables() {
@@ -164,6 +271,8 @@ export function findReferenceVariable(address: bigint) {
 }
 
 export function firstFree(beginning = "unnamed_variable", ignore?: string) {
+  beginning = sanitizeVariableName(beginning);
+
   const usedNums = new Set<number>();
   Object.keys(variables).forEach((name) => {
     if (name !== ignore && name.startsWith(beginning)) {
@@ -186,6 +295,16 @@ export function firstFree(beginning = "unnamed_variable", ignore?: string) {
 
 export function isVariableNameFree(name: string) {
   return !(name in constVariables) && getVariableIndex(name) == -1;
+}
+
+// theoretically should remove all invalid characters (and some valid ones but whatever)
+// and add an underscore if it's a reserved word or starting with a number
+export function sanitizeVariableName(name: string) {
+  if (validVariableName(name)) return name;
+  if (validVariableName("_" + name)) return "_" + name;
+  name = name.replace(/[^A-Z_a-z0-9]|(?<![A-Z_a-z])[0-9]/, "");
+  if (!validVariableName(name)) name = "_" + name;
+  return name;
 }
 
 // https://github.com/mathiasbynens/mothereff.in/blob/master/js-variables/eff.js

@@ -128,7 +128,11 @@ export function DropdownButton(props: DropdownButtonProps) {
 }
 
 export function SideDropdownButton(
-  props: DropdownButtonProps & { mainTitle: string; onMainClick: () => void },
+  props: DropdownButtonProps & {
+    mainTitle: string;
+    onMainClick: () => void;
+    mainDisabled?: boolean;
+  },
 ) {
   const [main, dropdown] = splitProps(props, [
     "class",
@@ -145,6 +149,7 @@ export function SideDropdownButton(
         class={`join-item btn ${props.text ? "" : "btn-square"} ${main.class}`}
         title={main.mainTitle}
         onClick={() => main.onMainClick()}
+        disabled={props.mainDisabled}
       >
         {main.textFirst ? (main.text ?? "") : ""}
         <Icon path={main.icon} />
