@@ -15,10 +15,10 @@ import { useDockview } from "../../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../../global/selection";
 import {
   addVariable,
-  canMakeVariable,
   constVariables,
   createScopedVariable,
   findVariablesForType,
+  firstFree,
   variables,
 } from "../../global/variables";
 import {
@@ -72,8 +72,6 @@ function VariableActions(props: {
 
   const [nameInput, setNameInput] = createSignal("");
 
-  const validName = () => canMakeVariable(nameInput());
-
   const validValue = () =>
     props.value &&
     !constVariables.some(([, { data }]) => isProtoDataEqual(props.value, data));
@@ -83,8 +81,10 @@ function VariableActions(props: {
 
   const saveVariable = () =>
     validValue() &&
-    validName() &&
-    addVariable(nameInput(), { data: props.value, typeInfo: props.typeInfo });
+    addVariable(firstFree(nameInput()), {
+      data: props.value,
+      typeInfo: props.typeInfo,
+    });
 
   const hide = createTrigger();
 
@@ -189,7 +189,7 @@ function VariableActions(props: {
       </div>
       <div class="join">
         <input
-          class={`join-item input ${validName() ? "" : "input-error"}`}
+          class="join-item input"
           placeholder="Save As"
           disabled={!validValue()}
           use:valueSignal={[nameInput, setNameInput]}
@@ -198,7 +198,7 @@ function VariableActions(props: {
         <button
           class="join-item btn btn-square"
           title="Save variable"
-          disabled={!validValue() || !validName()}
+          disabled={!validValue()}
           onClick={saveVariable}
         >
           <Icon path={check} />

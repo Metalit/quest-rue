@@ -85,7 +85,7 @@ async function deallocateVariable(data?: ProtoDataSegment, check?: boolean) {
 }
 
 export async function addVariable(name: string, value: ProtoDataPayload) {
-  if (!isVariableNameFree(name) || !validVariableName(name)) return false;
+  if (!canMakeVariable(name)) return false;
   await populateClassDetails(value.typeInfo);
   value = ProtoDataPayload.fromPartial(value); // copy
   setVariables(variables.length, { id: uniqueNumber(), name, value });
