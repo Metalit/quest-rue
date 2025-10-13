@@ -35,6 +35,7 @@ import {
 import { ProtoTypeInfo } from "../proto/il2cpp";
 import { protoTypeToString } from "../types/format";
 import { createTrigger, createUpdatingSignal } from "../utils/solid";
+import { openFloatingByClick } from "../utils/misc";
 
 const searchModes = ["Name", "Type"] as const;
 
@@ -112,8 +113,11 @@ function VariableCell(props: { index: number }) {
 
   const validInput = () => input() == name() || canMakeVariable(input());
   const canSelect = () => value().typeInfo?.Info?.$case != "arrayInfo";
+  const canEdit = () => value().typeInfo?.Info?.$case != "classInfo";
 
   const api = useDockview();
+
+  const hide = createTrigger();
 
   return (
     <div class="join">
@@ -132,22 +136,32 @@ function VariableCell(props: { index: number }) {
         mainDisabled={!canSelect()}
         dropdownPosition="end"
         dropdownClass="flex-row"
+        hideTrigger={hide}
       >
         <button class="btn btn-square" onClick={() => removeVariable(name())}>
           <Icon path={xMark} />
         </button>
-        <Show when={value().typeInfo?.Info?.$case != "classInfo"}>
-          <button class="btn btn-square" disabled>
+        <Show when={canEdit()}>
+          <button
+            class="btn btn-square"
+            onClick={(e) => {
+              hide.trigger();
+              openFloatingByClick(e, api, "editor", {
+                init: variables[props.index].id,
+              });
+            }}
+          >
             <Icon path={pencil} />
           </button>
         </Show>
-        <button
-          class="btn btn-square"
-          onClick={() => selectInNewPanel(api, value())}
-          disabled={!canSelect()}
-        >
-          <Icon path={arrowTopRightOnSquare} />
-        </button>
+        <Show when={canSelect()}>
+          <button
+            class="btn btn-square"
+            onClick={() => selectInNewPanel(api, value())}
+          >
+            <Icon path={arrowTopRightOnSquare} />
+          </button>
+        </Show>
       </SideDropdownButton>
     </div>
   );

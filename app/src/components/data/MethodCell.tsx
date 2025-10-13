@@ -244,6 +244,8 @@ export function MethodCell(props: MethodCellProps) {
     () => props.setState,
   );
 
+  const [slot, setSlot] = createSignal<JSX.Element>();
+
   const [expanded, setExpanded] = createSignal(false);
 
   const args = (
@@ -269,6 +271,7 @@ export function MethodCell(props: MethodCellProps) {
             readonly
             typeInfo={props.state?.ret?.typeInfo ?? props.method.returnType!}
             value={props.state?.ret?.data}
+            setSlot={setSlot}
           />
           <ActionButton
             class="join-item btn btn-square"
@@ -287,6 +290,9 @@ export function MethodCell(props: MethodCellProps) {
           />
         </div>
       </div>
+      <Show when={slot()}>
+        <div class="floating-menu p-1">{slot()}</div>
+      </Show>
       <Show when={expanded()}>{args}</Show>
     </div>
   );

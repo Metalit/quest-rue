@@ -4,8 +4,10 @@ import {
   bookmark,
   check,
   chevronDoubleRight,
+  eye,
   pencil,
   plus,
+  xMark,
 } from "solid-heroicons/outline";
 import { createMemo, createSignal, JSX, Match, Show, Switch } from "solid-js";
 
@@ -40,6 +42,7 @@ import { extractCase } from "../../utils/typing";
 import { Creation } from "../Creation";
 import { DropdownButton } from "../input/DropdownButton";
 import { SelectInput } from "../input/SelectInput";
+import { DataEditor } from "../Monaco";
 import { TypeCell } from "./TypeCell";
 
 const variableCases: (
@@ -102,6 +105,24 @@ function VariableActions(props: {
     />
   ));
 
+  const editor = createLazyMemo(() => (
+    <div class="w-full h-20 relative">
+      <DataEditor
+        class="size-full"
+        typeInfo={props.typeInfo}
+        value={props.value}
+        onChange={props.onChange}
+        readonly={props.readonly}
+      />
+      <button
+        class="btn btn-square btn-xs bg-base-50 floating-menu! absolute -top-3.5 right-5"
+        onClick={() => props.slot?.(undefined)}
+      >
+        <Icon path={xMark} />
+      </button>
+    </div>
+  ));
+
   return (
     <DropdownButton
       class="join-item"
@@ -154,8 +175,15 @@ function VariableActions(props: {
           <Icon path={plus} />
         </button>
         <Show when={props.typeInfo.Info?.$case != "classInfo"}>
-          <button class="btn btn-square" title="Edit" disabled>
-            <Icon path={pencil} />
+          <button
+            class="btn btn-square"
+            title="Edit"
+            onClick={() => {
+              hide.trigger();
+              props.slot?.(editor());
+            }}
+          >
+            <Icon path={props.readonly ? eye : pencil} />
           </button>
         </Show>
       </div>

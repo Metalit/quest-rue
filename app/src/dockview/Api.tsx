@@ -8,18 +8,20 @@ import {
   DockviewPanelApi,
   FloatingGroupOptions,
 } from "dockview-core";
-import { IDisposable } from "dockview-core/dist/cjs/lifecycle";
 import {
   Component,
   createContext,
   createEffect,
+  createRoot,
   createSignal,
   onCleanup,
   ParentProps,
+  untrack,
   useContext,
 } from "solid-js";
 
 import { uniqueNumber } from "../utils/misc";
+import { dispose } from "../utils/solid";
 
 export type StaticPanelOptions = { create: Component } & Omit<
   AddPanelOptions,
@@ -32,12 +34,8 @@ export interface DockviewPanels {
   [component: string]: StaticPanelOptions;
 }
 
-export const getPanelId = (base: string = "panel") =>
-  `${base}_${uniqueNumber()}`;
-
-function dispose({ dispose }: IDisposable) {
-  onCleanup(dispose);
-}
+export const getPanelId = (prefix: string = "panel") =>
+  `${prefix}_${uniqueNumber()}`;
 
 type Size = { width: number; height: number };
 
@@ -51,7 +49,8 @@ type AddPanelPositionUnion = {
 };
 type AddPanelPosition = AddPanelFloatingGroupUnion | AddPanelPositionUnion;
 export type AddPanelCustom = Partial<
-  AddPanelPosition & Size & { id: string; title: string }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  AddPanelPosition & Size & { id: string; title: string; init: any }
 >;
 
 type AbsolutePosition = {
@@ -73,6 +72,16 @@ export type AddGroupCustom = Partial<
   AddGroupPosition & Size & { id: string; floating: FloatingGroupOptions }
 >;
 
+const panels: Record<
+  string,
+  {
+    refs: number;
+    data: AddPanelCustom["init"];
+    interface?: DockviewPanelInterface;
+    dispose?: () => void;
+  }
+> = {};
+
 function transformFloatingPosition(
   parent: HTMLDivElement,
   floating?: FloatingGroupOptions,
@@ -83,10 +92,15 @@ function transformFloatingPosition(
   return floating;
 }
 
-function transformOptions(parent: HTMLDivElement, options?: AddPanelCustom) {
+function transformPanelOptions(
+  parent: HTMLDivElement,
+  options?: AddPanelCustom,
+) {
   if (typeof options?.floating == "object")
     options.floating = transformFloatingPosition(parent, options.floating);
-  return options;
+  const id = options?.id ?? getPanelId();
+  panels[id] = { refs: 0, data: options?.init };
+  return { ...options, id };
 }
 
 export function makeDockviewInterface(
@@ -96,11 +110,10 @@ export function makeDockviewInterface(
 ) {
   const addPanel = (component: string, options?: AddPanelCustom) =>
     api.addPanel({
-      id: options?.id ?? getPanelId(),
       component,
       initialWidth: options?.width,
       initialHeight: options?.height,
-      ...transformOptions(parent, options),
+      ...transformPanelOptions(parent, options),
       ...panels()[component],
     });
 
@@ -149,12 +162,30 @@ export function DockviewProvider(
 }
 export const useDockview = () => useContext(DockviewContext)!;
 
-export function makeDockviewPanelInterface(api: DockviewPanelApi) {
-  const [title, setTitle] = createSignal(api.title ?? api.id);
-  dispose(api.onDidTitleChange((e) => setTitle(e.title)));
+function makeDockviewPanelInterface(
+  api: DockviewPanelApi,
+  initialTitle: string,
+  disposer: () => void,
+) {
+  api.setTitle(initialTitle);
+  const [title, setTitle] = createSignal(api.title!);
+
+  // the initial title is set by dockview after this function finishes, so ignore that
+  let ignoreFirstTitle = true;
+  let settingTitle = false;
+
+  dispose(
+    api.onDidTitleChange((e) => {
+      if (ignoreFirstTitle && !settingTitle) {
+        ignoreFirstTitle = false;
+        api.setTitle(untrack(title));
+      } else setTitle(e.title);
+    }),
+  );
   createEffect(() => {
+    settingTitle = true;
     api.setTitle(title());
-    requestAnimationFrame(() => api.setTitle(title()));
+    settingTitle = false;
   });
 
   const [active, setActive] = createSignal(api.isActive);
@@ -162,30 +193,67 @@ export function makeDockviewPanelInterface(api: DockviewPanelApi) {
 
   const close = () => api.close();
 
-  return { title, setTitle, active, close, id: api.id, rawApi: api };
+  const panel = panels[api.id];
+  panel.dispose = disposer;
+
+  return {
+    title,
+    setTitle,
+    active,
+    close,
+    id: api.id,
+    data: panel.data,
+    rawApi: api,
+  };
 }
 
-export type DockviewPanelInterface = ReturnType<
-  typeof makeDockviewPanelInterface
->;
+function getDockviewPanelInterface(
+  api: DockviewPanelApi,
+  initialTitle: string,
+) {
+  const panel = panels[api.id];
+  panel.refs++;
+
+  if (!panel.interface)
+    panel.interface = createRoot(
+      makeDockviewPanelInterface.bind(null, api, initialTitle),
+    );
+
+  onCleanup(() => {
+    panel.refs--;
+    if (panel.refs == 0) {
+      panel.dispose?.();
+      delete panels[api.id];
+    }
+  });
+
+  return panel.interface;
+}
+
+export type DockviewPanelInterface<T = AddPanelCustom["init"]> = Omit<
+  ReturnType<typeof makeDockviewPanelInterface>,
+  "data"
+> & { data?: T };
 
 const DockviewPanelContext = createContext<DockviewPanelInterface>();
 export function DockviewPanelProvider(
   props: ParentProps<{
-    staticValue: Parameters<typeof makeDockviewPanelInterface>;
+    staticValue: Parameters<typeof getDockviewPanelInterface>;
   }>,
 ) {
   return (
     <DockviewPanelContext.Provider
-      value={makeDockviewPanelInterface(...props.staticValue)}
+      value={getDockviewPanelInterface(...props.staticValue)}
     >
       {props.children}
     </DockviewPanelContext.Provider>
   );
 }
-export const useDockviewPanel = () => useContext(DockviewPanelContext)!;
+export function useDockviewPanel<T = AddPanelCustom["init"]>() {
+  return useContext(DockviewPanelContext) as DockviewPanelInterface<T>;
+}
 
-export function makeDockviewGroupInterface(api: DockviewGroupPanelApi) {
+function makeDockviewGroupInterface(api: DockviewGroupPanelApi) {
   const [location, setLocation] = createSignal(api.location.type);
   dispose(
     api.onDidLocationChange(({ location }) => setLocation(location.type)),

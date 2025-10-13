@@ -5,6 +5,7 @@ import {
   createRenderEffect,
   createSignal,
   getOwner,
+  onCleanup,
   runWithOwner,
   Signal,
   SignalOptions,
@@ -135,6 +136,14 @@ export function createLazyMemo<T>(compute: () => T) {
     value = runWithOwner(owner, compute)!;
     return value;
   };
+}
+
+/**
+ * Automatically disposes a disposable on onCleanup
+ *
+ */
+export function dispose(disposable: { dispose: () => void }) {
+  onCleanup(() => disposable.dispose());
 }
 
 export type Trigger<T extends unknown[] = []> = {

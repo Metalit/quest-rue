@@ -110,7 +110,7 @@ export class CustomPanel
   }
 
   protected provide: typeof this._provide = (_params) => (
-    <DockviewPanelProvider staticValue={[_params.api]}>
+    <DockviewPanelProvider staticValue={[_params.api, _params.title]}>
       <this._create />
     </DockviewPanelProvider>
   );
@@ -121,7 +121,7 @@ export class CustomTab
   implements ITabRenderer
 {
   protected provide: typeof this._provide = (_params) => (
-    <DockviewPanelProvider staticValue={[_params.api]}>
+    <DockviewPanelProvider staticValue={[_params.api, _params.title]}>
       <this._create />
     </DockviewPanelProvider>
   );

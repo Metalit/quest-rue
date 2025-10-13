@@ -408,7 +408,7 @@ function NoSelection() {
       typeInfo: type(),
     });
 
-  const validAddress = () => !!addressInput().match(/^0x[0-9a-f]+$/);
+  const validAddress = () => !!addressInput().match(/^0x[0-9a-f]+|[0-9]+$/);
 
   const selectAddress = async () => {
     if (!validAddress()) return;
@@ -429,7 +429,7 @@ function NoSelection() {
 
   return (
     <div class="center-child">
-      <div class="floating-menu border-shadow flex flex-col gap-2 p-2">
+      <div class="floating-menu flex flex-col gap-2 p-2">
         No Selection
         <div class="join">
           <TypeCell

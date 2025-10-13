@@ -1,6 +1,6 @@
 import toast from "solid-toast";
+
 import { AddPanelCustom, DockviewInterface } from "../dockview/Api";
-import { Trigger } from "./solid";
 
 export function uniqueNumber(min = 0, max = Number.MAX_SAFE_INTEGER) {
   return Math.floor(Math.random() * (max - min) + min);
@@ -46,10 +46,8 @@ export function openFloatingByClick(
   event: MouseEvent,
   api: DockviewInterface,
   panel: string,
-  trigger?: Trigger,
   options?: Omit<AddPanelCustom, "position" | "floating">,
 ) {
-  trigger?.trigger();
   api.addPanel(panel, {
     floating: { x: event.x - 10, y: event.y - 50 },
     ...options,

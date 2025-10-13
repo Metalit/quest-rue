@@ -34,7 +34,8 @@ function getVariableIndex(name: string) {
   return variables.findIndex(({ name: variableName }) => variableName == name);
 }
 
-export function getVariable(id: number) {
+export function getVariable(id?: number) {
+  if (id == undefined) return undefined;
   return variables.find(({ id: variableId }) => variableId == id);
 }
 
@@ -61,23 +62,45 @@ export const constVariables: [string, ProtoDataPayload][] = [
   ],
 ];
 
+// only do it for classInfo and not structInfo, since the cached details are used to check for substitutions
+async function populateClassDetails(typeInfo?: ProtoTypeInfo) {
+  if (typeInfo?.Info?.$case != "classInfo") return;
+  const classInfo = typeInfo.Info.classInfo;
+  if (!tryGetCachedClassDetails(classInfo)) await getClassDetails(classInfo);
+}
+
+async function allocateVariable(data?: ProtoDataSegment) {
+  if (data?.Data?.$case == "classData")
+    await sendPacketResult({
+      addSafePtrAddress: { address: data.Data.classData, remove: false },
+    })[0];
+}
+
+async function deallocateVariable(data?: ProtoDataSegment, check?: boolean) {
+  if (data?.Data?.$case != "classData") return;
+  if (check && findReferenceVariable(data.Data.classData)) return;
+  await sendPacketResult({
+    addSafePtrAddress: { address: data.Data.classData, remove: true },
+  })[0];
+}
+
 export async function addVariable(name: string, value: ProtoDataPayload) {
   if (!isVariableNameFree(name) || !validVariableName(name)) return false;
-  if (value.typeInfo?.Info?.$case == "classInfo")
-    await getClassDetails(value.typeInfo.Info.classInfo);
+  await populateClassDetails(value.typeInfo);
   value = ProtoDataPayload.fromPartial(value); // copy
-  setVariables(variables.length, { name, value });
-  if (value.data?.Data?.$case == "classData")
-    await sendPacketResult({
-      addSafePtrAddress: { address: value.data.Data.classData, remove: false },
-    })[0];
+  setVariables(variables.length, { id: uniqueNumber(), name, value });
+  await allocateVariable(value.data);
   return true;
 }
 
-export async function updateVariable(name: string, value: ProtoDataPayload) {
-  if (!(name in variables)) return false;
-  await removeVariable(name);
-  return await addVariable(name, value);
+export async function updateVariable(name: string, value: ProtoDataSegment) {
+  const idx = getVariableIndex(name);
+  if (idx == -1) return false;
+  const prev = variables[idx];
+  setVariables(idx, "value", "data", ProtoDataSegment.fromPartial(value));
+  await deallocateVariable(prev.value.data);
+  await allocateVariable(value);
+  return true;
 }
 
 export function renameVariable(oldName: string, newName: string) {
@@ -93,13 +116,7 @@ export async function removeVariable(name: string) {
   if (idx == -1) return;
   const { value } = variables[idx];
   setVariables(produce((vars) => vars.splice(idx, 1)));
-  if (
-    value.data?.Data?.$case == "classData" &&
-    !findReferenceVariable(value.data.Data.classData)
-  )
-    await sendPacketResult({
-      addSafePtrAddress: { address: value.data.Data.classData, remove: true },
-    })[0];
+  await deallocateVariable(value.data, true);
 }
 
 export async function copyVariable(name: string) {
@@ -263,7 +280,8 @@ export function findVariablesForType(typeInfo: ProtoTypeInfo) {
     );
 }
 
-export function findReferenceVariable(address: bigint) {
+export function findReferenceVariable(address?: bigint) {
+  if (!address) return undefined;
   return variables.find(
     ({ value: { data } }) =>
       data?.Data?.$case == "classData" && data.Data.classData === address,
