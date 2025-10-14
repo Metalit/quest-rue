@@ -9,8 +9,10 @@ import {
 } from "../../proto/il2cpp";
 import { GetFieldResult, SetFieldResult } from "../../proto/qrue";
 import { isProtoDataEqual } from "../../types/matching";
+import { fieldInfoId } from "../../types/serialization";
 import { extractCase } from "../../utils/typing";
 import { ActionButton } from "../input/ActionButton";
+import { CellPinButton, CellTextLabel } from "./CellShared";
 import { ValueCell } from "./ValueCell";
 
 interface FieldCellProps {
@@ -19,6 +21,7 @@ interface FieldCellProps {
   updateSelection: (data: ProtoDataSegment) => void;
   value?: ProtoDataSegment;
   setValue: (data?: ProtoDataSegment) => void;
+  pinsKey: string;
 }
 
 function setStructField(
@@ -86,11 +89,13 @@ export function FieldCell(props: FieldCellProps) {
 
   return (
     <div class="flex flex-col gap-1">
-      <div class="flex items-center justify-between">
-        <span class="mono grow min-w-0" title={props.field.name}>
-          {props.field.name}
-        </span>
-        <div class="join w-3/5 shrink-0 justify-end">
+      <div class="flex items-center gap-1">
+        <CellTextLabel text={props.field.name} class="grow min-w-0" />
+        <CellPinButton
+          pinsKey={props.pinsKey}
+          pinId={fieldInfoId(props.field)}
+        />
+        <div class="join w-input-[2rem] max-w-3/5 shrink-0">
           <ValueCell
             class="join-item mono"
             typeInfo={props.field.type!}

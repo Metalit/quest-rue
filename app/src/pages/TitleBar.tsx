@@ -16,8 +16,10 @@ import { updateGameObjects } from "../global/hierarchy";
 import {
   columnCount,
   darkMode,
+  defaultMemberPins,
   monoFont,
   setColumnCount,
+  setMemberPins,
   setMonoFont,
 } from "../global/settings";
 import { socket } from "../global/socket";
@@ -49,7 +51,7 @@ function OptionsMenu() {
         Remember Selection
       </label>
       <div class="divider" />
-      <button class="btn" disabled>
+      <button class="btn" onClick={() => setMemberPins(defaultMemberPins)}>
         Reset Member Pins
       </button>
     </>

@@ -65,6 +65,13 @@
   width: max(3rem, min(20rem, 100%));
 }
 
+@utility w-input-* {
+  width: max(
+    calc(3rem + --value([length])),
+    min(calc(20rem + --value([length])), 100%)
+  );
+}
+
 @utility input-exp {
   width: 20rem;
 }
@@ -85,6 +92,8 @@
   scrollbar-gutter: stable;
 }
 
+@custom-variant parent-hover (&:where(:hover > *));
+
 /* https://css-tricks.com/an-auto-filling-css-grid-with-max-columns/ */
 .max-cols-grid {
   --gap-count: calc(var(--grid-column-count) - 1);
@@ -96,7 +105,10 @@
   display: grid;
   grid-template-columns: repeat(
     auto-fill,
-    minmax(max(min(var(--grid-item-min-width), 100%), var(--grid-item-max-width)), 1fr)
+    minmax(
+      max(min(var(--grid-item-min-width), 100%), var(--grid-item-max-width)),
+      1fr
+    )
   );
   column-gap: var(--grid-column-gap);
 }

@@ -77,6 +77,22 @@ const primitiveStringMap = new TwoWayMap({
   unknown: ProtoTypeInfo_Primitive.UNKNOWN,
 });
 
+const shortPrimitiveStringMap = new TwoWayMap({
+  b: ProtoTypeInfo_Primitive.BOOLEAN,
+  c: ProtoTypeInfo_Primitive.CHAR,
+  y: ProtoTypeInfo_Primitive.BYTE,
+  s: ProtoTypeInfo_Primitive.SHORT,
+  i: ProtoTypeInfo_Primitive.INT,
+  l: ProtoTypeInfo_Primitive.LONG,
+  f: ProtoTypeInfo_Primitive.FLOAT,
+  d: ProtoTypeInfo_Primitive.DOUBLE,
+  w: ProtoTypeInfo_Primitive.STRING,
+  t: ProtoTypeInfo_Primitive.TYPE,
+  p: ProtoTypeInfo_Primitive.PTR,
+  v: ProtoTypeInfo_Primitive.VOID,
+  u: ProtoTypeInfo_Primitive.UNKNOWN,
+});
+
 function getByref(input: string): [ProtoTypeInfo_Byref, string] {
   const lower = input.toLocaleLowerCase();
   if (lower.startsWith("ref "))
@@ -91,7 +107,7 @@ function getByref(input: string): [ProtoTypeInfo_Byref, string] {
 // will return classInfo for enum and struct types as well
 export function stringToProtoType(
   input: string,
-  requireValid = false,
+  requireValid?: boolean,
 ): ProtoTypeInfo | undefined {
   input = input.trim();
   const [byref, trimmed] = getByref(input);
@@ -133,37 +149,42 @@ export function stringToProtoType(
   return undefined;
 }
 
-export function protoClassToString(classInfo: ProtoClassInfo): string {
+export function protoClassToString(classInfo: ProtoClassInfo, short?: boolean) {
   let ret = `${classInfo.clazz}`;
   if (classInfo.generics?.length) {
     ret += "<";
-    ret += classInfo.generics.map((t) => protoTypeToString(t)).join(", ");
+    ret += classInfo.generics
+      .map((t) => protoTypeToString(t, short))
+      .join(", ");
     ret += ">";
   }
   return `${classInfo.namespaze}::${ret}`;
 }
 
-export function protoTypeToString(type?: ProtoTypeInfo): string {
+export function protoTypeToString(
+  type?: ProtoTypeInfo,
+  short?: boolean,
+): string {
   if (!type) return "";
   let str: string | undefined = undefined;
   switch (type.Info?.$case) {
     case "classInfo":
-      str = protoClassToString(type.Info.classInfo);
+      str = protoClassToString(type.Info.classInfo, short);
       break;
     case "arrayInfo":
-      str = protoTypeToString(type.Info.arrayInfo.memberType!) + "[]";
+      str = protoTypeToString(type.Info.arrayInfo.memberType!, short) + "[]";
       break;
     case "structInfo":
-      str = protoClassToString(type.Info.structInfo.clazz!);
+      str = protoClassToString(type.Info.structInfo.clazz!, short);
       break;
     case "genericInfo":
       str = type.Info.genericInfo.name;
       break;
     case "primitiveInfo":
-      str = primitiveToString(type.Info.primitiveInfo);
+      str = primitiveToString(type.Info.primitiveInfo, short);
       break;
     case "enumInfo":
-      str = protoClassToString(type.Info.enumInfo.clazz!);
+      str = protoClassToString(type.Info.enumInfo.clazz!, short);
       break;
   }
   str = str ?? "";
@@ -180,12 +201,16 @@ export function protoTypeToString(type?: ProtoTypeInfo): string {
 
 export function stringToPrimitive(
   str: string,
+  short?: boolean,
 ): ProtoTypeInfo_Primitive | undefined {
-  return primitiveStringMap.get(str);
+  return (short ? shortPrimitiveStringMap : primitiveStringMap).get(str);
 }
 
 export function primitiveToString(
   primitive: ProtoTypeInfo_Primitive,
+  short?: boolean,
 ): string | undefined {
-  return primitiveStringMap.getStr(primitive);
+  return (short ? shortPrimitiveStringMap : primitiveStringMap).getStr(
+    primitive,
+  );
 }

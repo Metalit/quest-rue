@@ -74,10 +74,10 @@ function Tab() {
   const { title, close } = useDockviewPanel();
 
   return (
-    <div class="flex gap-2 items-center h-full hover:*:visible">
+    <div class="flex gap-2 items-center h-full">
       {title()}
       <button
-        class="invisible btn btn-square btn-ghost btn-sm"
+        class="invisible parent-hover:visible btn btn-square btn-ghost btn-sm"
         onClick={close}
         use:stopDrag
       >

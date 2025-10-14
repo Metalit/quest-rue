@@ -9,7 +9,9 @@ import {
   ProtoPropertyInfo,
 } from "../../proto/il2cpp";
 import { InvokeMethodResult } from "../../proto/qrue";
+import { propertyInfoId } from "../../types/serialization";
 import { ActionButton } from "../input/ActionButton";
+import { CellPinButton, CellTextLabel } from "./CellShared";
 import { ValueCell } from "./ValueCell";
 
 interface PropertyCellProps {
@@ -18,6 +20,7 @@ interface PropertyCellProps {
   updateSelection: (data: ProtoDataSegment) => void;
   value?: ProtoDataSegment;
   setValue: (data?: ProtoDataSegment) => void;
+  pinsKey: string;
 }
 
 export function PropertyCell(props: PropertyCellProps) {
@@ -65,11 +68,13 @@ export function PropertyCell(props: PropertyCellProps) {
 
   return (
     <div class="flex flex-col gap-1">
-      <div class="flex items-center justify-between">
-        <span class="mono grow min-w-0" title={props.property.name}>
-          {props.property.name}
-        </span>
-        <div class="join w-3/5 shrink-0 justify-end">
+      <div class="flex items-center gap-1">
+        <CellTextLabel text={props.property.name} class="grow min-w-0" />
+        <CellPinButton
+          pinsKey={props.pinsKey}
+          pinId={propertyInfoId(props.property)}
+        />
+        <div class="join w-input-[2rem] max-w-3/5 shrink-0">
           <ValueCell
             class="join-item mono"
             readonly={!props.property.setterId}

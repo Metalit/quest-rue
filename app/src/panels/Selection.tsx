@@ -54,7 +54,7 @@ import {
   setLastPanel,
   updateSelection,
 } from "../global/selection";
-import { columnCount } from "../global/settings";
+import { columnCount, memberPins } from "../global/settings";
 import {
   ProtoClassDetails,
   ProtoClassInfo,
@@ -67,7 +67,13 @@ import {
 } from "../proto/il2cpp";
 import { GetInstanceClassResult, GetInstanceValuesResult } from "../proto/qrue";
 import { protoClassToString, protoTypeToString } from "../types/format";
-import { setDataCase, setTypeCase } from "../types/serialization";
+import {
+  fieldInfoId,
+  methodInfoId,
+  propertyInfoId,
+  setDataCase,
+  setTypeCase,
+} from "../types/serialization";
 import { bigToString, stringToBig } from "../utils/misc";
 import { createAsyncMemo } from "../utils/solid";
 
@@ -154,6 +160,8 @@ function compareMembers(
   return inverse ? ret * -1 : ret;
 }
 
+type ListPair<T> = [T[], T[]];
+
 function filterMembers<T extends Member>(
   members: T[],
   statics: T[],
@@ -163,7 +171,7 @@ function filterMembers<T extends Member>(
   visibility: VisibilityMode,
   sort: SortMode,
   inverse: boolean,
-): [T[], T[]] {
+): ListPair<T> {
   let first: T;
   if (members.length != 0) first = members[0];
   else if (statics.length != 0) first = statics[0];
@@ -211,7 +219,37 @@ function filterMembers<T extends Member>(
       .sort((member1, member2) =>
         compareMembers(member1, member2, sort, inverse, "Default"),
       ),
-  ) as [T[], T[]];
+  ) as ListPair<T>;
+}
+
+function filterPins<T extends Member>(
+  members: T[],
+  statics: T[],
+  pins: string[],
+  memberToId: (member: T) => string,
+): ListPair<T> {
+  // keep pins sorted
+  return [members, statics].map((list) =>
+    pins
+      .map((id) => list.find((member) => memberToId(member) == id))
+      .filter((value) => value != undefined),
+  ) as ListPair<T>;
+}
+
+function hasPins(details?: ProtoClassDetails): boolean {
+  return (
+    !!details &&
+    ((memberPins[protoClassToString(details.clazz!, true)] ?? []).some(
+      (id) =>
+        details.fields.some((field) => fieldInfoId(field) == id) ||
+        details.staticFields.some((field) => fieldInfoId(field) == id) ||
+        details.properties.some((prop) => propertyInfoId(prop) == id) ||
+        details.staticProperties.some((prop) => propertyInfoId(prop) == id) ||
+        details.methods.some((method) => methodInfoId(method) == id) ||
+        details.staticMethods.some((method) => methodInfoId(method) == id),
+    ) ||
+      hasPins(details.parent))
+  );
 }
 
 function StyledCellGrid<T>(props: {
@@ -221,12 +259,149 @@ function StyledCellGrid<T>(props: {
   return (
     <Show when={props.items.length > 0}>
       <MaxColsGrid
-        class="p-2 pl-3 gap-y-2 bg-base-50 rounded"
+        class="p-2 gap-y-2 bg-base-50 rounded"
         maxCols={columnCount()}
       >
         <For each={props.items}>{props.item}</For>
       </MaxColsGrid>
     </Show>
+  );
+}
+
+function GroupedMembersList(props: {
+  selection: ProtoDataPayload;
+  updateSelection: (data: ProtoDataSegment) => void;
+  details: ProtoClassDetails;
+  values: ValuesStore;
+  setValues: SetStoreFunction<ValuesStore>;
+  methodsStore: MethodsStore;
+  setMethodsStore: SetStoreFunction<MethodsStore>;
+  fieldLists: ListPair<ProtoFieldInfo>;
+  propertyLists: ListPair<ProtoPropertyInfo>;
+  methodLists: ListPair<ProtoMethodInfo>;
+  header?: string;
+  staticsHeader?: boolean;
+}) {
+  const pinsKey = () => protoClassToString(props.details.clazz!, true);
+
+  const fieldCell = (field: ProtoFieldInfo) => (
+    <FieldCell
+      field={field}
+      selection={props.selection}
+      updateSelection={props.updateSelection}
+      value={props.values[bigToString(field.id)]}
+      setValue={(value) => props.setValues(bigToString(field.id), value)}
+      pinsKey={pinsKey()}
+    />
+  );
+
+  const propertyCell = (property: ProtoPropertyInfo) => (
+    <PropertyCell
+      property={property}
+      selection={props.selection}
+      updateSelection={props.updateSelection}
+      value={props.values[bigToString(property.id)]}
+      setValue={(value) => props.setValues(bigToString(property.id), value)}
+      pinsKey={pinsKey()}
+    />
+  );
+
+  const methodCell = (method: ProtoMethodInfo) => (
+    <MethodCell
+      method={method}
+      selection={props.selection}
+      updateSelection={props.updateSelection}
+      state={props.methodsStore[bigToString(method.id)] ?? {}}
+      setState={(...rest: unknown[]) => {
+        const key = bigToString(method.id);
+        batch(() => {
+          if (!(key in unwrap(props.methodsStore)) && rest.length > 1)
+            props.setMethodsStore(key, {});
+          // @ts-expect-error: store setters are way too complicated
+          props.setMethodsStore(key, ...rest);
+        });
+      }}
+      pinsKey={pinsKey()}
+    />
+  );
+
+  const showStaticsHeader = () =>
+    props.staticsHeader &&
+    (props.fieldLists[1].length > 0 ||
+      props.propertyLists[1].length > 0 ||
+      props.methodLists[1].length > 0);
+
+  return (
+    <>
+      <Show when={props.header != undefined}>
+        <span class="ml-1 mt-1 -mb-1 mono">{props.header}</span>
+      </Show>
+      <StyledCellGrid items={props.fieldLists[0]} item={fieldCell} />
+      <StyledCellGrid items={props.propertyLists[0]} item={propertyCell} />
+      <StyledCellGrid items={props.methodLists[0]} item={methodCell} />
+      <Show when={showStaticsHeader()}>
+        <div class="divider text-xs text-secondary-content -my-1">
+          Static Members
+        </div>
+      </Show>
+      <StyledCellGrid items={props.fieldLists[1]} item={fieldCell} />
+      <StyledCellGrid items={props.propertyLists[1]} item={propertyCell} />
+      <StyledCellGrid items={props.methodLists[1]} item={methodCell} />
+    </>
+  );
+}
+
+function PinsList(props: {
+  selection: ProtoDataPayload;
+  updateSelection: (data: ProtoDataSegment) => void;
+  details: ProtoClassDetails;
+  values: ValuesStore;
+  setValues: SetStoreFunction<ValuesStore>;
+  methodsStore: MethodsStore;
+  setMethodsStore: SetStoreFunction<MethodsStore>;
+}) {
+  const pins = () =>
+    memberPins[protoClassToString(props.details.clazz!, true)] ?? [];
+
+  const fieldLists = createMemo(() =>
+    filterPins(
+      props.details.fields,
+      props.details.staticFields,
+      pins(),
+      fieldInfoId,
+    ),
+  );
+
+  const propertyLists = createMemo(() =>
+    filterPins(
+      props.details.properties,
+      props.details.staticProperties,
+      pins(),
+      propertyInfoId,
+    ),
+  );
+
+  const methodLists = createMemo(() =>
+    filterPins(
+      props.details.methods,
+      props.details.staticMethods,
+      pins(),
+      methodInfoId,
+    ),
+  );
+
+  return (
+    <>
+      <GroupedMembersList
+        {...props}
+        fieldLists={fieldLists()}
+        propertyLists={propertyLists()}
+        methodLists={methodLists()}
+      />
+      <Show when={props.details.parent}>
+        <PinsList {...props} details={props.details.parent!} />
+      </Show>
+    </>
   );
 }
 
@@ -244,7 +419,7 @@ function DetailsList(props: {
   visibility: VisibilityMode;
   sort: SortMode;
   inverse: boolean;
-  first: boolean;
+  header?: boolean;
 }) {
   const visibility = () =>
     props.selection.data
@@ -290,70 +465,18 @@ function DetailsList(props: {
     ),
   );
 
-  const fieldCell = (field: ProtoFieldInfo) => (
-    <FieldCell
-      field={field}
-      selection={props.selection}
-      updateSelection={props.updateSelection}
-      value={props.values[bigToString(field.id)]}
-      setValue={(value) => props.setValues(bigToString(field.id), value)}
-    />
-  );
-
-  const propertyCell = (property: ProtoPropertyInfo) => (
-    <PropertyCell
-      property={property}
-      selection={props.selection}
-      updateSelection={props.updateSelection}
-      value={props.values[bigToString(property.id)]}
-      setValue={(value) => props.setValues(bigToString(property.id), value)}
-    />
-  );
-
-  const methodCell = (method: ProtoMethodInfo) => (
-    <MethodCell
-      method={method}
-      selection={props.selection}
-      updateSelection={props.updateSelection}
-      state={props.methodsStore[bigToString(method.id)] ?? {}}
-      setState={(...rest: unknown[]) => {
-        const key = bigToString(method.id);
-        batch(() => {
-          if (!(key in unwrap(props.methodsStore)) && rest.length > 1)
-            props.setMethodsStore(key, {});
-          // @ts-expect-error: store setters are way too complicated
-          props.setMethodsStore(key, ...rest);
-        });
-      }}
-    />
-  );
-
-  const hasStaticsSection = () =>
-    props.visibility == "Static Members Last" &&
-    (fieldLists()[1].length > 0 ||
-      propertyLists()[1].length > 0 ||
-      methodLists()[1].length > 0);
-
   return (
     <>
-      <Show when={!props.first}>
-        <span class="ml-1 mt-1 -mb-1 mono">
-          {protoClassToString(props.details.clazz!)}
-        </span>
-      </Show>
-      <StyledCellGrid items={fieldLists()[0]} item={fieldCell} />
-      <StyledCellGrid items={propertyLists()[0]} item={propertyCell} />
-      <StyledCellGrid items={methodLists()[0]} item={methodCell} />
-      <Show when={hasStaticsSection()}>
-        <div class="divider text-xs text-secondary-content -my-1">
-          Static Members
-        </div>
-      </Show>
-      <StyledCellGrid items={fieldLists()[1]} item={fieldCell} />
-      <StyledCellGrid items={propertyLists()[1]} item={propertyCell} />
-      <StyledCellGrid items={methodLists()[1]} item={methodCell} />
+      <GroupedMembersList
+        {...props}
+        fieldLists={fieldLists()}
+        propertyLists={propertyLists()}
+        methodLists={methodLists()}
+        header={protoClassToString(props.details.clazz!)}
+        staticsHeader
+      />
       <Show when={props.details.parent}>
-        <DetailsList {...props} details={props.details.parent!} first={false} />
+        <DetailsList {...props} details={props.details.parent!} header={true} />
       </Show>
     </>
   );
@@ -635,6 +758,15 @@ export function Selection() {
           }
         >
           <div class="grow gutter overflow-auto flex flex-col pr-1.5 gap-2">
+            <PinsList
+              selection={selection()!}
+              updateSelection={(data) => updateSelection(id, data)}
+              details={sync()!.details!}
+              values={sync()!.values}
+              setValues={sync()!.setValues}
+              methodsStore={sync()!.methodsStore}
+              setMethodsStore={sync()!.setMethodsStore}
+            />
             <DetailsList
               selection={selection()!}
               updateSelection={(data) => updateSelection(id, data)}
@@ -649,7 +781,7 @@ export function Selection() {
               visibility={visibility()}
               sort={sorting()}
               inverse={inverse()}
-              first
+              header={hasPins(sync()!.details)}
             />
           </div>
         </Show>

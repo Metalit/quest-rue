@@ -10,6 +10,7 @@ import {
   Signal,
   SignalOptions,
 } from "solid-js";
+import { createStore, SetStoreFunction, Store } from "solid-js/store";
 
 /**
  * A signal that resets its value when its dependencies change
@@ -43,8 +44,7 @@ export function createUpdatingParser<T>(
 
   const validInput = () => !valid || valid(input());
 
-  // eslint-disable-next-line solid/reactivity
-  let lastParsedInput = validInput() ? fromString(input()) : undefined;
+  let lastParsedInput = !valid || valid("") ? fromString("") : undefined;
 
   // each time a new value is input, parse it and update (if valid)
   createEffect(() => {
@@ -59,10 +59,7 @@ export function createUpdatingParser<T>(
   // update if the value changed from the outside source
   createEffect(() => {
     const newValue = value();
-    if (!equals(lastParsedInput, newValue)) {
-      lastParsedInput = newValue; // prevent sending unnecessary updates
-      setInput(toString(newValue));
-    }
+    if (!equals(lastParsedInput, newValue)) setInput(toString(newValue));
   });
 
   const clearInput = () => setInput(toString(lastParsedInput));
@@ -91,6 +88,25 @@ export function createPersistentSignal<T>(
     localStorage.setItem(key, toString ? toString(val()) : String(val()));
   });
   return [val, setVal];
+}
+
+/**
+ * Stores the store value in browser local storage (must be JSON serializable)
+ * Uses the default value if none exists prior to use
+ *
+ */
+export function createPersistentStore<T>(
+  key: string,
+  defaultVal: T,
+): [Store<T>, SetStoreFunction<T>] {
+  const stored = localStorage.getItem(key);
+  const [store, setStore] = createStore(
+    stored ? JSON.parse(stored) : defaultVal,
+  );
+  createEffect(() => {
+    localStorage.setItem(key, JSON.stringify(store));
+  });
+  return [store, setStore];
 }
 
 /**

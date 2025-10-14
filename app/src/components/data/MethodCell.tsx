@@ -35,10 +35,12 @@ import {
 } from "../../types/generics";
 import {
   defaultDataSegment,
+  methodInfoId,
   stringToDataSegment,
 } from "../../types/serialization";
 import { ActionButton } from "../input/ActionButton";
 import { MaxColsGrid } from "../MaxColsGrid";
+import { CellPinButton, CellTextLabel } from "./CellShared";
 import { TypeCell } from "./TypeCell";
 import { ValueCell } from "./ValueCell";
 
@@ -46,14 +48,6 @@ export interface MethodCellState {
   ret?: ProtoDataPayload;
   generics?: GenericsMap;
   args?: ProtoDataPayload[];
-}
-
-interface MethodCellProps {
-  method: ProtoMethodInfo;
-  selection: ProtoDataPayload;
-  updateSelection: (data: ProtoDataSegment) => void;
-  state: MethodCellState;
-  setState: SetStoreFunction<MethodCellState>;
 }
 
 function hasArgs(state: MethodCellState) {
@@ -235,6 +229,15 @@ function MethodCellArguments(props: {
   );
 }
 
+interface MethodCellProps {
+  method: ProtoMethodInfo;
+  selection: ProtoDataPayload;
+  updateSelection: (data: ProtoDataSegment) => void;
+  state: MethodCellState;
+  setState: SetStoreFunction<MethodCellState>;
+  pinsKey: string;
+}
+
 export function MethodCell(props: MethodCellProps) {
   const [run, loading, canRun] = getRunner(
     () => props.method,
@@ -258,14 +261,13 @@ export function MethodCell(props: MethodCellProps) {
 
   return (
     <div class="flex flex-col gap-1">
-      <div class="flex items-center">
-        <span
-          class="mono grow min-w-0 whitespace-nowrap text-ellipsis"
-          title={props.method.name}
-        >
-          {props.method.name}
-        </span>
-        <div class="join w-3/5 shrink-0 justify-end">
+      <div class="flex items-center gap-1">
+        <CellTextLabel text={props.method.name} class="grow min-w-0" />
+        <CellPinButton
+          pinsKey={props.pinsKey}
+          pinId={methodInfoId(props.method)}
+        />
+        <div class="join w-input-[2rem] max-w-3/5 shrink-0">
           <ValueCell
             class="join-item mono"
             readonly
@@ -333,12 +335,7 @@ export function ConstructorCell(props: ConstructorCellProps) {
   return (
     <div class="flex flex-col gap-1">
       <div class="flex items-center">
-        <span
-          class="mono grow min-w-0 whitespace-nowrap text-ellipsis"
-          title={name()}
-        >
-          {name()}
-        </span>
+        <CellTextLabel text={name()} class="grow min-w-0" />
         <div class="join">
           <ActionButton
             class="join-item btn btn-square"

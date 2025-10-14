@@ -115,6 +115,7 @@ export function areProtoClassesConvertible(
 }
 
 function areUint8ArraysEqual(array1: Uint8Array, array2: Uint8Array) {
+  console.log("equal?", new TextDecoder("utf-16").decode(array1), new TextDecoder("utf-16").decode(array2));
   return (
     array1.length == array2.length &&
     array1.every((value, idx) => value == array2[idx])

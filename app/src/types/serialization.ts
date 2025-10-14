@@ -1,6 +1,9 @@
 import {
   ProtoDataPayload,
   ProtoDataSegment,
+  ProtoFieldInfo,
+  ProtoMethodInfo,
+  ProtoPropertyInfo,
   ProtoTypeInfo,
   ProtoTypeInfo_Byref,
   ProtoTypeInfo_Primitive,
@@ -140,6 +143,7 @@ function primitiveToDataSegment(
       // +1 to add null char
       const utf16Arr = new Uint16Array(getBuffer((input.length + 1) * 2));
       for (let i = 0; i < input.length; i++) utf16Arr[i] = input.charCodeAt(i);
+      utf16Arr[input.length] = 0;
       break;
     }
     case ProtoTypeInfo_Primitive.TYPE:
@@ -417,4 +421,21 @@ export function protoDataToRealValue(
       );
   }
   return "";
+}
+
+// the "id" field in these are actually their addresses, and are not stable across game launches
+
+export function fieldInfoId(info: ProtoFieldInfo) {
+  return info.name;
+}
+
+export function propertyInfoId(info: ProtoPropertyInfo) {
+  return info.name;
+}
+
+export function methodInfoId(info: ProtoMethodInfo) {
+  return [
+    info.name,
+    ...info.args.map(({ type }) => protoTypeToString(type, true)),
+  ].join(" ");
 }
