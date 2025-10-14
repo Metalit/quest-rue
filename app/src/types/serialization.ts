@@ -352,9 +352,10 @@ function primitiveDataToRealValue(
     case ProtoTypeInfo_Primitive.DOUBLE:
       return bytes.getFloat64(0, true);
     case ProtoTypeInfo_Primitive.STRING: {
+      // -2 to remove null char
       const slice = bytes.buffer.slice(
         data.byteOffset,
-        data.byteOffset + data.byteLength,
+        data.byteOffset + data.byteLength - 2,
       );
       return new TextDecoder("utf-16").decode(slice);
     }

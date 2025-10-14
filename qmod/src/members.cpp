@@ -192,7 +192,7 @@ ProtoDataSegment OutputPrimitive(ProtoTypeInfo::Primitive info, void* value, int
             if (auto str = *(Il2CppString**) value) {
                 LOG_DEBUG("String of length {}", str->length);
                 // while codegen says this is just one char16, it's actually a char16[]
-                std::string retStr((char*) &str->chars[0], str->length * sizeof(Il2CppChar));
+                std::string retStr((char*) &str->chars[0], (str->length + 1) * sizeof(Il2CppChar));
                 ret.set_primitivedata(retStr);
             } else {
                 LOG_DEBUG("Null string");
