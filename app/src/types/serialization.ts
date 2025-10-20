@@ -262,7 +262,7 @@ function validPrimitiveString(
   primitive: ProtoTypeInfo_Primitive,
 ): boolean {
   const checkBytes = (bytes: number) =>
-    !!input.match(/^[0-9]+$/) &&
+    !!input.match(/^-?[0-9]+$/) &&
     BigInt(input) < BigInt(2) ** BigInt(bytes * 8 - 1) &&
     BigInt(input) >= -(BigInt(2) ** BigInt(bytes * 8 - 1));
   switch (primitive) {
@@ -280,7 +280,7 @@ function validPrimitiveString(
       return checkBytes(8);
     case ProtoTypeInfo_Primitive.FLOAT:
     case ProtoTypeInfo_Primitive.DOUBLE:
-      return !!input.match(/^[0-9]*(?:(?:\.[0-9]+)|[0-9])$/);
+      return !!input.match(/^-?[0-9]*(?:(?:\.[0-9]+)|[0-9])$/);
     case ProtoTypeInfo_Primitive.STRING:
       return true;
     case ProtoTypeInfo_Primitive.TYPE:
