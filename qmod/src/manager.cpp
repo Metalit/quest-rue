@@ -351,6 +351,8 @@ static void GetInstanceClass(GetInstanceClass const& packet, uint64_t id) {
 }
 
 static void AddFieldValue(ProtoDataPayload const& instance, ProtoFieldInfo const& field, GetInstanceValuesResult& ret) {
+    if (field.type().size() > 64)
+        return;
     auto& value = *ret.add_values();
     value.set_id(field.id());
     auto fieldInfo = asPtr(FieldInfo, field.id());
@@ -358,7 +360,7 @@ static void AddFieldValue(ProtoDataPayload const& instance, ProtoFieldInfo const
 }
 
 static void AddPropertyValue(ProtoDataPayload const& instance, ProtoPropertyInfo const& prop, GetInstanceValuesResult& ret) {
-    if (!prop.has_getterid() || !prop.getterid())
+    if (!prop.has_getterid() || !prop.getterid() || prop.type().size() > 64)
         return;
     auto getter = asPtr(MethodInfo, prop.getterid());
     auto result = MethodUtils::Run(getter, instance, {});
