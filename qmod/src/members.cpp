@@ -144,19 +144,23 @@ ProtoDataPayload VoidDataPayload() {
     return ret;
 }
 
-ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value);
+ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value, bool isAlwaysPointer);
 
-ProtoDataSegment OutputClass(ProtoClassInfo const& info, void* value, int size) {
+ProtoDataSegment OutputClass(ProtoClassInfo const& info, void* value, int size, bool isAlwaysPointer) {
     ProtoDataSegment ret;
-    LOG_DEBUG("Outputting class pointer {} {}", *(int64_t*) value, fmt::ptr(*(void**) value));
-    ret.set_classdata(*(int64_t*) value);
+    if (isAlwaysPointer)
+        value = *(void**) value;
+    LOG_DEBUG("Outputting class pointer {} {}", (uintptr_t) value, fmt::ptr(value));
+    ret.set_classdata((uintptr_t) value);
     return ret;
 }
 
-ProtoDataSegment OutputArray(ProtoArrayInfo const& info, void* value, int size) {
+ProtoDataSegment OutputArray(ProtoArrayInfo const& info, void* value, int size, bool isAlwaysPointer) {
     ProtoDataSegment ret;
-    LOG_DEBUG("Outputting array {}", fmt::ptr(*(void**) value));
-    auto arr = *(Il2CppArray**) value;
+    if (isAlwaysPointer)
+        value = *(void**) value;
+    LOG_DEBUG("Outputting array {}", fmt::ptr(value));
+    auto arr = (Il2CppArray*) value;
     if (!arr || arr->max_length <= 0)
         return ret;
 
@@ -166,7 +170,7 @@ ProtoDataSegment OutputArray(ProtoArrayInfo const& info, void* value, int size) 
     int memberSize = info.membertype().size();
     LOG_DEBUG("Length {} member size {}", arr->max_length, memberSize);
     for (int i = 0; i < arr->max_length; i++)
-        *ret_arr->add_data() = OutputType(info.membertype(), pointerOffset(values, i * memberSize));
+        *ret_arr->add_data() = OutputType(info.membertype(), pointerOffset(values, i * memberSize), isAlwaysPointer);
 
     return ret;
 }
@@ -178,18 +182,20 @@ ProtoDataSegment OutputStruct(ProtoStructInfo const& info, void* value, int size
 
     for (auto& field : info.fieldoffsets()) {
         LOG_DEBUG("Adding field at offset {}", field.first);
-        auto fieldData = OutputType(field.second.type(), pointerOffset(value, field.first));
+        auto fieldData = OutputType(field.second.type(), pointerOffset(value, field.first), true);
         retStruct->mutable_data()->insert({field.first, fieldData});
     }
     return ret;
 }
 
-ProtoDataSegment OutputPrimitive(ProtoTypeInfo::Primitive info, void* value, int size) {
+ProtoDataSegment OutputPrimitive(ProtoTypeInfo::Primitive info, void* value, int size, bool isAlwaysPointer) {
     ProtoDataSegment ret;
     LOG_DEBUG("Outputting primitive {}", (int) info);
     switch (info) {
         case ProtoTypeInfo::STRING: {
-            if (auto str = *(Il2CppString**) value) {
+            if (isAlwaysPointer)
+                value = *(void**) value;
+            if (auto str = (Il2CppString*) value) {
                 LOG_DEBUG("String of length {}", str->length);
                 // while codegen says this is just one char16, it's actually a char16[]
                 std::string retStr((char*) &str->chars[0], (str->length + 1) * sizeof(Il2CppChar));
@@ -201,7 +207,9 @@ ProtoDataSegment OutputPrimitive(ProtoTypeInfo::Primitive info, void* value, int
             break;
         }
         case ProtoTypeInfo::TYPE: {
-            auto type = il2cpp_functions::class_from_system_type(*(Il2CppReflectionType**) value);
+            if (isAlwaysPointer)
+                value = *(void**) value;
+            auto type = il2cpp_functions::class_from_system_type((Il2CppReflectionType*) value);
             // I could have a oneof in the primitive case instead of only bytes...
             // but that would mean *another* whole extra message when I can just do this
             std::string retStr = ClassUtils::GetTypeInfo(type).SerializeAsString();
@@ -221,18 +229,18 @@ ProtoDataSegment OutputEnum(ProtoEnumInfo const& info, void* value, int size) {
     return ret;
 }
 
-ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value) {
+ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value, bool isAlwaysPointer) {
     if (!value)
         return {};
     switch (typeInfo.Info_case()) {
         case ProtoTypeInfo::kClassInfo:
-            return OutputClass(typeInfo.classinfo(), value, typeInfo.size());
+            return OutputClass(typeInfo.classinfo(), value, typeInfo.size(), isAlwaysPointer);
         case ProtoTypeInfo::kArrayInfo:
-            return OutputArray(typeInfo.arrayinfo(), value, typeInfo.size());
+            return OutputArray(typeInfo.arrayinfo(), value, typeInfo.size(), isAlwaysPointer);
         case ProtoTypeInfo::kStructInfo:
             return OutputStruct(typeInfo.structinfo(), value, typeInfo.size());
         case ProtoTypeInfo::kPrimitiveInfo:
-            return OutputPrimitive(typeInfo.primitiveinfo(), value, typeInfo.size());
+            return OutputPrimitive(typeInfo.primitiveinfo(), value, typeInfo.size(), isAlwaysPointer);
         case ProtoTypeInfo::kEnumInfo:
             return OutputEnum(typeInfo.enuminfo(), value, typeInfo.size());
         case ProtoTypeInfo::kGenericInfo:
@@ -242,10 +250,10 @@ ProtoDataSegment OutputType(ProtoTypeInfo const& typeInfo, void* value) {
     }
 }
 
-ProtoDataPayload OutputData(ProtoTypeInfo const& typeInfo, void* value) {
+ProtoDataPayload OutputData(ProtoTypeInfo const& typeInfo, void* value, bool isAlwaysPointer) {
     LOG_DEBUG("Outputting data");
     ProtoDataPayload ret;
-    *ret.mutable_data() = OutputType(typeInfo, value);
+    *ret.mutable_data() = OutputType(typeInfo, value, isAlwaysPointer);
     *ret.mutable_typeinfo() = typeInfo;
     return ret;
 }
@@ -257,7 +265,7 @@ std::map<int, ProtoDataPayload> GetByrefOutputs(std::vector<ProtoDataPayload> co
         if (typeInfo.byref_() == ProtoTypeInfo_Byref_NONE || typeInfo.byref_() == ProtoTypeInfo_Byref_IN)
             continue;
         auto& data = ret[i];
-        *data.mutable_data() = OutputType(typeInfo, filledList[i]);
+        *data.mutable_data() = OutputType(typeInfo, filledList[i], false);
         *data.mutable_typeinfo() = typeInfo;
     }
     return ret;
@@ -276,7 +284,7 @@ ProtoDataPayload HandleReturn(MethodInfo const* method, Il2CppObject* ret = null
         // boxedReturn is a pointer to a reference type, so we want to have that pointer as the value we return
         memcpy(ownedValue, &ret, size);
     auto typeInfo = ClassUtils::GetTypeInfo(method->return_type);
-    return OutputData(typeInfo, ownedValue);
+    return OutputData(typeInfo, ownedValue, true);
 }
 
 #ifdef UNITY_2021
@@ -296,7 +304,7 @@ namespace MethodUtils {
             inst = HandleType(object.typeinfo(), object.data());
         auto ret = Run(method, inst, args);
         if (inst)
-            ret.self = OutputType(object.typeinfo(), inst);
+            ret.self = OutputType(object.typeinfo(), inst, false);
         return ret;
     }
     MethodResult Run(MethodInfo const* method, void* object, std::vector<ProtoDataPayload> const& args) {
@@ -398,7 +406,7 @@ namespace FieldUtils {
 
         // handles the transformation of the data if necessary
         auto typeInfo = ClassUtils::GetTypeInfo(field->type);
-        return OutputData(typeInfo, ret);
+        return OutputData(typeInfo, ret, true);
     }
 
     void Set(FieldInfo const* field, ProtoDataPayload const& object, ProtoDataPayload const& arg) {
