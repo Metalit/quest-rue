@@ -24,6 +24,7 @@ export const defaultMemberPins = {
     "active",
     "transform",
     "GetComponents",
+    "GetComponent",
     "AddComponent",
   ],
   "UnityEngine::Transform": [
@@ -36,8 +37,26 @@ export const defaultMemberPins = {
     "lossyScale",
     "localScale",
   ],
-  "UnityEngine::Component": ["gameObject", "GetComponents"],
+  "UnityEngine::RectTransform": [
+    "anchoredPosition",
+    "sizeDelta",
+    "anchorMin",
+    "anchorMax",
+    "pivot",
+  ],
+  "UnityEngine::Component": ["gameObject", "GetComponents", "GetComponent"],
   "UnityEngine::Object": ["name", "Destroy UnityEngine::Object"],
+  "TMPro::TMP_Text": [
+    "text",
+    "color",
+    "fontSize",
+    "fontStyle",
+    "alignment",
+    "enableWordWrapping",
+    "overflowMode",
+    "richText",
+    "margin",
+  ],
 } as MemberPins;
 
 export const [memberPins, setMemberPins] = createPersistentStore<MemberPins>(
