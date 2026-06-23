@@ -50,6 +50,8 @@ In the `app` directory, run `pnpm install` and `pnpm tauri dev`. This will start
 
 If modifying the protobuf schemas, follow the steps to build the quest mod after running `pnpm install`, and the Typescript protobuf files will also be updated.
 
+To use mock data, first make sure some is recorded using the button in the "Options" menu in development mode, then restart with the `VITE_MOCK` environment variable set to true.
+
 #### Node frontend
 
 To start up the frontend by itself, run `pnpm run dev` and open the URL in the browser (usually <http://localhost:1420>)

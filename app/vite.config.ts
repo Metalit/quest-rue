@@ -68,8 +68,7 @@ export default defineConfig({
         }
       : undefined,
     watch: {
-      // tell vite to ignore watching `src-tauri`
-      ignored: ["**/src-tauri/**"],
+      ignored: ["**/src-tauri/**", "**/mock.json"],
     },
   },
   // to make use of `TAURI_DEBUG` and other env variables

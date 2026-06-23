@@ -2,17 +2,18 @@ import { Accessor, batch, createSignal, untrack } from "solid-js";
 import toast from "solid-toast";
 
 import { PacketWrapper } from "../proto/qrue";
+import { loadRecordedData, mockHandleMessage } from "./mock";
 
 export type Callback<T> = (value: T) => void;
 
-export abstract class QuestRUESocket {
+abstract class QuestRUESocket {
   abstract connectImpl(
     address: string,
     port: number,
     id: number,
   ): Promise<boolean>;
   abstract disconnectImpl(): void;
-  abstract sendData(data: Uint8Array): void;
+  abstract sendData(wrapper: PacketWrapper): void;
 
   connect(address: string, port: number, toastDisplay: string | undefined) {
     if (this.connected()) console.warn("called connect on connected socket");
@@ -87,9 +88,8 @@ export abstract class QuestRUESocket {
     });
   }
 
-  onMessage(bytes: Uint8Array) {
-    const packet = PacketWrapper.decode(bytes);
-    this.onPacketCallbacks.forEach((callback) => callback(packet));
+  onMessage(wrapper: PacketWrapper) {
+    this.onPacketCallbacks.forEach((callback) => callback(wrapper));
   }
 
   connecting: Accessor<boolean>;
@@ -107,9 +107,12 @@ export abstract class QuestRUESocket {
     [this.connected, this.setConnected] = createSignal(false);
   }
 
+  onSendCallback: Callback<PacketWrapper> | undefined = undefined;
+
   sendPacket(wrapper: PacketWrapper) {
-    if (untrack(this.connected))
-      this.sendData(PacketWrapper.encode(wrapper).finish());
+    if (!untrack(this.connected)) return;
+    this.onSendCallback?.(wrapper);
+    this.sendData(wrapper);
   }
 
   onPacketCallbacks: Callback<PacketWrapper>[] = [];
@@ -125,7 +128,7 @@ export abstract class QuestRUESocket {
   }
 }
 
-export class NodeWebSocket extends QuestRUESocket {
+class NodeWebSocket extends QuestRUESocket {
   socket: WebSocket | undefined;
 
   connectImpl(ip: string, port: number, id: number): Promise<boolean> {
@@ -155,7 +158,7 @@ export class NodeWebSocket extends QuestRUESocket {
       };
       this.socket.onmessage = (event) => {
         if (this.connectionId === id)
-          this.onMessage(new Uint8Array(event.data));
+          this.onMessage(PacketWrapper.decode(new Uint8Array(event.data)));
       };
     });
   }
@@ -165,9 +168,25 @@ export class NodeWebSocket extends QuestRUESocket {
     this.socket = undefined;
   }
 
-  sendData(data: Uint8Array) {
-    this.socket?.send(data);
+  sendData(packet: PacketWrapper) {
+    this.socket?.send(PacketWrapper.encode(packet).finish());
   }
 }
 
-export const socket: QuestRUESocket = new NodeWebSocket();
+class MockWebSocket extends QuestRUESocket {
+  async connectImpl(): Promise<boolean> {
+    const success = await loadRecordedData();
+    if (success) this.onConnect();
+    return success;
+  }
+
+  disconnectImpl() {}
+
+  sendData(wrapper: PacketWrapper) {
+    mockHandleMessage(wrapper, (packet) => this.onMessage(packet));
+  }
+}
+
+export const socket: QuestRUESocket = import.meta.env.VITE_MOCK
+  ? new MockWebSocket()
+  : new NodeWebSocket();

@@ -21,20 +21,25 @@ const setPacketCase = setCase<PacketTypesFull>;
 function addCallback<TResponse>(
   success: Callback<TResponse>,
   inputError: Callback<string>,
-  id: { value?: bigint },
+  state: { id?: bigint; debugPacket?: PacketTypes },
 ): Callback<PacketWrapper> {
   const callback = (wrapper: PacketWrapper) => {
-    if (id.value && wrapper.queryResultId === id.value) {
-      if (wrapper.Packet?.$case == "inputError")
-        inputError(wrapper.Packet.inputError);
-      else
+    if (state.id && wrapper.queryResultId === state.id) {
+      if (wrapper.Packet?.$case == "inputError") {
+        const error = wrapper.Packet.inputError;
+        toast.error(`Error in input: ${error}`);
+        console.error("Input error for packet:", state.debugPacket);
+        inputError(error);
+      } else {
         // evil casting to get whatever the oneOf value is
         success(
           (wrapper.Packet as unknown as Record<string, TResponse>)[
             wrapper.Packet!.$case!
           ],
         );
-      id.value = undefined;
+      }
+      state.id = undefined;
+      state.debugPacket = undefined;
     }
   };
   socket.addOnPacket(callback);
@@ -70,7 +75,7 @@ export function sendPacketResult<TResponse>(
         cancel();
         err(error);
       },
-      { value: id },
+      { id, debugPacket: packet },
     );
   });
 
@@ -100,7 +105,7 @@ export function useRequestAndResponsePacket<TResponse>(
   const [loading, setLoading] = createSignal<boolean>(false);
 
   // use an object so that we can update the value later and use it in the callback
-  const currentId: { value?: bigint } = {};
+  const state: { id?: bigint; debugPacket?: PacketTypes } = {};
 
   addCallback<TResponse>(
     (packet) => {
@@ -109,14 +114,13 @@ export function useRequestAndResponsePacket<TResponse>(
         setLoading(false);
       });
     },
-    (error) => {
-      toast.error(`Error in input: ${error}`);
+    () => {
       batch(() => {
         setValue(undefined);
         setLoading(false);
       });
     },
-    currentId,
+    state,
   );
 
   // Return the state and a callback for invoking reads
@@ -124,7 +128,8 @@ export function useRequestAndResponsePacket<TResponse>(
     if (untrack(loading) && !allowConcurrent) return;
 
     const id = uniqueBigNumber();
-    currentId.value = id;
+    state.id = id;
+    state.debugPacket = packet;
     setLoading(true);
     sendPacket(packet, id);
   };

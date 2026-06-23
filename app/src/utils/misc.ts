@@ -18,6 +18,23 @@ export function stringToBig(num: string) {
   return BigInt(num);
 }
 
+export function toBase64(arr: Uint8Array) {
+  const bin: string[] = [];
+  arr.forEach((byte) => {
+    bin.push(String.fromCharCode(byte));
+  });
+  return btoa(bin.join(""));
+}
+
+export function fromBase64(base64: string) {
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; ++i) {
+    arr[i] = bin.charCodeAt(i);
+  }
+  return arr;
+}
+
 export function errorHandle<R, T extends () => R>(func: T) {
   try {
     return func();

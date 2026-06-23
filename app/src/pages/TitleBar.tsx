@@ -8,7 +8,7 @@ import {
   viewColumns,
   xMark,
 } from "solid-heroicons/outline";
-import { ParentProps, Show } from "solid-js";
+import { createSignal, ParentProps, Show } from "solid-js";
 
 import { DropdownButton } from "../components/input/DropdownButton";
 import SegmentedControl from "../components/input/SegmentedControl";
@@ -25,10 +25,39 @@ import {
 import { socket } from "../global/socket";
 import { IconPath } from "../utils/typing";
 import { setDarkMode } from "../global/theme";
+import {
+  isRecordingData,
+  startRecordingData,
+  stopRecordingData,
+} from "../global/mock";
 
 function OptionsMenu() {
+  const [clearMock, setClearMock] = createSignal(false);
+
   return (
     <>
+      <Show when={import.meta.env.DEV && !import.meta.env.VITE_MOCK}>
+        <button
+          class="btn"
+          onClick={() =>
+            isRecordingData()
+              ? stopRecordingData()
+              : startRecordingData(clearMock())
+          }
+        >
+          {isRecordingData() ? "Stop Mock Recording" : "Start Mock Recording"}
+        </button>
+        <label class="label mx-1 mt-1 text-sm">
+          <input
+            type="checkbox"
+            class="toggle toggle-sm"
+            checked={clearMock()}
+            use:onCheck={setClearMock}
+          />
+          Clear On New
+        </label>
+        <div class="divider" />
+      </Show>
       <button
         class="btn"
         disabled={!socket.connected()}
