@@ -12,17 +12,17 @@ Currently on the roadmap:
 - [x] Connect to Quest
 - [ ] Reconnection and state
 - [x] Wired-only connection
-- [x] Unity components list
+- [ ] Unity components list
 - [x] Adding components
 - [x] Modifying fields
-- [ ] Modifying properties
+- [x] Modifying properties
 - [x] Invoking methods
-- [ ] Byref support
-- [ ] Type completion
-- [ ] Enumerations
+- [x] Byref support
+- [x] Type completion
+- [x] Enumerations
 - [ ] Object finding
-- [ ] Structure editor
-- [ ] Creating objects
+- [x] Structure editor
+- [x] Creating objects
 - [x] Destroying objects
 - [ ] Finalize protobuf schema
 
