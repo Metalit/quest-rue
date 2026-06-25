@@ -114,13 +114,17 @@ export function DropdownButton(props: DropdownButtonProps) {
       {!props.textFirst ? (props.text ?? "") : ""}
       <Portal mount={document.getElementById("app")!}>
         <div
-          class={`dropdown ${pos()} floating-menu flex flex-col p-1 gap-1 items-stretch ${props.dropdownClass ?? ""}`}
+          class={`dropdown ${pos()} floating-menu`}
           style={`position-anchor:--drpdn-anchor-${id}`}
           popover
           ref={popover}
           id={`drpdn-pop-${id}`}
         >
-          {props.children}
+          <div
+            class={`flex flex-col p-1 gap-1 items-stretch ${props.dropdownClass ?? ""}`}
+          >
+            {props.children}
+          </div>
         </div>
       </Portal>
     </button>

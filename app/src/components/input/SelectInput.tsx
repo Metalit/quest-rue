@@ -174,21 +174,25 @@ export function SelectInput<V = string, O extends V = V>(
           ref={menuElement}
           onFocusIn={focusIn}
           onFocusOut={checkFocusOut}
-          class={`dropdown dropdown-${dropdownPosition(custom.dropdownPosition)} floating-menu
-                  flex flex-col p-1 gap-1 max-h-56 empty:transition-none empty:hidden`}
+          class={`dropdown dropdown-${dropdownPosition(custom.dropdownPosition)} floating-menu`}
           popover="manual"
           style={`position-anchor:--sel-in-anchor-${id}`}
         >
-          <For each={options()}>
-            {(option) => (
-              <button
-                class={`btn ${isSelected(option) ? "btn-accent" : ""}`}
-                onClick={() => select(option)}
-              >
-                {display(option)}
-              </button>
-            )}
-          </For>
+          <div
+            class={`flex flex-col p-1 gap-1 max-h-56
+                    empty:transition-none empty:hidden`}
+          >
+            <For each={options()}>
+              {(option) => (
+                <button
+                  class={`btn ${isSelected(option) ? "btn-accent" : ""}`}
+                  onClick={() => select(option)}
+                >
+                  {display(option)}
+                </button>
+              )}
+            </For>
+          </div>
         </div>
       </Portal>
     </>

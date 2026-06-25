@@ -103,7 +103,10 @@ export default function SceneViewer() {
         leftHeader={LeftHeader}
         rightHeader={RightHeader}
         tabs={{ default: Tab }}
-        options={{ floatingGroupBounds: "boundedWithinViewport" }}
+        options={{
+          floatingGroupBounds: "boundedWithinViewport",
+          noPanelsOverlay: "emptyGroup",
+        }}
         onReady={({ addPanel }) => {
           addPanel("selection", { id: "selection" });
           addPanel("variables", {
