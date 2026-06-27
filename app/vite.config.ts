@@ -33,7 +33,6 @@ export default defineConfig({
             "valueSignal",
             "onCheck",
             "onEnter",
-            "onHide",
             "stopDrag",
           ],
         },

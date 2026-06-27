@@ -5,7 +5,7 @@ import { For, ParentProps, Setter, splitProps } from "solid-js";
 import { SetStoreFunction } from "solid-js/store";
 import { Portal } from "solid-js/web";
 
-import { instantHidePopover, uniqueNumber } from "../../utils/misc";
+import { uniqueNumber } from "../../utils/misc";
 import { Trigger, setTrigger } from "../../utils/solid";
 import { IconPath } from "../../utils/typing";
 
@@ -107,7 +107,6 @@ export function DropdownButton(props: DropdownButtonProps) {
       popovertarget={`drpdn-pop-${id}`}
       title={props.title}
       disabled={props.disabled}
-      use:onHide={() => instantHidePopover(popover)}
     >
       {props.textFirst ? (props.text ?? "") : ""}
       <Icon path={props.icon} />

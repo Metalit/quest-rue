@@ -52,13 +52,6 @@ export function isTauri(): boolean {
   );
 }
 
-export function instantHidePopover(popover: HTMLDivElement) {
-  popover.style.transition = "none";
-  popover.hidePopover();
-  window.getComputedStyle(popover).transition;
-  popover.style.transition = "";
-}
-
 export function openFloatingByClick(
   event: MouseEvent,
   api: DockviewInterface,

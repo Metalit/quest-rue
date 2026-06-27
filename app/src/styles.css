@@ -273,6 +273,9 @@
     /* why doesn't this work on scroll? */
     position-try: flip-block, flip-inline;
     position-visibility: anchors-visible;
+    /* instantly hides when the anchor becomes invalid */
+    max-width: calc(anchor-size(width, 0) * 999999);
+    overflow: hidden;
   }
 }
 

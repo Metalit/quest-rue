@@ -9,7 +9,7 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
-import { instantHidePopover, uniqueNumber } from "../../utils/misc";
+import { uniqueNumber } from "../../utils/misc";
 import { createUpdatingSignal } from "../../utils/solid";
 import { dropdownPosition, DropdownPositions } from "./DropdownButton";
 
@@ -153,11 +153,6 @@ export function SelectInput<V = string, O extends V = V>(
         ref={inputElement}
         onFocus={focusIn}
         onBlur={checkFocusOut}
-        use:onHide={() => {
-          instantHidePopover(menuElement);
-          focusOut();
-          inputElement.blur();
-        }}
         use:valueSignal={[input, setInput]}
         use:onEnter={() => {
           if (options().length > 0) select(options()[0]);

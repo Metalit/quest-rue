@@ -1,4 +1,3 @@
-import { createResizeObserver } from "@solid-primitives/resize-observer";
 import { createRenderEffect } from "solid-js";
 
 export function onInput(
@@ -31,13 +30,6 @@ export function onEnter(element: HTMLElement, value: () => () => void) {
   element.addEventListener("keypress", (e) => e.key == "Enter" && value()());
 }
 
-export function onHide(element: HTMLElement, value: () => () => void) {
-  createResizeObserver(
-    element,
-    ({ width, height }) => width == 0 && height == 0 && value()(),
-  );
-}
-
 export function stopDrag(element: HTMLElement, value?: () => boolean) {
   const stop = () => !value || value();
   createRenderEffect(() => (element.draggable = stop()));
@@ -56,7 +48,6 @@ declare module "solid-js" {
       valueSignal: DirectiveArg<typeof valueSignal>;
       onCheck: DirectiveArg<typeof onCheck>;
       onEnter: DirectiveArg<typeof onEnter>;
-      onHide: DirectiveArg<typeof onHide>;
       stopDrag: DirectiveArg<typeof stopDrag>;
     }
   }
