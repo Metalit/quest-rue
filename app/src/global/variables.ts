@@ -167,7 +167,6 @@ export function createScopedVariable(typeInfo: ProtoTypeInfo): ScopedVariable {
     deallocate = () => {
       const address = extractCase(untrack(get)?.Data, "classData");
       if (address && !findReferenceVariable(address)) {
-        console.log("deallocate object", address);
         sendPacket({ addSafePtrAddress: { address, remove: true } });
       }
     };
@@ -188,7 +187,6 @@ export function createScopedVariable(typeInfo: ProtoTypeInfo): ScopedVariable {
 
       // if we've already cleaned up, don't bother allocating
       if (valid) {
-        console.log("allocate object", address);
         await sendPacketResult({
           addSafePtrAddress: { address, remove: false },
         })[0];

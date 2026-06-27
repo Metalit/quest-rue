@@ -41,8 +41,6 @@ export async function updateGameObjects() {
     } else roots.push(address);
   });
 
-  console.log("updating gameobject store");
-
   // reconcile will also remove any removed values, in addition to reducing updates
   setGameObjectsStore(
     reconcile({

@@ -31,7 +31,6 @@ export interface CreationProps {
 }
 
 function ArrayCreation(props: CreationProps) {
-  console.log("render array creation");
   // do weird object wrapper to make adding undefined elements possible
   const [items, setItems] = createStore<
     { value: ProtoDataSegment | undefined }[]
