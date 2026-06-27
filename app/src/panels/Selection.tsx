@@ -85,31 +85,31 @@ type ValuesStore = Record<string, ProtoDataSegment | undefined>;
 
 type MethodsStore = Record<string, MethodCellState>;
 
-const searchModes = ["Name", "Type"] as const;
+const SEARCH_MODES = ["Name", "Type"] as const;
 
-type SearchMode = (typeof searchModes)[number];
+type SearchMode = (typeof SEARCH_MODES)[number];
 
-const filterModes = {
+const FILTER_MODES = {
   Fields: true,
   Getters: true,
   Setters: true,
   Methods: true,
 };
 
-type FilterMode = typeof filterModes;
+type FilterMode = typeof FILTER_MODES;
 
-const visibilityModes = [
+const VISIBILITY_MODES = [
   "Show Static Members",
   "Static Members Only",
   "Static Members Last",
   "Hide Static Members",
 ] as const;
 
-type VisibilityMode = (typeof visibilityModes)[number];
+type VisibilityMode = (typeof VISIBILITY_MODES)[number];
 
-const sortModes = ["Default", "Name", "Parameters", "Type"] as const;
+const SORT_MODES = ["Default", "Name", "Parameters", "Type"] as const;
 
-type SortMode = (typeof sortModes)[number];
+type SortMode = (typeof SORT_MODES)[number];
 
 function isField(member: Member): member is ProtoFieldInfo {
   const cast = member as ProtoFieldInfo;
@@ -649,12 +649,12 @@ export function Selection() {
   );
 
   const [search, setSearch] = createSignal("");
-  const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
-  const [filters, setFilters] = createStore({ ...filterModes });
+  const [searchMode, setSearchMode] = createSignal<SearchMode>(SEARCH_MODES[0]);
+  const [filters, setFilters] = createStore({ ...FILTER_MODES });
   const [visibility, setVisibility] = createSignal<VisibilityMode>(
-    visibilityModes[2],
+    VISIBILITY_MODES[2],
   );
-  const [sorting, setSorting] = createSignal<SortMode>(sortModes[0]);
+  const [sorting, setSorting] = createSignal<SortMode>(SORT_MODES[0]);
   const [inverse, setInverse] = createSignal(false);
 
   return (
@@ -702,7 +702,7 @@ export function Selection() {
               >
                 <ModeOptions
                   title="Search Mode"
-                  modes={searchModes}
+                  modes={SEARCH_MODES}
                   current={searchMode()}
                   setCurrent={setSearchMode}
                 />
@@ -727,7 +727,7 @@ export function Selection() {
             >
               <ModeOptions
                 title="Visibility Mode"
-                modes={visibilityModes}
+                modes={VISIBILITY_MODES}
                 current={visibility()}
                 setCurrent={setVisibility}
               />
@@ -741,7 +741,7 @@ export function Selection() {
             >
               <ModeOptions
                 title="Sort Mode"
-                modes={sortModes}
+                modes={SORT_MODES}
                 current={sorting()}
                 setCurrent={setSorting}
               />

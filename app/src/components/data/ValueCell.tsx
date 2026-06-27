@@ -52,7 +52,7 @@ import { DataEditor } from "../Monaco";
 import { DropdownButton } from "../input/DropdownButton";
 import { SelectInput } from "../input/SelectInput";
 
-const variableCases: (
+const VARIABLE_CASES: (
   | NonNullable<ProtoTypeInfo["Info"]>["$case"]
   | undefined
 )[] = ["arrayInfo", "classInfo", "structInfo"];
@@ -348,7 +348,7 @@ function OutputOnlyCell(props: ValueCellProps) {
 
   return (
     <span class={`w-input join ${props.class ?? ""}`}>
-      <Show when={variableCases.includes(props.typeInfo.Info?.$case)}>
+      <Show when={VARIABLE_CASES.includes(props.typeInfo.Info?.$case)}>
         <VariableActions
           typeInfo={props.typeInfo}
           value={props.value}
@@ -372,7 +372,7 @@ function ValueCellWithTitle(props: ValueCellProps) {
   return (
     <Show when={!props.readonly} fallback={<OutputOnlyCell {...props} />}>
       <Show
-        when={variableCases.includes(props.typeInfo.Info?.$case)}
+        when={VARIABLE_CASES.includes(props.typeInfo.Info?.$case)}
         fallback={<ManualInputCell {...props} />}
       >
         <VariableInputCell {...props} />

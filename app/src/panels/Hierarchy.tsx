@@ -28,7 +28,7 @@ import { selectInLastPanel } from "../global/selection";
 import { ProtoScene } from "../proto/unity";
 import { setDataCase, typeForClass } from "../types/serialization";
 
-const sortModes = [
+const SORT_MODES = [
   "Name",
   "Sibling Index",
   "Children Count",
@@ -36,15 +36,15 @@ const sortModes = [
   "Layer",
 ] as const;
 
-type SortMode = (typeof sortModes)[number];
+type SortMode = (typeof SORT_MODES)[number];
 
-const visibilityModes = [
+const VISIBILITY_MODES = [
   "Show Inactive",
   "Inactive Last",
   "Hide Inactive",
 ] as const;
 
-type VisibilityMode = (typeof visibilityModes)[number];
+type VisibilityMode = (typeof VISIBILITY_MODES)[number];
 
 type Hierarchy = { address: string; children: Hierarchy }[];
 
@@ -311,9 +311,9 @@ export function Hierarchy() {
   const [search, setSearch] = createSignal("");
   const [scene, setScene] = createSignal<ProtoScene>(allScene);
   const [visibility, setVisibility] = createSignal<VisibilityMode>(
-    visibilityModes[0],
+    VISIBILITY_MODES[0],
   );
-  const [sorting, setSorting] = createSignal<SortMode>(sortModes[1]);
+  const [sorting, setSorting] = createSignal<SortMode>(SORT_MODES[1]);
   const [inverse, setInverse] = createSignal(false);
 
   const scenes = () => [allScene, ...gameObjectsStore.scenes];
@@ -354,7 +354,7 @@ export function Hierarchy() {
           <DropdownButton title="Visibility" icon={eye} dropdownPosition="end">
             <ModeOptions
               title="Visibility Mode"
-              modes={visibilityModes}
+              modes={VISIBILITY_MODES}
               current={visibility()}
               setCurrent={setVisibility}
             />
@@ -368,7 +368,7 @@ export function Hierarchy() {
           >
             <ModeOptions
               title="Sort Mode"
-              modes={sortModes}
+              modes={SORT_MODES}
               current={sorting()}
               setCurrent={setSorting}
             />

@@ -8,7 +8,7 @@ import { isProtoDataEqual } from "../types/matching";
 import { stringToDataSegment, validString } from "../types/serialization";
 import { createUpdatingParser, dispose } from "../utils/solid";
 
-const sharedOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
+const SHARED_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
   autoDetectHighContrast: false,
   fontLigatures: true,
@@ -52,7 +52,7 @@ export function DataEditor(props: DataEditorProps) {
   const div = <div class={`overflow-clip ${props.class}`} />;
 
   const editor = monaco.editor.create(div as HTMLDivElement, {
-    ...sharedOptions,
+    ...SHARED_OPTIONS,
     language: "json",
     folding: false,
     lineNumbers: "off",

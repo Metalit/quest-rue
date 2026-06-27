@@ -61,7 +61,7 @@ class TwoWayMap {
   }
 }
 
-const primitiveStringMap = new TwoWayMap({
+const PRIMITIVE_STRING_MAP = new TwoWayMap({
   bool: ProtoTypeInfo_Primitive.BOOLEAN,
   char: ProtoTypeInfo_Primitive.CHAR,
   byte: ProtoTypeInfo_Primitive.BYTE,
@@ -77,7 +77,7 @@ const primitiveStringMap = new TwoWayMap({
   unknown: ProtoTypeInfo_Primitive.UNKNOWN,
 });
 
-const shortPrimitiveStringMap = new TwoWayMap({
+const SHORT_PRIMITIVE_STRING_MAP = new TwoWayMap({
   b: ProtoTypeInfo_Primitive.BOOLEAN,
   c: ProtoTypeInfo_Primitive.CHAR,
   y: ProtoTypeInfo_Primitive.BYTE,
@@ -113,8 +113,8 @@ export function stringToProtoType(
   const [byref, trimmed] = getByref(input);
   const lower = trimmed.toLocaleLowerCase();
 
-  if (primitiveStringMap.hasStr(lower)) {
-    const primitiveInfo = primitiveStringMap.get(lower)!;
+  if (PRIMITIVE_STRING_MAP.hasStr(lower)) {
+    const primitiveInfo = PRIMITIVE_STRING_MAP.get(lower)!;
     return setTypeCase({ primitiveInfo }, { byref });
   }
   if (trimmed.endsWith("[]")) {
@@ -203,14 +203,14 @@ export function stringToPrimitive(
   str: string,
   short?: boolean,
 ): ProtoTypeInfo_Primitive | undefined {
-  return (short ? shortPrimitiveStringMap : primitiveStringMap).get(str);
+  return (short ? SHORT_PRIMITIVE_STRING_MAP : PRIMITIVE_STRING_MAP).get(str);
 }
 
 export function primitiveToString(
   primitive: ProtoTypeInfo_Primitive,
   short?: boolean,
 ): string | undefined {
-  return (short ? shortPrimitiveStringMap : primitiveStringMap).getStr(
+  return (short ? SHORT_PRIMITIVE_STRING_MAP : PRIMITIVE_STRING_MAP).getStr(
     primitive,
   );
 }

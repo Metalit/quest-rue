@@ -37,13 +37,13 @@ import { protoTypeToString } from "../types/format";
 import { openFloatingByClick } from "../utils/misc";
 import { createTrigger, createUpdatingSignal } from "../utils/solid";
 
-const searchModes = ["Name", "Type"] as const;
+const SEARCH_MODES = ["Name", "Type"] as const;
 
-type SearchMode = (typeof searchModes)[number];
+type SearchMode = (typeof SEARCH_MODES)[number];
 
-const sortModes = ["Recent", "Name", "Type"] as const;
+const SORT_MODES = ["Recent", "Name", "Type"] as const;
 
-type SortMode = (typeof sortModes)[number];
+type SortMode = (typeof SORT_MODES)[number];
 
 function getSortingField(variable: Variable, idx: number, mode: SortMode) {
   switch (mode) {
@@ -190,8 +190,8 @@ function VariableList(props: {
 
 export function Variables() {
   const [search, setSearch] = createSignal("");
-  const [searchMode, setSearchMode] = createSignal<SearchMode>(searchModes[0]);
-  const [sorting, setSorting] = createSignal<SortMode>(sortModes[0]);
+  const [searchMode, setSearchMode] = createSignal<SearchMode>(SEARCH_MODES[0]);
+  const [sorting, setSorting] = createSignal<SortMode>(SORT_MODES[0]);
   const [inverse, setInverse] = createSignal(false);
 
   const [copyName, setCopyName] = createSignal("");
@@ -279,7 +279,7 @@ export function Variables() {
               current={searchMode()}
               setCurrent={setSearchMode}
               title="Search Mode"
-              modes={searchModes}
+              modes={SEARCH_MODES}
             />
           </DropdownButton>
         </div>
@@ -295,7 +295,7 @@ export function Variables() {
             current={sorting()}
             setCurrent={setSorting}
             title="Sort Mode"
-            modes={sortModes}
+            modes={SORT_MODES}
           />
         </SideDropdownButton>
       </div>

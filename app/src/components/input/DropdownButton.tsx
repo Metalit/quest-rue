@@ -9,7 +9,7 @@ import { uniqueNumber } from "../../utils/misc";
 import { Trigger, setTrigger } from "../../utils/solid";
 import { IconPath } from "../../utils/typing";
 
-const dropdownPositions = {
+const DROPDOWN_POSITIONS = {
   start: "dropdown-start",
   center: "dropdown-center",
   end: "dropdown-end",
@@ -19,10 +19,10 @@ const dropdownPositions = {
   right: "dropdown-right",
 };
 
-export type DropdownPositions = keyof typeof dropdownPositions;
+export type DropdownPositions = keyof typeof DROPDOWN_POSITIONS;
 
 export const dropdownPosition = (pos?: DropdownPositions) =>
-  dropdownPositions[pos ?? "start"];
+  DROPDOWN_POSITIONS[pos ?? "start"];
 
 const Title = (props: { title: string }) => (
   <span class="text-sm text-secondary-content p-1">{props.title}</span>
@@ -93,7 +93,7 @@ export function DropdownButton(props: DropdownButtonProps) {
 
   const id = uniqueNumber();
 
-  const pos = () => dropdownPositions[props.dropdownPosition ?? "start"];
+  const pos = () => DROPDOWN_POSITIONS[props.dropdownPosition ?? "start"];
 
   setTrigger(
     () => props.hideTrigger,
