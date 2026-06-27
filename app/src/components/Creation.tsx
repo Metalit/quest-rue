@@ -1,12 +1,12 @@
 import { Icon } from "solid-heroicons";
 import { plus, xMark } from "solid-heroicons/outline";
 import {
+  For,
+  JSXElement,
+  Show,
   batch,
   createRenderEffect,
   createSignal,
-  For,
-  JSX,
-  Show,
 } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
@@ -52,7 +52,7 @@ function ArrayCreation(props: CreationProps) {
     extractCase(props.typeInfo.Info, "arrayInfo")!.memberType!;
 
   const [slotIndex, setSlotIndex] = createSignal(0);
-  const [slot, setSlot] = createSignal<JSX.Element>();
+  const [slot, setSlot] = createSignal<JSXElement>();
 
   return (
     <div class="flex flex-col gap-1">

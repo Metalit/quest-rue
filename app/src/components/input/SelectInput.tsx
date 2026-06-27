@@ -1,23 +1,22 @@
 /* eslint-disable solid/style-prop */
 import {
+  For,
+  JSX,
   batch,
   createEffect,
   createSignal,
-  For,
-  JSX,
   splitProps,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
+import { DropdownPositions, dropdownPosition } from "./DropdownButton";
 import { uniqueNumber } from "../../utils/misc";
 import { createUpdatingSignal } from "../../utils/solid";
-import { dropdownPosition, DropdownPositions } from "./DropdownButton";
 
-interface SelectInputProps<V, O>
-  extends Omit<
-    JSX.InputHTMLAttributes<HTMLInputElement>,
-    "ref" | "onInput" | "onChange" | "onFocus" | "onBlur" | "value"
-  > {
+interface SelectInputProps<V, O> extends Omit<
+  JSX.InputHTMLAttributes<HTMLInputElement>,
+  "ref" | "onInput" | "onChange" | "onFocus" | "onBlur" | "value"
+> {
   value: V;
   options: O[];
   showUndefined?: boolean;

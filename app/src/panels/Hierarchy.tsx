@@ -7,21 +7,21 @@ import {
   eye,
   viewfinderCircle,
 } from "solid-heroicons/outline";
-import { createMemo, createSignal, Show } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 import {
+  SetStoreFunction,
   createStore,
   reconcile,
-  SetStoreFunction,
   unwrap,
 } from "solid-js/store";
 
+import { VirtualList } from "../components/VirtualList";
 import {
   DropdownButton,
   ModeOptions,
   SideDropdownButton,
 } from "../components/input/DropdownButton";
 import { SelectInput } from "../components/input/SelectInput";
-import { VirtualList } from "../components/VirtualList";
 import { useDockview } from "../dockview/Api";
 import { gameObjectsStore } from "../global/hierarchy";
 import { selectInLastPanel } from "../global/selection";

@@ -1,8 +1,8 @@
 import { Accessor, batch, createSignal, untrack } from "solid-js";
-import toast from "solid-toast";
+import { toast } from "solid-toast";
 
-import { PacketWrapper } from "../proto/qrue";
 import { loadRecordedData, mockHandleMessage } from "./mock";
+import { PacketWrapper } from "../proto/qrue";
 
 export type Callback<T> = (value: T) => void;
 

@@ -11,12 +11,12 @@ import {
 } from "dockview-core";
 import {
   Component,
+  JSXElement,
+  Owner,
   createEffect,
   createRoot,
   createSignal,
-  JSX,
   onCleanup,
-  Owner,
 } from "solid-js";
 
 import {
@@ -54,7 +54,7 @@ abstract class CustomRenderer<T> {
   }
 
   // for compiler reasons this needs to be created in JSX for hmr to work
-  protected _provide: (_params: T) => JSX.Element = () => <this._create />;
+  protected _provide: (_params: T) => JSXElement = () => <this._create />;
   protected provide: typeof this._provide = this._provide;
 }
 

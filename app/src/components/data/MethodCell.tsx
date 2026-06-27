@@ -5,18 +5,21 @@ import {
   chevronLeft,
 } from "solid-heroicons/outline";
 import {
+  For,
+  JSXElement,
+  Show,
   batch,
   createEffect,
   createRenderEffect,
   createSignal,
-  For,
-  JSX,
-  Show,
   untrack,
 } from "solid-js";
-import { createStore, SetStoreFunction } from "solid-js/store";
-import toast from "solid-toast";
+import { SetStoreFunction, createStore } from "solid-js/store";
+import { toast } from "solid-toast";
 
+import { CellPinButton, CellTextLabel } from "./CellShared";
+import { TypeCell } from "./TypeCell";
+import { ValueCell } from "./ValueCell";
 import { useRequestAndResponsePacket } from "../../global/packets";
 import { ScopedVariable } from "../../global/variables";
 import {
@@ -38,11 +41,8 @@ import {
   methodInfoId,
   stringToDataSegment,
 } from "../../types/serialization";
-import { ActionButton } from "../input/ActionButton";
 import { MaxColsGrid } from "../MaxColsGrid";
-import { CellPinButton, CellTextLabel } from "./CellShared";
-import { TypeCell } from "./TypeCell";
-import { ValueCell } from "./ValueCell";
+import { ActionButton } from "../input/ActionButton";
 
 export interface MethodCellState {
   ret?: ProtoDataPayload;
@@ -161,7 +161,7 @@ function MethodCellArguments(props: {
   });
 
   const [slotIndex, setSlotIndex] = createSignal(0);
-  const [slot, setSlot] = createSignal<JSX.Element>();
+  const [slot, setSlot] = createSignal<JSXElement>();
 
   return (
     <div class="py-1 flex flex-col">
@@ -247,7 +247,7 @@ export function MethodCell(props: MethodCellProps) {
     () => props.setState,
   );
 
-  const [slot, setSlot] = createSignal<JSX.Element>();
+  const [slot, setSlot] = createSignal<JSXElement>();
 
   const [expanded, setExpanded] = createSignal(false);
 

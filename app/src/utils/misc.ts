@@ -1,4 +1,4 @@
-import toast from "solid-toast";
+import { toast } from "solid-toast";
 
 import { AddPanelCustom, DockviewInterface } from "../dockview/Api";
 

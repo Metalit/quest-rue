@@ -1,7 +1,7 @@
+import { sendPacketResult } from "./packets";
 import { ProtoClassDetails, ProtoClassInfo } from "../proto/il2cpp";
 import { GetClassDetailsResult } from "../proto/qrue";
 import { protoClassToString } from "../types/format";
-import { sendPacketResult } from "./packets";
 
 const classDetailsCache: {
   [classString: string]: ProtoClassDetails | undefined;

@@ -1,4 +1,4 @@
-import { createRenderEffect, lazy, Show } from "solid-js";
+import { Show, createRenderEffect, lazy } from "solid-js";
 import { Toaster } from "solid-toast";
 
 import { darkMode } from "./global/settings";

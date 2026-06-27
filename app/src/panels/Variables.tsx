@@ -11,10 +11,10 @@ import {
   square_2Stack,
   xMark,
 } from "solid-heroicons/outline";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 
 import { Creation } from "../components/Creation";
-import { fillTypeInfo, TypeCell } from "../components/data/TypeCell";
+import { TypeCell, fillTypeInfo } from "../components/data/TypeCell";
 import {
   DropdownButton,
   ModeOptions,
@@ -24,18 +24,18 @@ import { SelectInput } from "../components/input/SelectInput";
 import { useDockview } from "../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../global/selection";
 import {
+  Variable,
   canMakeVariable,
   copyVariable,
   createScopedVariable,
   removeVariable,
   renameVariable,
-  Variable,
   variables,
 } from "../global/variables";
 import { ProtoTypeInfo } from "../proto/il2cpp";
 import { protoTypeToString } from "../types/format";
-import { createTrigger, createUpdatingSignal } from "../utils/solid";
 import { openFloatingByClick } from "../utils/misc";
+import { createTrigger, createUpdatingSignal } from "../utils/solid";
 
 const searchModes = ["Name", "Type"] as const;
 

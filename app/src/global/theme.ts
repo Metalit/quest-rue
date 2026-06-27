@@ -1,5 +1,10 @@
 import { createRenderEffect } from "solid-js";
-import { darkMode, monoFont, setDarkMode as setDarkModeInternal } from "./settings";
+
+import {
+  darkMode,
+  monoFont,
+  setDarkMode as setDarkModeInternal,
+} from "./settings";
 
 type Override = "light" | "dark";
 

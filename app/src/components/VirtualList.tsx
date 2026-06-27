@@ -1,12 +1,12 @@
 import { createResizeObserver } from "@solid-primitives/resize-observer";
 import {
-  JSX,
+  For,
+  JSXElement,
+  createEffect,
   createMemo,
   createSignal,
-  onMount,
-  For,
-  createEffect,
   on,
+  onMount,
 } from "solid-js";
 
 // In order for items to be able to update without changing the scroll position,
@@ -15,7 +15,7 @@ import {
 export function VirtualList<T>(props: {
   itemHeight: number;
   items: T[];
-  generator: (value: T) => JSX.Element;
+  generator: (value: T) => JSXElement;
   class?: string;
 }) {
   let container!: HTMLDivElement;
@@ -38,7 +38,7 @@ export function VirtualList<T>(props: {
     setTopIndex(Math.floor((container.scrollTop ?? 0) / props.itemHeight));
 
   // cache rendered items to run the generator less
-  const childrenCache = new Map<T, JSX.Element>();
+  const childrenCache = new Map<T, JSXElement>();
 
   const buildFromCache = (key: T) => {
     let element = childrenCache.get(key);

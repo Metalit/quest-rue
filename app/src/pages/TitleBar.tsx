@@ -8,11 +8,16 @@ import {
   viewColumns,
   xMark,
 } from "solid-heroicons/outline";
-import { createSignal, ParentProps, Show } from "solid-js";
+import { ParentProps, Show, createSignal } from "solid-js";
 
 import { DropdownButton } from "../components/input/DropdownButton";
 import SegmentedControl from "../components/input/SegmentedControl";
 import { updateGameObjects } from "../global/hierarchy";
+import {
+  isRecordingData,
+  startRecordingData,
+  stopRecordingData,
+} from "../global/mock";
 import {
   columnCount,
   darkMode,
@@ -23,13 +28,8 @@ import {
   setMonoFont,
 } from "../global/settings";
 import { socket } from "../global/socket";
-import { IconPath } from "../utils/typing";
 import { setDarkMode } from "../global/theme";
-import {
-  isRecordingData,
-  startRecordingData,
-  stopRecordingData,
-} from "../global/mock";
+import { IconPath } from "../utils/typing";
 
 function OptionsMenu() {
   const [clearMock, setClearMock] = createSignal(false);

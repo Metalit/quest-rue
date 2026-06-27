@@ -2,6 +2,7 @@ import * as monaco from "monaco-editor";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+
 import { base100, base200, base50, content, secondary, shadow } from "./theme";
 
 // @ts-expect-error this is just how they say to do it, idk it's weird
@@ -14,8 +15,8 @@ self.MonacoEnvironment = {
 };
 
 const makeColors = (theme: "light" | "dark") => ({
-  "focusBorder": content(theme),
-  "contrastBorder": shadow(theme),
+  focusBorder: content(theme),
+  contrastBorder: shadow(theme),
   "editor.foreground": content(theme),
   "editor.background": base50(theme),
   "editor.selectionBackground": base200(theme),

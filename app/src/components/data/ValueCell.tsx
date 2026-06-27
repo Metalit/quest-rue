@@ -9,8 +9,16 @@ import {
   plus,
   xMark,
 } from "solid-heroicons/outline";
-import { createMemo, createSignal, JSX, Match, Show, Switch } from "solid-js";
+import {
+  JSXElement,
+  Match,
+  Show,
+  Switch,
+  createMemo,
+  createSignal,
+} from "solid-js";
 
+import { TypeCell } from "./TypeCell";
 import { useDockview } from "../../dockview/Api";
 import { selectInLastPanel, selectInNewPanel } from "../../global/selection";
 import {
@@ -40,10 +48,9 @@ import {
 } from "../../utils/solid";
 import { extractCase } from "../../utils/typing";
 import { Creation } from "../Creation";
+import { DataEditor } from "../Monaco";
 import { DropdownButton } from "../input/DropdownButton";
 import { SelectInput } from "../input/SelectInput";
-import { DataEditor } from "../Monaco";
-import { TypeCell } from "./TypeCell";
 
 const variableCases: (
   | NonNullable<ProtoTypeInfo["Info"]>["$case"]
@@ -58,14 +65,14 @@ interface ValueCellProps {
   placeholder?: string;
   value?: ProtoDataSegment;
   onChange?: (value: ProtoDataSegment) => void;
-  setSlot?: (element: JSX.Element) => void;
+  setSlot?: (element: JSXElement) => void;
 }
 
 function VariableActions(props: {
   typeInfo: ProtoTypeInfo;
   value?: ProtoDataSegment;
   onChange?: (value: ProtoDataSegment) => void;
-  slot?: (element: JSX.Element) => void;
+  slot?: (element: JSXElement) => void;
   readonly?: boolean;
 }) {
   const api = useDockview();

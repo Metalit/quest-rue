@@ -1,15 +1,15 @@
 import { createElementSize } from "@solid-primitives/resize-observer";
 import {
   CreateComponentOptions,
-  createDockview,
   DockviewOptions,
+  createDockview,
 } from "dockview-core";
 import {
   Component,
+  JSX,
   createEffect,
   createRenderEffect,
   getOwner,
-  JSX,
   onCleanup,
   splitProps,
 } from "solid-js";

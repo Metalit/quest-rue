@@ -5,7 +5,7 @@ import {
   plus,
   xMark,
 } from "solid-heroicons/outline";
-import { For, onCleanup, onMount, Show } from "solid-js";
+import { For, Show, onCleanup, onMount } from "solid-js";
 
 import { DropdownButton } from "../components/input/DropdownButton";
 import {

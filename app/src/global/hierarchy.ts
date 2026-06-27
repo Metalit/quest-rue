@@ -1,9 +1,9 @@
 import { createStore, reconcile } from "solid-js/store";
 
+import { sendPacketResult } from "./packets";
 import { GetAllGameObjectsResult } from "../proto/qrue";
 import { ProtoGameObject, ProtoScene } from "../proto/unity";
 import { bigToString } from "../utils/misc";
-import { sendPacketResult } from "./packets";
 
 // addresses are transform adresses
 interface GameObjectsStore {

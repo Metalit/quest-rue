@@ -1,8 +1,9 @@
-import toast from "solid-toast";
-import { PacketWrapper } from "../proto/qrue";
-import { Callback, socket } from "./socket";
 import { invoke } from "@tauri-apps/api/core";
 import { createSignal, untrack } from "solid-js";
+import { toast } from "solid-toast";
+
+import { Callback, socket } from "./socket";
+import { PacketWrapper } from "../proto/qrue";
 import { fromBase64, isTauri, toBase64 } from "../utils/misc";
 
 let mockFile: Record<string, string> = {};

@@ -1,6 +1,7 @@
 import { Icon } from "solid-heroicons";
 import { star as starOutline } from "solid-heroicons/outline";
 import { star as starFilled } from "solid-heroicons/solid";
+
 import { memberPins, setMemberPins } from "../../global/settings";
 
 export function CellTextLabel(props: { text: string; class?: string }) {

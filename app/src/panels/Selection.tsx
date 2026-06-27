@@ -12,23 +12,24 @@ import {
   magnifyingGlass,
 } from "solid-heroicons/outline";
 import {
+  For,
+  JSXElement,
+  Show,
   batch,
   createEffect,
   createMemo,
   createSignal,
-  For,
-  JSX,
   onCleanup,
-  Show,
 } from "solid-js";
 import {
+  SetStoreFunction,
   createStore,
   reconcile,
-  SetStoreFunction,
   unwrap,
 } from "solid-js/store";
-import toast from "solid-toast";
+import { toast } from "solid-toast";
 
+import { MaxColsGrid } from "../components/MaxColsGrid";
 import { FieldCell } from "../components/data/FieldCell";
 import { MethodCell, MethodCellState } from "../components/data/MethodCell";
 import { PropertyCell } from "../components/data/PropertyCell";
@@ -39,7 +40,6 @@ import {
   ModeOptions,
   SideDropdownButton,
 } from "../components/input/DropdownButton";
-import { MaxColsGrid } from "../components/MaxColsGrid";
 import { useDockview, useDockviewPanel } from "../dockview/Api";
 import { getClassDetails } from "../global/cache";
 import { sendPacketResult } from "../global/packets";
@@ -254,7 +254,7 @@ function hasPins(details?: ProtoClassDetails): boolean {
 
 function StyledCellGrid<T>(props: {
   items: T[];
-  item: (val: T) => JSX.Element;
+  item: (val: T) => JSXElement;
 }) {
   return (
     <Show when={props.items.length > 0}>

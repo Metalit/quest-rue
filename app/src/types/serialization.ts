@@ -1,3 +1,4 @@
+import { protoTypeToString, stringToProtoType } from "./format";
 import {
   ProtoDataPayload,
   ProtoDataSegment,
@@ -10,7 +11,6 @@ import {
 } from "../proto/il2cpp";
 import { stringToBig } from "../utils/misc";
 import { UnionOmit, setCase } from "../utils/typing";
-import { protoTypeToString, stringToProtoType } from "./format";
 
 type DataTypes = UnionOmit<NonNullable<ProtoDataSegment["Data"]>, "$case">;
 type TypeTypes = UnionOmit<NonNullable<ProtoTypeInfo["Info"]>, "$case">;

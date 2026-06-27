@@ -1,7 +1,9 @@
 import { JSX, splitProps } from "solid-js";
 
-interface ToggleProps
-  extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, "onToggle"> {
+interface ToggleProps extends Omit<
+  JSX.HTMLAttributes<HTMLSpanElement>,
+  "onToggle"
+> {
   value: boolean;
   onToggle: (b: boolean) => void;
   disabled?: boolean;

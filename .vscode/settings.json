@@ -25,5 +25,8 @@
     },
     "typescript.tsdk": "./app/node_modules/typescript/lib",
     "editor.tabSize": 2,
-    "rust-analyzer.linkedProjects": ["app/src-tauri/Cargo.toml"]
+    "rust-analyzer.linkedProjects": [
+        "app/src-tauri/Cargo.toml"
+    ],
+    "prettier.prettierPath": "./node_modules/prettier"
 }

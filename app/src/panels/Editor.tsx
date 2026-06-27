@@ -1,9 +1,9 @@
 import { Icon } from "solid-heroicons";
 import { check } from "solid-heroicons/outline";
-import { createEffect, createSignal, Show } from "solid-js";
+import { Show, createEffect, createSignal } from "solid-js";
 
-import { SelectInput } from "../components/input/SelectInput";
 import { DataEditor } from "../components/Monaco";
+import { SelectInput } from "../components/input/SelectInput";
 import { useDockviewPanel } from "../dockview/Api";
 import { getVariable, updateVariable, variables } from "../global/variables";
 

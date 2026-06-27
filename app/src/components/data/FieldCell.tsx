@@ -1,6 +1,8 @@
 import { arrowPath } from "solid-heroicons/outline";
-import { createEffect, createSignal, JSX, Show } from "solid-js";
+import { JSXElement, Show, createEffect, createSignal } from "solid-js";
 
+import { CellPinButton, CellTextLabel } from "./CellShared";
+import { ValueCell } from "./ValueCell";
 import { useRequestAndResponsePacket } from "../../global/packets";
 import {
   ProtoDataPayload,
@@ -12,8 +14,6 @@ import { isProtoDataEqual } from "../../types/matching";
 import { fieldInfoId } from "../../types/serialization";
 import { extractCase } from "../../utils/typing";
 import { ActionButton } from "../input/ActionButton";
-import { CellPinButton, CellTextLabel } from "./CellShared";
-import { ValueCell } from "./ValueCell";
 
 interface FieldCellProps {
   field: ProtoFieldInfo;
@@ -85,7 +85,7 @@ export function FieldCell(props: FieldCellProps) {
     props.value && ProtoDataSegment.fromPartial(props.value),
   );
 
-  const [slot, setSlot] = createSignal<JSX.Element>();
+  const [slot, setSlot] = createSignal<JSXElement>();
 
   return (
     <div class="flex flex-col gap-1">

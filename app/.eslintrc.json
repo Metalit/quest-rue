@@ -8,7 +8,9 @@
     "eslint:recommended",
     "plugin:solid/typescript",
     "plugin:@typescript-eslint/recommended",
-    "plugin:jsx-a11y/recommended"
+    "plugin:jsx-a11y/recommended",
+    "plugin:import-x/recommended",
+    "plugin:import-x/typescript"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -18,7 +20,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["solid", "@typescript-eslint", "jsx-a11y"],
+  "plugins": ["solid", "@typescript-eslint", "jsx-a11y", "import-x"],
   "rules": {
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-namespace": "off",
@@ -28,6 +30,20 @@
       { "customReactiveFunctions": ["setTrigger", "getRunner"] }
     ],
     "jsx-a11y/label-has-associated-control": "off", // https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/894
-    "prefer-const": ["error", { "destructuring": "all" }]
+    "prefer-const": ["error", { "destructuring": "all" }],
+    "import-x/first": "warn",
+    "import-x/newline-after-import": "warn",
+    "import-x/order": [
+      "warn",
+      {
+        "groups": ["builtin", "external", ["sibling", "parent"]],
+        "alphabetize": { "order": "asc" },
+        "named": true,
+        "newlines-between": "always"
+      }
+    ]
+  },
+  "settings": {
+    "import-x/ignore": ["\\.worker\\."]
   }
 }

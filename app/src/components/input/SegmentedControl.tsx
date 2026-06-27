@@ -1,7 +1,9 @@
 import { For, JSX, splitProps } from "solid-js";
 
-interface SegmentedControlProps<T>
-  extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, "onChange"> {
+interface SegmentedControlProps<T> extends Omit<
+  JSX.HTMLAttributes<HTMLSpanElement>,
+  "onChange"
+> {
   value: T;
   values: T[];
   onChange: (s: T) => void;

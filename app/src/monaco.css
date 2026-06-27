@@ -74,7 +74,7 @@
     }
   }
 
-  &+.context-view {
+  & + .context-view {
     display: none !important;
   }
 }

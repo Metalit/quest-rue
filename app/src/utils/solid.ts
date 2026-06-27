@@ -1,5 +1,7 @@
 import {
   Accessor,
+  Signal,
+  SignalOptions,
   batch,
   createEffect,
   createRenderEffect,
@@ -7,10 +9,8 @@ import {
   getOwner,
   onCleanup,
   runWithOwner,
-  Signal,
-  SignalOptions,
 } from "solid-js";
-import { createStore, SetStoreFunction, Store } from "solid-js/store";
+import { SetStoreFunction, Store, createStore } from "solid-js/store";
 
 /**
  * A signal that resets its value when its dependencies change

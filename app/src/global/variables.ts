@@ -1,6 +1,8 @@
 import { batch, createSignal, onCleanup, untrack } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
+import { getClassDetails, tryGetCachedClassDetails } from "./cache";
+import { sendPacket, sendPacketResult } from "./packets";
 import {
   ProtoDataPayload,
   ProtoDataSegment,
@@ -19,8 +21,6 @@ import {
 } from "../types/serialization";
 import { bigToString, uniqueNumber } from "../utils/misc";
 import { extractCase } from "../utils/typing";
-import { getClassDetails, tryGetCachedClassDetails } from "./cache";
-import { sendPacket, sendPacketResult } from "./packets";
 
 export type Variable = {
   id: number;

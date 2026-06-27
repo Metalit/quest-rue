@@ -10,12 +10,12 @@ import {
 } from "dockview-core";
 import {
   Component,
+  ParentProps,
   createContext,
   createEffect,
   createRoot,
   createSignal,
   onCleanup,
-  ParentProps,
   untrack,
   useContext,
 } from "solid-js";

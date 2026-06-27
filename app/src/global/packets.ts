@@ -6,12 +6,12 @@ import {
   onCleanup,
   untrack,
 } from "solid-js";
-import toast from "solid-toast";
+import { toast } from "solid-toast";
 
+import { Callback, socket } from "./socket";
 import { PacketWrapper } from "../proto/qrue";
 import { uniqueBigNumber } from "../utils/misc";
 import { UnionOmit, setCase } from "../utils/typing";
-import { Callback, socket } from "./socket";
 
 type PacketTypesFull = NonNullable<PacketWrapper["Packet"]>;
 type PacketTypes = UnionOmit<PacketTypesFull, "$case">;

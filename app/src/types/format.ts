@@ -1,3 +1,4 @@
+import { protoDataToRealValue, setTypeCase } from "./serialization";
 import {
   ProtoClassInfo,
   ProtoDataSegment,
@@ -6,7 +7,6 @@ import {
   ProtoTypeInfo_Primitive,
 } from "../proto/il2cpp";
 import { bigToString } from "../utils/misc";
-import { protoDataToRealValue, setTypeCase } from "./serialization";
 
 export function protoDataToString(
   data?: ProtoDataSegment,

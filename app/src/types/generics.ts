@@ -1,3 +1,4 @@
+import { areProtoTypesEqual } from "./matching";
 import {
   ProtoDataPayload,
   ProtoMethodInfo,
@@ -6,7 +7,6 @@ import {
 } from "../proto/il2cpp";
 import { bigToString } from "../utils/misc";
 import { extractCase } from "../utils/typing";
-import { areProtoTypesEqual } from "./matching";
 
 export type GenericsMap = Record<
   string,

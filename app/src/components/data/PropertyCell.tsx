@@ -1,7 +1,9 @@
 import { arrowPath, arrowRightOnRectangle } from "solid-heroicons/outline";
-import { createEffect, createSignal, JSX, Show } from "solid-js";
-import toast from "solid-toast";
+import { JSXElement, Show, createEffect, createSignal } from "solid-js";
+import { toast } from "solid-toast";
 
+import { CellPinButton, CellTextLabel } from "./CellShared";
+import { ValueCell } from "./ValueCell";
 import { useRequestAndResponsePacket } from "../../global/packets";
 import {
   ProtoDataPayload,
@@ -11,8 +13,6 @@ import {
 import { InvokeMethodResult } from "../../proto/qrue";
 import { propertyInfoId } from "../../types/serialization";
 import { ActionButton } from "../input/ActionButton";
-import { CellPinButton, CellTextLabel } from "./CellShared";
-import { ValueCell } from "./ValueCell";
 
 interface PropertyCellProps {
   property: ProtoPropertyInfo;
@@ -64,7 +64,7 @@ export function PropertyCell(props: PropertyCellProps) {
       },
     });
 
-  const [slot, setSlot] = createSignal<JSX.Element>();
+  const [slot, setSlot] = createSignal<JSXElement>();
 
   return (
     <div class="flex flex-col gap-1">
