@@ -313,7 +313,7 @@ export function Hierarchy() {
   const [visibility, setVisibility] = createSignal<VisibilityMode>(
     visibilityModes[0],
   );
-  const [sorting, setSorting] = createSignal<SortMode>(sortModes[0]);
+  const [sorting, setSorting] = createSignal<SortMode>(sortModes[1]);
   const [inverse, setInverse] = createSignal(false);
 
   const scenes = () => [allScene, ...gameObjectsStore.scenes];
