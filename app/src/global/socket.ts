@@ -187,6 +187,7 @@ class MockWebSocket extends QuestRUESocket {
   }
 }
 
-export const socket: QuestRUESocket = import.meta.env.VITE_MOCK
-  ? new MockWebSocket()
-  : new NodeWebSocket();
+export const socket: QuestRUESocket =
+  import.meta.env.DEV && import.meta.env.VITE_MOCK
+    ? new MockWebSocket()
+    : new NodeWebSocket();
