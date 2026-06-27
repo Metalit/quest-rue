@@ -38,14 +38,13 @@ export function VirtualList<T>(props: {
     setTopIndex(Math.floor((container.scrollTop ?? 0) / props.itemHeight));
 
   // cache rendered items to run the generator less
-  const childrenCache = () => new Map<T, JSX.Element>();
+  const childrenCache = new Map<T, JSX.Element>();
 
   const buildFromCache = (key: T) => {
-    const cache = childrenCache();
-    let element = cache.get(key);
+    let element = childrenCache.get(key);
     if (!element) {
       element = props.generator(key);
-      cache.set(key, element);
+      childrenCache.set(key, element);
     }
     return element;
   };
@@ -53,9 +52,7 @@ export function VirtualList<T>(props: {
   // unfortunately we do need to clear the cache when props.items changes even though elements might stay the same
   // as otherwise it would only ever grow if the list gets replaced repeatedly
   createEffect(
-    on([() => props.generator, () => props.items], () => {
-      childrenCache().clear();
-    }),
+    on([() => props.generator, () => props.items], () => childrenCache.clear()),
   );
 
   const renderableItems = createMemo(() =>
