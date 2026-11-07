@@ -34,5 +34,5 @@ if ($gameAgnostic.IsPresent) {
     $def = "OFF"
 }
 
-& cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DBEAT_SABER="$def" -B build -Wno-dev
+& cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DCMAKE_POLICY_VERSION_MINIMUM="3.5" -DBEAT_SABER="$def" -B build -Wno-dev
 & cmake --build ./build
