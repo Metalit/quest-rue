@@ -11,5 +11,4 @@ data/mock.json
 *.njsproj
 *.sln
 *.sw?
-pnpm-workspace.yaml
 vite.config.ts.timestamp-*

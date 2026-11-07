@@ -19,7 +19,7 @@ jobs:
         working-directory: ./qmod
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         name: Checkout
         with:
           submodules: true
@@ -40,55 +40,59 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cpm-packages-
 
-      - uses: seanmiddleditch/gha-setup-ninja@v3
+      - name: Setup older NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r27
+          add-to-path: false
 
       - name: Create ndkpath.txt
         run: |
-          echo "$ANDROID_NDK_LATEST_HOME" > ./ndkpath.txt
+          echo "${{ steps.setup-ndk.outputs.ndk-path }}" > ./ndkpath.txt
           cat ./ndkpath.txt
 
-      - name: QPM Action
+      - name: Setup QPM
         uses: Fernthedev/qpm-action@v1
         with:
           workflow_token: ${{ secrets.GITHUB_TOKEN }}
           package_path: ./qmod
           restore: true
+          resolve_ndk: false
           cache: true
-          publish: false
 
-      - name: Build & create qmod
+      - name: Build & Create QMOD
         run: |
           qpm s qmod
 
-      - name: Get Library Name
-        id: libname
+      - name: Get Output Names
+        id: names
         run: |
-          cd ./build/
+          pattern="*.qmod"
+          files=( $pattern )
+          echo QMOD="${files[0]}" >> $GITHUB_OUTPUT
+          cd build
           pattern="lib${module_id}*.so"
           files=( $pattern )
-          echo NAME="${files[0]}" >> $GITHUB_OUTPUT
+          echo LIB="${files[0]}" >> $GITHUB_OUTPUT
 
-      - name: Rename debug
-        run: |
-          mv ${GITHUB_WORKSPACE}/qmod/build/debug/${{ steps.libname.outputs.NAME }} ${GITHUB_WORKSPACE}/qmod/build/debug/debug_${{ steps.libname.outputs.NAME }}
-
-      - name: Upload non-debug artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v6
         with:
-          name: ${{ steps.libname.outputs.NAME }}
-          path: ${{ github.workspace }}/qmod/build/${{ steps.libname.outputs.NAME }}
+          name: ${{ steps.names.outputs.LIB }}
+          path: ./build/${{ steps.names.outputs.LIB }}
           if-no-files-found: error
 
-      - name: Upload debug artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Debug Artifact
+        uses: actions/upload-artifact@v6
         with:
-          name: debug_${{ steps.libname.outputs.NAME }}
-          path: ${{ github.workspace }}/qmod/build/debug/debug_${{ steps.libname.outputs.NAME }}
+          name: debug_${{ steps.names.outputs.LIB }}
+          path: ./build/debug/${{ steps.names.outputs.LIB }}
           if-no-files-found: error
 
-      - name: Upload qmod artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload QMOD Artifact
+        uses: actions/upload-artifact@v6
         with:
-          name: ${{ env.qmodName }}.qmod
-          path: ${{ github.workspace }}/qmod/${{ env.qmodName }}.qmod
+          name: ${{ steps.names.outputs.QMOD }}
+          path: ./${{ steps.names.outputs.QMOD }}
           if-no-files-found: error
