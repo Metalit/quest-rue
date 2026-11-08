@@ -80,19 +80,19 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.names.outputs.LIB }}
-          path: ./build/${{ steps.names.outputs.LIB }}
+          path: ./qmod/build/${{ steps.names.outputs.LIB }}
           if-no-files-found: error
 
       - name: Upload Debug Artifact
         uses: actions/upload-artifact@v6
         with:
           name: debug_${{ steps.names.outputs.LIB }}
-          path: ./build/debug/${{ steps.names.outputs.LIB }}
+          path: ./qmod/build/debug/${{ steps.names.outputs.LIB }}
           if-no-files-found: error
 
       - name: Upload QMOD Artifact
         uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.names.outputs.QMOD }}
-          path: ./${{ steps.names.outputs.QMOD }}
+          path: ./qmod/${{ steps.names.outputs.QMOD }}
           if-no-files-found: error
